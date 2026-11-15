@@ -23,6 +23,7 @@ const SO = {
   },
   preview(who, txt, kind) {   /* 채팅 단추 옆에 4초 · 첫 6판 · 창 · 보스 대마법 · 처음 안내 중엔 안 띄움 */
     if ((st.best || 0) < 6 || this.open || ($('modal') && $('modal').style.display === 'flex') || ['prompt', 'cast'].includes(S.phase)) return;
+    { const gd = $('guide'); if (gd && gd.textContent.trim() && !gd.classList.contains('dim') && +getComputedStyle(gd).opacity > 0.3) return; }   /* 11-15 눈 확인(효과재기): 채팅 한 줄이 아래 안내 「영웅은 군단을 강하게 해요」 위에 겹쳐 둘 다 못 읽음 → 안내가 보일 땐 채팅 한 줄 안 띄움 */
     let pv = $('chatpv'); if (!pv) { pv = document.createElement('div'); pv.id = 'chatpv'; pv.addEventListener('click', () => this.openChat()); ($('app') || document.body).appendChild(pv); }
     { const sb = $('skillbar'), ap = ($('app') || document.body).getBoundingClientRect(); if (sb) { const r = sb.getBoundingClientRect(); pv.style.top = (r.top - ap.top - 22) + 'px'; pv.style.left = '6px'; pv.style.right = 'auto'; } }   /* 09:30 싸움터 가운데를 가려서 → 아래 왼쪽 구석(스킬 줄 바로 위) */
     pv.innerHTML = kind === 'sys' ? `<span class="sy">${txt}</span>` : `<b>${who}</b> ${txt}`; pv.classList.add('on'); this.pvT = 4.5;
