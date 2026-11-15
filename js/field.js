@@ -34,10 +34,12 @@ const HF = {
   drawTags() {   /* 영웅 이름표: 위에서부터 놓고, 먼저 놓인 표와 겹치면 그 아래로 한 칸씩 비킴(최대 6번) */
     const T = this.tags; this.tags = []; if (!T.length) return; T.sort((p, q) => p.m.f - q.m.f); const placed = [];
     if (!TRAILER && S.phase !== 'cast') { const M = ctx.getTransform(), fz = Math.round(13 * Math.min(WK(), 2.2)); ctx.save(); ctx.font = `900 ${fz}px ${SERIF}`; const w = ctx.measureText('♛ ' + L.ui.lordTag).width + fz * 1.6; ctx.restore(); placed.push({ x: M.a * (230 + LDX() - w / 2) + M.e, y: M.d * (614 - fz * 0.8) + M.f, w: w * M.a, h: fz * 1.6 * M.d }); }   /* 지배자 이름표 자리도 피함 */
+    { const cr = cv.getBoundingClientRect(), kx = cv.width / (cr.width || 1), ky = cv.height / (cr.height || 1); for (const b of document.querySelectorAll('#slots > *, #raiseBtn, #cast')) { const r = b.getBoundingClientRect(); if (!r.width || getComputedStyle(b).display === 'none' || getComputedStyle(b).visibility === 'hidden') continue; placed.push({ x: (r.left - cr.left) * kx, y: (r.top - cr.top) * ky, w: r.width * kx, h: r.height * ky, dom: 1 }); } }   /* 11-15 눈 확인: 이름표가 부활 · 태양 단추 밑에 깔렸음 → 전장 위 단추 자리도 피함 */
     ctx.save();
     for (const g of T) { const m = g.m; ctx.setTransform(m.a, 0, 0, m.d, m.e, m.f); ctx.font = `800 ${g.fz}px sans-serif`; const tw = ctx.measureText(g.nt).width + g.fz * 0.9, th = g.fz * 1.36;
       const x0 = m.e - tw / 2 * m.a, y0 = m.f + (g.ty - g.fz * 0.68) * m.d, w = tw * m.a, hh = th * m.d; let dy = 0;
-      for (let k = 0; k < 6; k++) { const hit = placed.find(p => x0 < p.x + p.w && x0 + w > p.x && y0 + dy < p.y + p.h && y0 + dy + hh > p.y); if (!hit) break; dy = hit.y + hit.h + 1.5 * m.d - y0; }
+      const hitAt = d => placed.find(p => x0 < p.x + p.w && x0 + w > p.x && y0 + d < p.y + p.h && y0 + d + hh > p.y);
+      if (hitAt(0)) { const st2 = hh + 1.5 * m.d; let best = null; for (let k = 1; k <= 6 && best === null; k++) for (const d of [k * st2, -k * st2]) if (!hitAt(d) && best === null) best = d; dy = best === null ? 0 : best; }   /* 아래로만 비키다 단추 밑으로 들어가던 것 → 아래 · 위 번갈아 가까운 빈자리 */
       placed.push({ x: x0, y: y0 + dy, w, h: hh }); ctx.setTransform(m.a, 0, 0, m.d, m.e, m.f + dy);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = g.a; ctx.fillStyle = 'rgba(12,4,22,.78)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-tw / 2, g.ty - g.fz * 0.68, tw, th, g.fz * 0.68) : ctx.rect(-tw / 2, g.ty - g.fz * 0.68, tw, th); ctx.fill();
       ctx.strokeStyle = g.line; ctx.globalAlpha = g.a * (g.rt >= 2 ? 1 : 0.7); ctx.lineWidth = g.rt >= 2 ? 2.5 : 1.5; if (g.rt === 3) { ctx.shadowColor = g.RC; ctx.shadowBlur = 10; } ctx.stroke(); ctx.shadowBlur = 0; ctx.globalAlpha = g.a; ctx.fillStyle = g.txt; ctx.fillText(g.nt, 0, g.ty + 0.5); }

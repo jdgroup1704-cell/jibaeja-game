@@ -933,7 +933,12 @@ function drawSun() {
   const cor = ctx.createRadialGradient(S.giant.x, sn.y, sn.r * 0.7, S.giant.x, sn.y, sn.r * 2.4);
   cor.addColorStop(0, 'rgba(200,140,255,.9)'); cor.addColorStop(0.4, 'rgba(120,40,220,.5)'); cor.addColorStop(1, 'rgba(60,0,120,0)');
   ctx.fillStyle = cor; ctx.beginPath(); ctx.arc(S.giant.x, sn.y, sn.r * 2.4, 0, 7); ctx.fill(); ctx.restore();
-  if (!sn.hit) { ctx.fillStyle = '#05000a'; ctx.beginPath(); ctx.arc(S.giant.x, sn.y, sn.r, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(230,200,255,.9)'; ctx.lineWidth = 3; ctx.stroke(); }
+  if (!sn.hit) { const x = S.giant.x, y = sn.y, r = sn.r;   /* 11-15 눈 확인(보스_6차): 그냥 까만 원으로 보였음 → 가장자리 보랏빛에서 가운데로 빨려 드는 검은 해 · 안쪽으로 갈수록 빨리 도는 보라 소용돌이 일곱 · 둘레를 도는 불티 */
+    const core = ctx.createRadialGradient(x, y, 0, x, y, r); core.addColorStop(0, '#000'); core.addColorStop(0.62, '#07000f'); core.addColorStop(0.9, '#2a0650'); core.addColorStop(1, '#5a17a0'); ctx.fillStyle = core; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'; const rot = S.t * 2.2;
+    for (let i = 0; i < 7; i++) { const rr = r * (0.9 - i * 0.11), a0 = rot * (1 + i * 0.35) + i * 1.7; ctx.strokeStyle = `rgba(${150 + i * 12},${70 + i * 18},255,${0.42 - i * 0.045})`; ctx.lineWidth = r * 0.05; ctx.beginPath(); ctx.arc(x, y, rr, a0, a0 + 1.1 + i * 0.12); ctx.stroke(); }
+    for (let i = 0; i < 8; i++) { const a = -S.t * 1.6 + i * 0.785, rr = r * (1.08 + 0.12 * Math.sin(S.t * 3 + i)); ctx.fillStyle = i % 2 ? 'rgba(255,220,255,.9)' : 'rgba(190,120,255,.85)'; ctx.beginPath(); ctx.arc(x + Math.cos(a) * rr, y + Math.sin(a) * rr, r * 0.045, 0, 7); ctx.fill(); }
+    ctx.restore(); ctx.strokeStyle = 'rgba(230,200,255,.9)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); }
 }
 function drawWave() {
   const w = S.wave; if (!w || w.r > 2200) return;
