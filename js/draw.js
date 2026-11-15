@@ -666,8 +666,9 @@ function drawLordA(L) {   /* 01:58 그림체 A 지배자: 숨쉬기 · 영창 �
   const LW = need('lordw_attack'); if (LW && L.shotT > 0.2 && !(L.wA > 0) && r < 0.05 && (LM.bN || 0) % 2 === 0) L.wA = 0.6;   /* 두 번에 한 번만 크게 내지름(작게 쿡 → 크게 쭉, 박자) — 0.85초마다 큰 번쩍이면 화면이 덮임 */ if (L.wA > 0) L.wA -= 1 / 60;
   if (LW && L.wA > 0) {   /* 영상 내지르기 0.6초: 모음 → 앞으로 쭉 내질러 보석 번쩍 → 돌아옴, 끝 2장은 정지 그림과 섞어 이음 */
     const fi = (1 - L.wA / 0.6) * 15, pf = ctx.filter; L.pkx = 0; ctx.save(); ctx.translate(10, 34);
-    vsDraw('lordw', 'attack', fi, 330, st.lskin && typeof LSF !== 'undefined' && LSF[st.lskin] ? LSF[st.lskin] : '', 0, false);
-    if (fi > 14) { ctx.globalAlpha = fi - 14; ctx.drawImage(im, -w / 2, -h, w, h); } ctx.restore(); ctx.filter = pf; return true; }
+    if (fi < 14) vsDraw('lordw', 'attack', fi, 330, st.lskin && typeof LSF !== 'undefined' && LSF[st.lskin] ? LSF[st.lskin] : '', 0, false);
+    else ctx.drawImage(im, -w / 2, -h, w, h);   /* 11-15 눈 확인(1판 0.12초 간격 12장): 끝 장면을 정지 그림과 반투명으로 섞어 지배자 머리가 둘로 보였음 → 섞지 않고 정지 그림으로 바로 돌아옴 */
+    ctx.restore(); ctx.filter = pf; return true; }
   L.pkx = pk * 37 - r * 20; ctx.save(); ctx.translate(10 + pk * 16, 34); ctx.rotate(-0.07 * r + 0.07 * pk);   /* 보석이 몸과 함께 움직인 만큼 → LM.staff()가 따라감 */ ctx.scale(1 / Math.sqrt(br), br);
   const pf = ctx.filter; if (st.lskin && typeof LSF !== 'undefined' && LSF[st.lskin]) ctx.filter = LSF[st.lskin] + `drop-shadow(0 0 4px rgba(${LSG[st.lskin]},.9))`; else ctx.filter = `drop-shadow(0 0 ${3 + r * 6}px rgba(200,140,255,${0.6 + r * 0.4}))`;
   ctx.drawImage(im, -w / 2, -h, w, h); ctx.filter = pf; ctx.restore(); return true;

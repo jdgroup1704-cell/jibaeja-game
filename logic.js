@@ -45,7 +45,8 @@ const C = {
   WEAPON: { max: 10, freeMax: 7, bone0: 5, boneStep: 5, mul: 0.15 },
   /* 11-15 17:42 대표님 「SSR 뽑고 6성 초월해서 7성 되고 스킬도 달라지던데」: 같은 영웅을 겹쳐 뽑으면 「영혼 묶기」 ★1→★6, ★6 뒤 겹친 영혼(조각)으로 「망자 군주화」 ★7(초월).
      ★3 기술로 쓰러진 적이 우리 망자병으로 일어남 · ★5 기술 두 번 · ★7 대마법 때 함께 영창(+20%) + 최고 등급은 궁극기 */
-  STAR: { max: 6, per: 0.5, trShards: 2, trBones: 300, trMul: 1.6, shardMax: 4, chant: 0.2 },
+  STAR: { max: 6, per: 0.5, trShards: 2, trBones: 300, trMul: 1.6, shardMax: 4, chant: 0.2, trAwaken: 1,   /* 11-15 18:05 대표님 「벌써부터 7성?」: 초월은 각성 1번 뒤에 열림 · 등급마다 값이 다름(흔한 영웅은 겹치기 쉬우니 뼛조각을 많이) */
+    tr: { N: { shards: 3, bones: 900 }, R: { shards: 3, bones: 600 }, SR: { shards: 2, bones: 400 }, SSR: { shards: 2, bones: 300 } } },
   /* 수하 전용 겉모습(유료 · 귀빈): 입으면 전장 모습이 바뀌고 그 수하 능력 덤. vip = 그 귀빈 등급이면 공짜로 받음 */
   SKINS: { serafine_q: { hero: 'serafine', mul: 0.3, vip: 7 } },
   SQUAD4_DAY: 3,            /* 진형 넷째 칸: 3번째 접속한 날(설계서 빈 3일째 채우기, 11-13 대표님 판정) */
@@ -103,7 +104,9 @@ const FIRST_HERO = 'krag';   // 첫 수하는 뽑기 없이 확정
 const HERO_MAX_LV = 6, SQUAD = 3;   /* 11-15 레벨 = 별(★) 1~6, 그 뒤는 초월(tr) */
 const starMul = o => !o ? 0 : (1 + C.STAR.per * (Math.min(o.lv, C.STAR.max) - 1)) * (o.tr ? C.STAR.trMul : 1);
 const heroStar = o => !o ? 0 : o.tr ? 7 : Math.min(o.lv, C.STAR.max);
-function transcend(st, id) { const o = st.heroes[id]; if (!o || o.tr || o.lv < C.STAR.max) return { ok: false, why: 'star' }; if ((o.shards || 0) < C.STAR.trShards) return { ok: false, why: 'shards' }; if (st.bones < C.STAR.trBones) return { ok: false, why: 'bones' }; o.shards -= C.STAR.trShards; st.bones -= C.STAR.trBones; o.tr = 1; return { ok: true, id }; }
+const trOpen = st => (st.awakens || 0) >= C.STAR.trAwaken;
+const trCost = id => C.STAR.tr[heroById(id).rarity] || { shards: C.STAR.trShards, bones: C.STAR.trBones };
+function transcend(st, id) { const o = st.heroes[id], c = trCost(id); if (!trOpen(st)) return { ok: false, why: 'lock' }; if (!o || o.tr || o.lv < C.STAR.max) return { ok: false, why: 'star' }; if ((o.shards || 0) < c.shards) return { ok: false, why: 'shards' }; if (st.bones < c.bones) return { ok: false, why: 'bones' }; o.shards -= c.shards; st.bones -= c.bones; o.tr = 1; return { ok: true, id }; }
 const chantMul = st => 1 + C.STAR.chant * st.squad.filter(id => id && st.heroes[id] && st.heroes[id].tr).length;   /* ★7 영웅 하나마다 대마법 +20% */
 // 인연: 둘을 같이 진형에 세우면 추가 효과(설계서 3일차 '진형과 인연')
 const BONDS = [
@@ -687,7 +690,7 @@ function shopBuy(st, id, now) {
   st.gems += g.gems; st.bones += g.bones; S.bought[id] = (S.bought[id] || 0) + 1; addVip(st, P.won / 10); return g;
 }
 const SHOP = [{ id: 'crown119', won: [119000] }, { id: 'abyss59', won: [59000] }, { id: 'vault33', won: [33000] }, { id: 'lordPack', won: [5900] }, { id: 'skinSera', won: [9900] }, { id: 'wpStone', won: [3300] }, { id: 'first', won: [1500] }, { id: 'day1', won: [1500, 5900, 12000] }, { id: 'monthGem', won: null }, { id: 'monthBone', won: null }, { id: 'fund', won: null }, { id: 'noAds', won: null }];
-root.JB = { starMul, heroStar, transcend, chantMul, MAIL, mailOf, mailList, mailClaim, backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
+root.JB = { trOpen, trCost, starMul, heroStar, transcend, chantMul, MAIL, mailOf, mailList, mailClaim, backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
   isBoss, isLord, waveHp, waveSouls, upCost, unlocked, heroBonus, armyCap, armySize, unitAtk, graveMul, dps, spellDamage, spellCd, soulMul, sigilsFor, awakenStage, rankOf,
   newState, startWave, tick, retryBoss, canCast, beginCast, landSpell, spellUnlocked, buy, raiseTap,
   altarTable, raiseGrave, keepGrave, scrapGrave, altarUp, altarTick, heroById, country, gachaAllowed, probTable, grant, firstHero, pull, directBuy, setSquad,

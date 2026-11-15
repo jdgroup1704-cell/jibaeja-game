@@ -492,8 +492,9 @@ const UI = {
   starLine(h, o) {   /* 11-15 별 올리기 · 초월 줄: ★ 여섯 칸(초월이면 ☠7 붉게) · 겹친 영혼 · 다음 별 효과 · 초월 단추 */
     const T = L.star, C = JB.C.STAR, sr = JB.heroStar(o), stars = o.tr ? `<b class="st7">☠ 7</b>` : Array.from({ length: 6 }, (_, i) => `<i class="${i < sr ? 'on' : ''}">★</i>`).join('');
     const nx = sr < 3 ? 3 : sr < 5 ? 5 : sr < 7 ? 7 : 0, perk = nx ? T.next(nx === 7 && h.rarity === 'SSR' ? T.perk[7] + ' · ' + T.perkSSR : T.perk[nx]) : (h.rarity === 'SSR' ? T.perkSSR : T.perk[7]);
-    const can = !o.tr && o.lv >= C.max, tb = can ? `<button class="btn ${(o.shards || 0) >= C.trShards && st.bones >= C.trBones ? 'gold hint' : ''}" data-act="trans" data-arg="${h.id}" ${(o.shards || 0) >= C.trShards && st.bones >= C.trBones ? '' : 'disabled'}>${T.trBtn(C.trBones)}</button>` : '';
-    return `<div class="stars">${stars}${can ? ` <small>${T.shards(o.shards || 0, C.trShards)}</small>` : ''}</div><div class="ds perk">${perk}</div>${tb}`;
+    const op = JB.trOpen(st), cc = JB.trCost(h.id), can = op && !o.tr && o.lv >= C.max, ok = can && (o.shards || 0) >= cc.shards && st.bones >= cc.bones, tb = can ? `<button class="btn ${ok ? 'gold hint' : ''}" data-act="trans" data-arg="${h.id}" ${ok ? '' : 'disabled'}>${T.trBtn(cc.bones)}</button>` : '';
+    const pk = !op && nx === 7 ? T.trLock : perk;   /* 각성 전엔 초월이 아직 안 보이게(대표님 18:05 「벌써부터 7성?」) */
+    return `<div class="stars">${stars}${can ? ` <small>${T.shards(o.shards || 0, cc.shards)}</small>` : ''}</div><div class="ds perk">${pk}</div>${tb}`;
   },
   tab_mission() {
     const mn = JB.mailList(st).length;
