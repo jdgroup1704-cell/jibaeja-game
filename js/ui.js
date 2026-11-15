@@ -190,7 +190,8 @@ const UI = {
   pullResult(res) {   /* 22:55 뽑기 연출: 마법진 → 빛기둥(가장 높은 등급 색) → 높은 등급은 영웅이 크게 등장 → 카드 */
     const RO = { N: 0, R: 1, SR: 2, SSR: 3 }, rk = r => RO[JB.heroById(r.id).rarity] ?? 0, top = res.reduce((m, r) => Math.max(m, rk(r)), 0), best = res.find(r => rk(r) === top);
     if (AUTO || TRAILER) return this.pullCards(res);
-    this.summonFx(top, best, () => this.pullCards(res));
+    const ups = res.filter(r => !r.isNew && !r.shard && !r.maxed && (r.star || 0) >= 2), up = ups.sort((p, q) => (q.star - p.star) || (rk(q) - rk(p)))[0];   /* 11-15 순서 #7: 겹쳐 뽑아 별이 오른 영웅 — 가장 높은 별 하나를 크게 보여 줌 */
+    this.summonFx(top, best, () => up ? this.starFx(up, () => this.pullCards(res)) : this.pullCards(res));
   },
   summonFx(top, best, done) {
     let el = $('summonfx'); if (!el) { el = document.createElement('div'); el.id = 'summonfx'; document.body.appendChild(el); }
@@ -201,6 +202,17 @@ const UI = {
     if (top >= 2) setTimeout(() => { Snd.stamp && Snd.stamp(); S.flash = top >= 3 ? 0.6 : 0.3; if (top >= 3) { Snd.slam && Snd.slam(0.6); S.shake = 14; } }, T * 0.45);
     let gone = false; const fin = () => { if (gone) return; gone = true; el.className = ''; el.innerHTML = ''; el.onclick = null; done(); };
     setTimeout(() => el.classList.add('tapok'), T * 0.55); el.onclick = () => { if (el.classList.contains('tapok')) fin(); }; setTimeout(fin, T + 2200);
+  },
+  starFx(r, done) {   /* 11-15 순서 #7 「별 올릴 때 연출 · ★3 불꽃 크게」: 영웅이 크게 서고, 별 칸이 하나씩 켜진 뒤 새 별이 날아와 박힘 · 음이 계단처럼 오름 · ★3 · ★5 · ★6은 불꽃 · 새 힘 글 */
+    let el = $('starfx'); if (!el) { el = document.createElement('div'); el.id = 'starfx'; document.body.appendChild(el); }
+    const n = Math.min(6, r.star), big = n === 3 || n >= 5, T = L.star, perk = (T.perk || {})[n] || '', h = JB.heroById(r.id);
+    el.className = 'on' + (big ? ' big' : '') + ' s' + n;
+    el.innerHTML = `<div class="sx-bg"></div>${big ? '<div class="sx-fire"></div><div class="sx-ring"></div>' + Array.from({ length: 14 }, (_, i) => `<i class="sx-sp" style="--a:${i * 360 / 14}deg;--d:${(0.9 + (i % 3) * 0.12).toFixed(2)}s"></i>`).join('') : ''}<img class="sx-hero" src="art/${need('heroF_' + r.id) ? 'heroF_' : 'hero_'}${r.id}.webp" alt=""><div class="sx-row">${Array.from({ length: 6 }, (_, i) => `<b class="${i < n - 1 ? 'on' : i === n - 1 ? 'new' : ''}" style="--i:${i}">★</b>`).join('')}</div><div class="sx-name"><small>${L.heroes[r.id].name}</small><b>★${n}</b>${perk ? `<em>${L.ui.newPower} · ${perk}</em>` : ''}</div><div class="sx-tap">${L.ui.tapGo}</div>`;
+    for (let i = 0; i < n - 1; i++) setTimeout(() => Snd.smp('up', 0.45, 0, Math.pow(2, [0, 2, 4, 5, 7][i] / 12)), 260 + i * 110);
+    setTimeout(() => { Snd.smp('up', 0.9, 0, Math.pow(2, [7, 9, 11, 12, 14, 16][n - 1] / 12)); Snd.stamp && Snd.stamp(big ? 0.9 : 0.5); if (big) { Snd.boom && Snd.boom(); try { navigator.vibrate && navigator.vibrate(60); } catch (e) {} } }, 260 + (n - 1) * 110 + 380);
+    let gone = false; const fin = () => { if (gone) return; gone = true; el.className = ''; el.innerHTML = ''; el.onclick = null; done(); };
+    const TT = 260 + (n - 1) * 110 + 380 + (big ? 1500 : 1000); setTimeout(() => el.classList.add('tapok'), TT - 500); el.onclick = () => { if (el.classList.contains('tapok')) fin(); }; setTimeout(fin, TT + 1800);
+    window.__starFx = (window.__starFx || []).concat([{ id: r.id, star: n, big, perk: !!perk }]);   /* 관문 ⑰이 읽음 */
   },
   pullCards(res) {
     Snd.smp('summon', 0.5);

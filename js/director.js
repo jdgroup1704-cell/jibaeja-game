@@ -594,7 +594,7 @@ function viewUpdate(realDt) {
   for (const a of S.army) {
     if (a.hop > 0) a.hop = Math.max(0, a.hop - dt);
     if (a.fly) { a.x += a.fly.vx * dt; a.y += a.fly.vy * dt; a.fly.vy += 1400 * dt; a.fly.r += a.fly.vr * dt; if (a.y > 760) a.gone = true; continue; }
-    if (a.rise < 1) a.rise = Math.min(1, a.rise + dt * 2.5);
+    if (a.rise < 1) { if (a.riseD > 0) a.riseD -= dt; else a.rise = Math.min(1, a.rise + dt * 2.5); }   /* riseD: 차례로 솟게 기다리는 시간 */
     if (a.charge > 0) a.charge -= dt; let gx = a.tx + engDx + (S.bShift || 0) + (bigM ? 0 : S.surge * (FAR() ? 22 : 90) * (0.6 + 0.4 * ((a.ph || 0) % 1)) + (a.charge > 0 ? 150 * Math.sin(a.charge / 0.7 * Math.PI) : 0));   /* 크라그 「뼈의 돌격」: 앞줄이 함께 뛰어나갔다 돌아옴 */   /* 돌격: 줄 전체가 앞으로 밀고 들어갔다 돌아옴 */
     if (a.advT > 0) { a.advT -= dt; if (a.big && a.advTo > gx) gx = Math.min(a.advTo, gx + 360); }
     if (!a.placed && a.tx != null && isFinite(gx)) { a.placed = 1; if (a.rise < 1) { a.x = gx; a.y = a.ty ?? a.y; burst(a.x, a.y - 10, 8, { col: ['#c9a7ff', '#9b6bff'], vmin: 30, vmax: 140, up: 160, g: -30, lmax: 0.6 }); } }   /* 20:42 대표님 「걸어오는 게 체스말 같다」: 새 망자병이 문에서 먼 길을 미끄러져 오던 것 → 제자리 땅에서 솟아오름 */
