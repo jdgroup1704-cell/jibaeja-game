@@ -474,8 +474,9 @@ function giantDown(big) {
 /* 19:45 보스를 잡아도 숫자 하나 뜨고 끝 → 「승리!」 도장 + 받은 것 한 줄 + 영혼 구슬이 위 칸으로 쏟아짐(대마법으로 잡아도 · 군단으로 잡아도) */
 function victoryFx(gx, gy) {
   const de = S.downEv; S.downEv = null; if (TRAILER) return;
-  setTimeout(() => { say(L.boss.victory, W / 2, H * 0.3, { size: 64, col: '#ffe9a8', glow: '#ff9a2a', life: 1.6, vy: 0, stamp: true, screen: true });
-    if (de) say(L.boss.loot(fmt(de.souls || 0), de.gems || 0), W / 2, H * 0.3 + 70, { size: 26, col: '#e8dcff', glow: '#8a3cff', life: 1.8, vy: 0, screen: true });
+  setTimeout(() => { if (typeof RW === 'undefined') say(L.boss.victory, W / 2, H * 0.3, { size: 64, col: '#ffe9a8', glow: '#ff9a2a', life: 1.6, vy: 0, stamp: true, screen: true });
+    if (de && typeof RW !== 'undefined') RW.show(de, gx, gy);   /* 11-16 #12 받은 것이 위 띠로 날아감 + 큰 띠(작은 글자는 「새로 열림」에 가렸음) */
+    else if (de) say(L.boss.loot(fmt(de.souls || 0), de.gems || 0), W / 2, H * 0.3 + 70, { size: 26, col: '#e8dcff', glow: '#8a3cff', life: 1.8, vy: 0, screen: true });
     soulOrbs(gx, gy + 120, 14); Snd.chime && Snd.chime(1319); }, 450);
 }
 // 원정(침공 지도 · 지하 묘지) 성공 순간: 전장 화면에 큰 글자 + 보라 물결 + 군단 함성. 대마법 연출 중이면 건너뜀

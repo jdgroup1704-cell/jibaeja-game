@@ -406,9 +406,9 @@ function drawSkel(a) {
   if (tier === 4 && !a.fly) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const fl = 0.5 + 0.5 * Math.sin(S.t * 9 + a.ph); const fg = ctx.createRadialGradient(0, -40 * sc, 4, 0, -40 * sc, 46 * sc); fg.addColorStop(0, `rgba(190,110,255,${0.35 + fl * 0.25})`); fg.addColorStop(1, 'rgba(120,40,220,0)'); ctx.fillStyle = fg; ctx.fillRect(-50 * sc, -100 * sc, 100 * sc, 110 * sc); ctx.restore(); }
   const SD = STYLE === '3d' && !ea && ['idle', 'walk', 'run', 'attack', 'hit'].every(k => need('sk5_' + k)), S4 = SD || (STYLE === 'old' && !ea && ['idle', 'walk', 'run', 'attack', 'hit'].every(k => need('sk4_' + k)));   /* 11-14 다크 SD 해골(sk5) 우선 */
   const SA = a.big && !a.fly ? need('sumA' + ({ '-1': 0, 1: 1, 2: 2, 3: 3 }[a.c] ?? 0)) : null;
-  const SVN = a.big && !a.fly ? { '-1': 'sumv1', 1: 'sumv2', 2: 'sumv3', 3: 'sumv4' }[a.c] : null, SVok = SVN && VS[SVN] && need(SVN + '_idle') && need(SVN + '_attack');
+  const SVN = a.big && !a.fly ? { '-1': 'sumv1', 1: 'sumv2', 2: 'sumv3', 3: 'sumv4' }[a.c] : null, SVok = SVN && VS[SVN] && need(SVN + '_idle');   /* 11-16 #13 숨쉬기 그림만 와도 새 그림으로(공격 그림은 오는 대로) — 전엔 공격까지 다 와야 해서 느린 망에서 옛 임시 그림이 8초 더 보였음 */
   if (SVok) {   /* 03:10 영상 움직임: 평소 숨쉬기(앞뒤로 돌림) · 공격 0.6초 동안 영상 공격 장면 전부 */
-    const atT = 0.6; if (a.sw > 0 && !(a.vT > 0)) a.vT = atT; if (a.vT > 0) a.vT -= 1 / 60; const at = a.vT > 0, M = VS[SVN], h = 150 * sc * pop;
+    const atT = 0.6; if (a.sw > 0 && !(a.vT > 0)) a.vT = atT; if (a.vT > 0) a.vT -= 1 / 60; const at = a.vT > 0 && !!need(SVN + '_attack'), M = VS[SVN], h = 150 * sc * pop;
     const NI = M.n.idle, q = (S.t * 10 + a.ph * 7) % (2 * NI - 2), fi = at ? (1 - a.vT / atT) * (M.n.attack - 1) : (q < NI ? q : 2 * NI - 2 - q);
     const wk = !at && (a.wamp || 0) > 0.25 && need(SVN + '_walk'); a.wf = ((a.wf ?? a.ph * 9) + (wk ? (a.back ? -1 : 1) * Math.max(0.12, Math.min(mv, 8) * 16 / 75) : 0) + 16) % 16;   /* 움직인 거리만큼 발을 내딛음(75 걸으면 한 바퀴) · 뒤로 갈 땐 거꾸로 */
     if (wk) { vsDraw(SVN + 'w', 'walk', a.wf, h, '', a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.06 : 0, true); if (a.flash > 0) a.flash -= 1 / 60; }
@@ -478,8 +478,8 @@ function drawFoe0(f) {
   ctx.save(); ctx.translate(f.x + ak + hq * 9, f.y + bob); ctx.scale(1 + 0.1 * hq, 1 - 0.08 * hq); if (f.flee) ctx.scale(-1, 1); if (ak && !ART.kn_attack) ctx.rotate(-0.12 * Math.sin((1 - f.atk / 0.32) * Math.PI));
   const FAi = !f.fly ? need('foeA' + ({ foot: 0, archer: 1, shield: 2, priest: 3, captain: 2, lancer: 0, paladin: 2, leech: 2, pyro: 3, frost: 3, plague: 3, abyss: 3, bomber: 0 }[f.kind] ?? 0)) : null;
   const FVi = !f.fly ? 'foev' + ({ foot: 0, archer: 1, shield: 2, priest: 3, captain: 2, lancer: 0, paladin: 2, leech: 2, pyro: 3, frost: 3, plague: 3, abyss: 3, bomber: 0 }[f.kind] ?? 0) : null;
-  if (FVi && VS[FVi] && need(FVi + '_idle') && need(FVi + '_attack')) {   /* 03:20 적 영상 동작: 평소 숨쉬기 · f.atk 동안 공격 장면 */
-    const M = VS[FVi], h = (f.elite ? 104 : 90) * sc, at = f.atk > 0, NI = M.n.idle, q = (S.t * 9 + f.ph * 5) % (2 * NI - 2), fi = at ? (1 - f.atk / 0.32) * (M.n.attack - 1) : (q < NI ? q : 2 * NI - 2 - q);
+  if (FVi && VS[FVi] && need(FVi + '_idle')) {   /* 11-16 #13 숨쉬기만 와도 새 그림 */   /* 03:20 적 영상 동작: 평소 숨쉬기 · f.atk 동안 공격 장면 */
+    const M = VS[FVi], h = (f.elite ? 104 : 90) * sc, at = f.atk > 0 && !!need(FVi + '_attack'), NI = M.n.idle, q = (S.t * 9 + f.ph * 5) % (2 * NI - 2), fi = at ? (1 - f.atk / 0.32) * (M.n.attack - 1) : (q < NI ? q : 2 * NI - 2 - q);
     if (f.elite && ELITE[f.kind]) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5; ctx.fillStyle = ELITE[f.kind].col || '#ffcc33'; ctx.beginPath(); ctx.ellipse(0, -2, 46 * sc / 1.9, 9, 0, 0, 7); ctx.fill(); ctx.restore(); }
     vsDraw(FVi, at ? 'attack' : 'idle', fi, h, f.elite && ELITE[f.kind] ? 'drop-shadow(0 0 6px ' + (ELITE[f.kind].col || '#ffcc33') + ')' : '', 0, false);
     if (f.flash > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, f.flash * 4); vsDraw(FVi, at ? 'attack' : 'idle', fi, h, 'brightness(2.2) saturate(0)', 0, false); ctx.restore(); }

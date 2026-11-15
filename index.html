@@ -621,6 +621,17 @@
   #tools button.lch .lbar{position:absolute;left:8px;right:8px;bottom:2px;height:3px;border-radius:2px;background:#0008;overflow:hidden}
   #tools button.lch .lbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#b58cff,#ffd76a)}
   #tools button.lch.ready img.ic{animation:lchb 1.6s ease-in-out infinite}
+  .rwban{position:fixed;z-index:9;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;text-align:center;padding:10px 22px 12px;border-radius:16px;background:linear-gradient(180deg,rgba(60,20,110,.94),rgba(22,6,44,.94));border:2px solid #ffd76a;box-shadow:0 0 24px rgba(255,180,60,.55),0 6px 18px rgba(0,0,0,.6);animation:rwin .35s cubic-bezier(.2,1.6,.4,1) forwards;transition:opacity .35s,transform .35s;white-space:nowrap}   /* 11-16 #12 보스 격파 받은 것 띠 */
+  .rwban.out{opacity:0!important;transform:translate(-50%,-80%) scale(.9)!important}
+  .rwban b{display:block;font:900 30px sans-serif;color:#ffe9a8;text-shadow:0 0 10px #ff9a2a,0 2px 2px #000;letter-spacing:1px}
+  .rwban div{display:flex;gap:14px;justify-content:center;margin-top:4px}
+  .rwban span{display:flex;align-items:center;gap:4px;font:700 15px sans-serif;color:#e8dcff}
+  .rwban span img{width:24px;height:24px}
+  .rwban em{font-style:normal;font-weight:900;font-size:19px;color:#fff3c4}
+  @keyframes rwin{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+  .rwfly{position:fixed;z-index:8;width:26px;height:26px;transform:translate(-50%,-50%) scale(.4);pointer-events:none;filter:drop-shadow(0 0 6px rgba(255,210,120,.9))}
+  #hud .chip.rwbump{animation:rwb .25s ease-out}
+  @keyframes rwb{40%{transform:scale(1.25);filter:brightness(1.6)}}
   #bweak{position:fixed;display:none;z-index:6;width:92px;height:92px;transform:translate(-50%,-50%);touch-action:none;cursor:pointer}   /* 11-16 #12 보스 약점(누르면 반격) */
   #bweak.on{display:block}
   #bweak .core{position:absolute;inset:26px;border-radius:50%;background:radial-gradient(circle,#fff6d0 0,#ffb020 45%,#ff3a1a 80%,transparent 82%);box-shadow:0 0 22px 8px rgba(255,120,30,.85);animation:bwp .32s ease-in-out infinite alternate}
@@ -804,7 +815,7 @@
     <!-- 11-14 17:55 「그림 비교 ①②③④」 시험 단추 지움: ③ 예전 개선 + 영상 장면으로 정함(16:30). 시험할 땐 주소에 ?style=2d 처럼 -->
     <button id="reraise"></button>
     <div id="testbar"></div>
-    <div id="ver">판 11-16 05:06</div>
+    <div id="ver">판 11-16 08:41</div>
   </div>
   <div id="grip"><i></i></div>
   <div id="skillbar"><button id="raiseBtn"></button><div id="slots"></div><button id="cast"></button></div>
@@ -818,22 +829,23 @@
 </div>
 <div id="modal"><div class="box"></div></div>
 <script>window.BUILD = '1115102811';</script>   <!-- 11-14 18:12 대표님 「바뀐 새 버전 줘, 저장된 거 주지 말고 첫 시작」: 판마다 저장 이름이 달라 새 판은 늘 1-1부터 -->
-<script src="lang_ko.js?v=1794773164"></script>
-<script src="balance.js?v=1794773164"></script>
-<script src="logic.js?v=1794773164"></script>
-<script src="js/base.js?v=1794773164"></script>
-<script src="js/sound.js?v=1794773164"></script>
-<script src="js/art.js?v=1794773164"></script>
-<script src="js/draw.js?v=1794773164"></script>
-<script src="js/director.js?v=1794773164"></script>
-<script src="js/field.js?v=1794773164"></script>
-<script src="js/thrall.js?v=1794773164"></script>
-<script src="js/brag.js?v=1794773164"></script>
-<script src="js/bosscharge.js?v=1794773164"></script>
-<script src="js/ui.js?v=1794773164"></script>
-<script src="js/extra.js?v=1794773164"></script>
-<script src="js/social.js?v=1794773164"></script>
-<script src="js/legal.js?v=1794773164"></script>
-<script src="js/main.js?v=1794773164"></script>
+<script src="lang_ko.js?v=1794786062"></script>
+<script src="balance.js?v=1794786062"></script>
+<script src="logic.js?v=1794786062"></script>
+<script src="js/base.js?v=1794786062"></script>
+<script src="js/sound.js?v=1794786062"></script>
+<script src="js/art.js?v=1794786062"></script>
+<script src="js/draw.js?v=1794786062"></script>
+<script src="js/director.js?v=1794786062"></script>
+<script src="js/field.js?v=1794786062"></script>
+<script src="js/thrall.js?v=1794786062"></script>
+<script src="js/brag.js?v=1794786062"></script>
+<script src="js/bosscharge.js?v=1794786062"></script>
+<script src="js/reward.js?v=1794786062"></script>
+<script src="js/ui.js?v=1794786062"></script>
+<script src="js/extra.js?v=1794786062"></script>
+<script src="js/social.js?v=1794786062"></script>
+<script src="js/legal.js?v=1794786062"></script>
+<script src="js/main.js?v=1794786062"></script>
 </body>
 </html>
