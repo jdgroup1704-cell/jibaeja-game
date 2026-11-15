@@ -301,6 +301,12 @@ const VS = {
   sumv4: { f: 'sumv4', cw: 104, ch: 157, ax: 26.2, ay: 155.8, hpx: 150, n: { attack: 16, idle: 14 } },
   /* 09:55 대표님 「걷기 · 입장 자연스럽게」: 드리미나 제자리 걷기 영상 4편(우리 그림 그대로) → 한 바퀴 16장(vid/걷기줄그림.py) */
   lordw: { f: 'lordw', cw: 468, ch: 332, ax: 139.5, ay: 321.5, hpx: 300, n: { attack: 16 } },   /* 10:05 지배자 「지팡이 내지르기」 영상(그림 A 그대로 · 지팡이 늘 손에 · 16:9라 안 잘림) 1.55~2.9초 16장 */
+  heroW_krag: { f: 'heroW_krag', cw: 335, ch: 329, ax: 172.5, ay: 314.2, hpx: 304.1, n: { walk: 16 } },   /* 11-15 영웅 걷기 영상(드리미나 · 29장 한 바퀴 → 16장) 402KB */
+  heroW_serafine: { f: 'heroW_serafine', cw: 344, ch: 336, ax: 188.5, ay: 326.2, hpx: 313.8, n: { walk: 16 } },   /* 11-15 영웅 걷기 영상(드리미나 · 20장 한 바퀴 → 16장) 415KB */
+  heroW_nox: { f: 'heroW_nox', cw: 310, ch: 343, ax: 148.5, ay: 332.2, hpx: 325.8, n: { walk: 16 } },   /* 11-15 영웅 걷기 영상(드리미나 · 31장 한 바퀴 → 16장) 387KB */
+  heroW_drummer: { f: 'heroW_drummer', cw: 326, ch: 366, ax: 156.5, ay: 354.2, hpx: 325.8, n: { walk: 16 } },   /* 11-15 영웅 걷기 영상(드리미나 · 18장 한 바퀴 → 16장) 475KB */
+  heroW_porter: { f: 'heroW_porter', cw: 304, ch: 351, ax: 148.5, ay: 339.2, hpx: 325.8, n: { walk: 16 } },   /* 11-15 영웅 걷기 영상(드리미나 · 28장 한 바퀴 → 16장) 409KB */
+  heroW_morde: { f: 'heroW_morde', cw: 284, ch: 350, ax: 140.5, ay: 330.2, hpx: 325.8, n: { walk: 16 } },   /* 11-15 영웅 걷기 영상(드리미나 · 36장 한 바퀴 → 16장) 662KB */
   sumv1w: { f: 'sumv1', cw: 132, ch: 156, ax: 70.2, ay: 150.9, hpx: 150, n: { walk: 16 } },
   sumv2w: { f: 'sumv2', cw: 142, ch: 174, ax: 45.5, ay: 171.7, hpx: 150, n: { walk: 16 } },
   sumv3w: { f: 'sumv3', cw: 152, ch: 160, ax: 93.1, ay: 153.6, hpx: 150, n: { walk: 16 } },
