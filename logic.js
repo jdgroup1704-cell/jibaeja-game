@@ -46,7 +46,7 @@ const C = {
   /* 11-15 17:42 대표님 「SSR 뽑고 6성 초월해서 7성 되고 스킬도 달라지던데」: 같은 영웅을 겹쳐 뽑으면 「영혼 묶기」 ★1→★6, ★6 뒤 겹친 영혼(조각)으로 「망자 군주화」 ★7(초월).
      ★3 기술로 쓰러진 적이 우리 망자병으로 일어남 · ★5 기술 두 번 · ★7 대마법 때 함께 영창(+20%) + 최고 등급은 궁극기 */
   STAR: { max: 6, per: 0.5, trShards: 2, trBones: 300, trMul: 1.6, shardMax: 4, chant: 0.2, trAwaken: 1,   /* 11-15 18:05 대표님 「벌써부터 7성?」: 초월은 각성 1번 뒤에 열림 · 등급마다 값이 다름(흔한 영웅은 겹치기 쉬우니 뼛조각을 많이) */
-    tr: { N: { shards: 3, bones: 900 }, R: { shards: 3, bones: 600 }, SR: { shards: 2, bones: 400 }, SSR: { shards: 2, bones: 300 } } },
+    tr: { N: { shards: 4, bones: 900 }, R: { shards: 4, bones: 700 }, SR: { shards: 3, bones: 500 }, SSR: { shards: 2, bones: 300 } } },   /* 과금흉내: 무과금 상급(SR) 초월이 7일 → 영혼 3으로 늦춤 */
   /* 수하 전용 겉모습(유료 · 귀빈): 입으면 전장 모습이 바뀌고 그 수하 능력 덤. vip = 그 귀빈 등급이면 공짜로 받음 */
   SKINS: { serafine_q: { hero: 'serafine', mul: 0.3, vip: 7 } },
   SQUAD4_DAY: 3,            /* 진형 넷째 칸: 3번째 접속한 날(설계서 빈 3일째 채우기, 11-13 대표님 판정) */
@@ -172,7 +172,7 @@ const GEAR = { base: [0.02, 0.04, 0.08, 0.16, 0.32, 0.64], drop: 0.015, bossDrop
 const gearOf = st => st.gear || (st.gear = { slots: {}, stones: 0, n: 0, ad: 0, adDay: 0, log: [] });
 const gearVal = (it, sl) => !it ? 0 : GEAR.base[it.g] * sl.k * (1 + it.ilv / GEAR.ilvDiv) * (1 + GEAR.lvK * (it.lv || 0));
 function gearBonus(st, stat) { if (!st.gear) return 0; let b = 0; for (const sl of GEAR_SLOTS) if (sl.stat === stat) b += gearVal(st.gear.slots[sl.id], sl); return b; }
-function gearRoll(st, w, ilv, bossUp) { const tot = w.reduce((a, b) => a + b, 0); let r = Math.random() * tot, g = 0; while (g < w.length - 1 && (r -= w[g]) > 0) g++; if (bossUp && g < 5 && Math.random() < 0.4) g++;
+function gearRoll(st, w, ilv, bossUp) { const tot = w.reduce((a, b) => a + b, 0); let r = Math.random() * tot, g = 0; while (g < w.length - 1 && (r -= w[g]) > 0) g++; if (bossUp && g < 4 && Math.random() < 0.4) g++;   /* 보스 올림은 전설까지(신화로는 안 올림) */
   const sl = GEAR_SLOTS[Math.floor(Math.random() * GEAR_SLOTS.length)]; return { slot: sl.id, g, ilv: Math.max(1, ilv), lv: 0 }; }
 function gearTake(st, it) {   /* 더 좋으면 끼고(끼던 건 분해), 아니면 분해. 결과를 돌려줌 */
   const G = gearOf(st), sl = GEAR_SLOTS.find(s => s.id === it.slot), cur = G.slots[it.slot]; G.n++;
@@ -181,7 +181,7 @@ function gearTake(st, it) {   /* 더 좋으면 끼고(끼던 건 분해), 아니
 function gearDrop(st, ev, boss) { if (!unlocked(st, 'gear')) return; if (Math.random() > (boss ? GEAR.bossDrop : GEAR.drop)) return; const r = gearTake(st, gearRoll(st, GEAR.w, st.stage, boss)); ev.push(Object.assign({ e: 'gear', boss: !!boss }, r)); }
 /* 01:30 「영혼 제단」(버섯커 램프): 뼛조각 1개 = 장비 1개, 무료 재화로 계속 누르는 핵심 반복. 많이 누를수록 제단 단계↑ → 좋은 등급 확률↑ */
 function altarLv(st) { return Math.min(10, Math.floor(((st.gearAltar || 0)) / 40)); }
-function altarW(st) { const k = altarLv(st); return GEAR.w.map((w, i) => i === 0 ? Math.max(10, w - k * 4) : w * (1 + k * 0.18 * i)); }
+function altarW(st) { const k = altarLv(st); return GEAR.w.map((w, i) => i === 0 ? Math.max(10, w - k * 4) : i >= 5 ? 0 : i === 4 ? w * 0.5 * (1 + k * 0.1) : w * (1 + k * 0.18 * i)); }   /* 11-15 과금흉내: 뼛조각 제단으로 무과금이 7일에 신화 → 제단은 신화 없음 · 전설 절반(신화는 보스 · 장비 뽑기 · 운) */
 function altarPull(st, n) { n = Math.min(n, st.bones); if (n < 1 || !unlocked(st, 'gear')) return null; st.bones -= n; const out = []; for (let i = 0; i < n; i++) { st.gearAltar = (st.gearAltar || 0) + 1; out.push(gearTake(st, gearRoll(st, altarW(st), st.best, false))); } return out; }
 function gearPull(st, n) { const cost = n >= 10 ? GEAR.pull10 : GEAR.pull1 * n; if (st.gems < cost) return null; st.gems -= cost; const out = []; for (let i = 0; i < n; i++) out.push(gearTake(st, gearRoll(st, GEAR.pullW, st.best, false))); return out; }
 function gearAd(st) { const G = gearOf(st); if (G.adDay !== st.day) { G.adDay = st.day; G.ad = 0; } if (G.ad >= GEAR.adMax) return null; G.ad++; return [gearTake(st, gearRoll(st, GEAR.pullW, st.best, false))]; }
