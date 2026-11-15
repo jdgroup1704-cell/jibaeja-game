@@ -24,7 +24,7 @@ const UI = {
     { const rb = $('raiseBtn'); const tap = e => { e.preventDefault(); e.stopPropagation(); Snd.init(); if (!JB.raiseTap(st)) return; const n = st.raised, last = n === JB.C.RAISE_TAPS;   /* 11-15 18:39 대표님 「부하 소환 초반 8회, 누르는 타격감 · 클릭감 없어」: click(손 뗄 때) → 누르는 순간(pointerdown) · 매번 땅에서 해골 손이 솟고 초록 기둥 · 흔들림 · 「+1」 · 진동 · 단추가 꾹 눌렸다 튀어오름 · 누를수록 소리 높아짐 */
         Snd.smp('rise', 0.75, 0, 0.85 + n * 0.06); Snd.smp('stamp', 0.35, 0, 1.4 + n * 0.05); if (last) Snd.voice('v_rise');
         try { navigator.vibrate && navigator.vibrate(last ? [30, 40, 60] : 18); } catch (er) {}
-        const fx = (typeof armyFront === 'function' ? armyFront() : 520) - rnd(40, 160), fy = rnd(560, 690);
+        const fx = 300 + (typeof LDX === 'function' ? LDX() : 0) + (n % 3) * 70 + rnd(-15, 15), fy = 610 + ((n * 37) % 3) * 40;   /* 지배자 바로 앞에서 차례로 솟음(적 쪽에서 솟아 적이 일으킨 것처럼 보였음) */
         burst(fx, fy - 10, 22, { col: ['#5dff8f', '#e8dcc0', '#ffffff'], vmin: 60, vmax: 260, up: 220, g: 500, lmax: 0.8, smin: 2, smax: 5 });
         if (typeof LM !== 'undefined' && LM.fx) LM.fx.push({ kind: 'nova', hit: true, x: fx, y: fy - 40, age: 0, life: last ? 0.9 : 0.45, col: '#5dff8f', big: last });
         (S.rises = S.rises || []).push({ x: fx, y: fy, t: 0 }); S.shake = Math.max(S.shake || 0, last ? 9 : 3.5); S.hitstop = Math.max(S.hitstop || 0, 0.035);
