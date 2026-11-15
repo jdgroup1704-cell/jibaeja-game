@@ -652,6 +652,20 @@ function loginClaim(st) {
   if (r.hero) { const pool = HEROES.filter(h => h.rarity === r.hero), fresh = pool.filter(h => !st.heroes[h.id]), pick = (fresh.length ? fresh : pool)[Math.floor(Math.random() * (fresh.length ? fresh : pool).length)]; g.hero = grant(st, pick.id); }
   st.gems += g.gems; st.bones += g.bones; st.souls += g.souls; L.n++; L.last = st.day; return g;
 }
+/* 11-15 장르 기본 ③ 우편함(시스템 보상만 · 기기 안): 시작 선물 · 정복 축하 · 시험판 감사. 조건을 넘으면 우편이 오고 「받기」로 받음(같은 우편은 한 번) */
+const MAIL = [
+  { id: 'welcome', at: st => true, gems: 200 },
+  { id: 'trial', at: st => (st.best || 0) >= 3, bones: 40 },
+  { id: 'st10', at: st => (st.best || 0) >= 10, gems: 100 },
+  { id: 'st30', at: st => (st.best || 0) >= 30, gems: 200, bones: 50 },
+  { id: 'st50', at: st => (st.best || 0) >= 50, gems: 300 },
+  { id: 'st100', at: st => (st.best || 0) >= 100, gems: 500, bones: 100 },
+  { id: 'aw1', at: st => (st.awakens || 0) >= 1, gems: 150 },
+  { id: 'day3', at: st => (st.daysPlayed || 0) >= 2, gems: 120, bones: 30 },
+];
+function mailOf(st) { return st.mail || (st.mail = { got: [] }); }
+function mailList(st) { const M = mailOf(st); return MAIL.filter(m => !M.got.includes(m.id) && m.at(st)); }
+function mailClaim(st, id) { const ms = id === 'all' ? mailList(st) : mailList(st).filter(m => m.id === id); if (!ms.length) return null; const g = { n: ms.length, gems: 0, bones: 0 }; for (const m of ms) { g.gems += m.gems || 0; g.bones += m.bones || 0; mailOf(st).got.push(m.id); } st.gems += g.gems; st.bones += g.bones; return g; }
 function shopBuy(st, id, now) {
   const P = SHOP2[id], S = shopOf(st); if (!P || (P.once && S.bought[id])) return null; const g = { id, gems: 0, bones: 0, hero: null, note: '' };
   if (id === 'first') { const r = grant(st, 'serafine'); g.hero = r; g.gems = 300; g.bones = 50; }
@@ -665,7 +679,7 @@ function shopBuy(st, id, now) {
   st.gems += g.gems; st.bones += g.bones; S.bought[id] = (S.bought[id] || 0) + 1; addVip(st, P.won / 10); return g;
 }
 const SHOP = [{ id: 'crown119', won: [119000] }, { id: 'abyss59', won: [59000] }, { id: 'vault33', won: [33000] }, { id: 'lordPack', won: [5900] }, { id: 'skinSera', won: [9900] }, { id: 'wpStone', won: [3300] }, { id: 'first', won: [1500] }, { id: 'day1', won: [1500, 5900, 12000] }, { id: 'monthGem', won: null }, { id: 'monthBone', won: null }, { id: 'fund', won: null }, { id: 'noAds', won: null }];
-root.JB = { backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
+root.JB = { MAIL, mailOf, mailList, mailClaim, backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
   isBoss, isLord, waveHp, waveSouls, upCost, unlocked, heroBonus, armyCap, armySize, unitAtk, graveMul, dps, spellDamage, spellCd, soulMul, sigilsFor, awakenStage, rankOf,
   newState, startWave, tick, retryBoss, canCast, beginCast, landSpell, spellUnlocked, buy, raiseTap,
   altarTable, raiseGrave, keepGrave, scrapGrave, altarUp, altarTick, heroById, country, gachaAllowed, probTable, grant, firstHero, pull, directBuy, setSquad,

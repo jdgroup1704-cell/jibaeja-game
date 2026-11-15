@@ -34,6 +34,8 @@ const EX = {
     if (x === 'legal') { LEGAL.open(arg); return; }   /* 04:50 출시 준비: 확률 · 약관 · 개인정보 · 환불 */
     if (x === 'goTab') { UI.closeModal(); const b = document.querySelector(`#tabs [data-tab="${arg}"]`); if (b) b.click(); return; }   /* 벽 카드에서 바로 그 탭으로 */
     if (x === 'loginOpen') { this.loginOpen(); return; }
+    if (x === 'mailOpen') { this.mailOpen(); return; }
+    if (x === 'mailClaim') { const g = JB.mailClaim(st, arg || 'all'); if (!g) return; Snd.chime && Snd.chime(1175); Snd.smp('soul', 0.5); UI.toast(L.mail.toast(g.n), [g.gems ? L.mail.gems(g.gems) : '', g.bones ? L.mail.bones(g.bones) : ''].filter(Boolean).join(' · ')); typeof save === 'function' && save(); if (JB.mailList(st).length) this.mailOpen(); else UI.closeModal(); UI.render(true); return; }
     if (x === 'loginClaim') { const g = JB.loginClaim(st); if (!g) return; Snd.chime && Snd.chime(1319); Snd.smp('summon', 0.5); UI.toast(L.login.toast(g.day), [g.gems ? L.login.gems(g.gems) : '', g.bones ? L.login.bones(g.bones) : '', g.souls ? `${L.souls} +${fmt(g.souls)}` : ''].filter(Boolean).join(' · ')); UI.closeModal(); if (g.hero && UI.pullResult) UI.pullResult([g.hero]); UI.render(true); return; }
     if (x === 'shop') this.shopOpen();
     if (x === 'shopBuy') { const g = JB.shopBuy(st, arg, Date.now()); if (!g) { UI.toast(L.shop2.title, L.shop2.empty); return; } Snd.chime && Snd.chime(1319); Snd.smp('summon', 0.6); S.shake = Math.max(S.shake || 0, 4); const T = L.shop2.items[arg] || { name: L.shop2.gemT }; UI.toast(L.shop2.got(T.name), [g.gems ? `${L.gems} +${g.gems}` : '', g.bones ? `${L.bones} +${g.bones}` : '', g.hero ? L.heroes[g.hero.id].name : ''].filter(Boolean).join(' · ')); if (g.hero && UI.pullResult) { UI.closeModal(); UI.pullResult([g.hero]); } else this.shopOpen(); UI.render(true); return; }
@@ -57,6 +59,11 @@ const EX = {
     const c = JB.quickCost(st), free = Math.max(0, JB.C.QUICK_FREE - st.quickUsed);
     UI.openModal(`<h3>${L.quick.title}</h3><p>${L.quick.desc(JB.C.QUICK_HOURS)}</p>
       <button class="btn big gold" data-x="quickGo" ${st.gems < c ? 'disabled' : ''}>${c === 0 ? L.quick.free(free, JB.C.QUICK_FREE) : L.quick.gems(c)}</button>`);
+  },
+  mailOpen() {   /* 11-15 우편함: 시스템 선물만(기기 안) */
+    const T = L.mail, ms = JB.mailList(st), rew = m => [m.gems ? `<img src="art/i_gem.webp" alt="">${m.gems}` : '', m.bones ? `<img src="art/i_bone.webp" alt="">${m.bones}` : ''].join(' ');
+    const rows = ms.map(m => `<div class="row mrow"><div class="grow"><b>${T.t[m.id]}</b><div class="ds">${T.d[m.id]}</div><div class="mrew">${rew(m)}</div></div><button class="btn gold" data-x="mailClaim" data-arg="${m.id}">${T.get}</button></div>`).join('');
+    UI.openModal(`<h3>${T.title}</h3><p class="muted small">${T.sub}</p>` + (ms.length ? rows + (ms.length > 1 ? `<button class="btn big gold" data-x="mailClaim" data-arg="all">${T.all(ms.length)}</button>` : '') : `<p class="muted" style="text-align:center;margin:1.4em 0">${T.none}</p>`));
   },
   loginOpen() {   /* 11-15 7일 출석부: 처음 7일은 크게(7일째 상급 영웅), 그 뒤 매주 작게 */
     const T = L.login, R = JB.loginRow(st), can = JB.loginCan(st), txt = r => [r.hero ? T.heroSR : '', r.gems ? T.gems(r.gems) : '', r.bones ? T.bones(r.bones) : '', r.hours ? T.hours(r.hours) : ''].filter(Boolean).join(' + ');
