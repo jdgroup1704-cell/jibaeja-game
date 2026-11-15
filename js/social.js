@@ -19,7 +19,7 @@ const SO = {
     if (this.t <= 0) { this.t = rnd(14, 30); const r = Math.random();
       if (r < 0.6) this.push('world', this.pick(this.NICK), this.worldLine());
       if (JB.guildOf(st) && Math.random() < 0.35) this.push('guild', this.pick(this.NICK), this.guildLine()); }
-    const pv = $('chatpv'); if (pv && this.pvT <= 0 && pv.classList.contains('on')) pv.classList.remove('on');
+    const pv = $('chatpv'); if (pv && pv.classList.contains('on')) { const gd = $('guide'); if (this.pvT <= 0 || gd && gd.textContent.trim() && !gd.classList.contains('dim') && +getComputedStyle(gd).opacity > 0.3) pv.classList.remove('on'); }   /* 11-15 띄운 뒤에 아래 안내가 다시 밝아지면 채팅 한 줄은 바로 치움 */
   },
   preview(who, txt, kind) {   /* 채팅 단추 옆에 4초 · 첫 6판 · 창 · 보스 대마법 · 처음 안내 중엔 안 띄움 */
     if ((st.best || 0) < 6 || this.open || ($('modal') && $('modal').style.display === 'flex') || ['prompt', 'cast'].includes(S.phase)) return;
