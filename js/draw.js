@@ -913,7 +913,7 @@ function drawElite() {   /* 11-14 지역 정예 효과: 불덩이 · 얼음 창 
   if (S.chill > 0) { ctx.save(); ctx.globalAlpha = Math.min(1, S.chill) * 0.18; ctx.fillStyle = '#7ac8ff'; ctx.fillRect(VW.x, VW.y, VW.w * 0.62, VW.h); ctx.restore(); }   /* 서리: 우리 쪽 화면이 푸르게 */
 }
 function drawSlams() {   /* 거인 내려찍기: 청록 충격 효과 영상(25장) */
-  if (!S.slams || !S.slams.length) return; for (const o of S.slams) { o.t += 1 / 60; const pf = ctx.filter; if (o.tint) ctx.filter = o.tint === 'fire' ? 'hue-rotate(160deg) saturate(1.6)' : 'hue-rotate(20deg) saturate(.6) brightness(1.3)'; fxFrame('slam', 1 + o.t / 0.06, o.x, o.tint ? o.y : 600, o.tint ? 360 : 620, 1 - Math.max(0, o.t - 1.2) * 2); ctx.filter = pf; } S.slams = S.slams.filter(o => o.t < 1.5);
+  if (!S.slams || !S.slams.length) return; for (const o of S.slams) { o.t += 1 / 60; const pf = ctx.filter; if (o.tint) ctx.filter = o.tint === 'fire' ? 'hue-rotate(160deg) saturate(1.6)' : 'hue-rotate(20deg) saturate(.6) brightness(1.3)'; fxFrame('slam', 1 + o.t / 0.06, o.x, o.tint ? o.y : 600, o.tint ? 360 * (UK() < 1 ? 0.75 : 1) : 620, (1 - Math.max(0, o.t - 1.2) * 2) * (o.tint && UK() < 1 ? 0.6 : 1));   /* 11-15 폰: 작은 충격(방패 · 정예)의 빛 기둥이 영웅을 덮음 → 0.75배 크기 · 0.6배 밝기 */ ctx.filter = pf; } S.slams = S.slams.filter(o => o.t < 1.5);
 }
 function drawRings() {
   if (!S.rings.length) return; if (drawFxSun()) return;

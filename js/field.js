@@ -288,7 +288,7 @@ const HF = {
     const k = clamp(f.age / f.life, 0, 1);
     if (f.kind === 'bladeline') { const p = Math.min(1, k * 3), x = lerp(f.x0, f.x1, p); ctx.globalAlpha = 1 - Math.max(0, (k - 0.4) / 0.6);
       for (const [lw, c] of [[34, 'rgba(255,30,60,.25)'], [14, 'rgba(255,60,90,.7)'], [4, '#ffffff']]) { ctx.lineWidth = lw; ctx.strokeStyle = c; ctx.beginPath(); ctx.moveTo(f.x0, f.y + 10); ctx.lineTo(x, f.y - 10); ctx.stroke(); } }
-    else if (f.kind === 'soulburst') { const r = 40 + k * 260; ctx.globalAlpha = 1 - k; const g = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, r); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(0.3, 'rgba(180,110,255,.7)'); g.addColorStop(1, 'rgba(60,10,140,0)'); ctx.fillStyle = g; ctx.fillRect(f.x - r, f.y - r, r * 2, r * 2);
+    else if (f.kind === 'soulburst') { const ph = UK() < 1, r = 40 + k * (ph ? 170 : 260); ctx.globalAlpha = (1 - k) * (ph ? 0.65 : 1);   /* 11-15 폰: 영혼 폭발 흰 빛이 영웅 셋을 통째로 덮음(효과재기 29번) → 작고 옅게 */ const g = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, r); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(0.3, 'rgba(180,110,255,.7)'); g.addColorStop(1, 'rgba(60,10,140,0)'); ctx.fillStyle = g; ctx.fillRect(f.x - r, f.y - r, r * 2, r * 2);
       for (let j = 0; j < 7; j++) { const an = j / 7 * 6.28 + k * 2, rr = r * 0.8; ctx.fillStyle = 'rgba(230,210,255,.8)'; ctx.beginPath(); ctx.arc(f.x + Math.cos(an) * rr, f.y + Math.sin(an) * rr * 0.6, 8 * (1 - k), 0, 7); ctx.fill(); } }
     else if (f.kind === 'ghost') { const im = need('heroF_' + f.id); if (im) { const H2 = 150, w = H2 * im.width / im.height; ctx.globalAlpha = 0.45 * (1 - k); ctx.filter = 'brightness(0) invert(.7) sepia(1) hue-rotate(150deg) saturate(3)'; ctx.drawImage(im, f.x - w / 2, f.y - H2, w, H2); ctx.filter = 'none'; } }
     else if (f.kind === 'xcut') { ctx.globalAlpha = 1 - k; ctx.lineCap = 'round'; for (const [lw, c] of [[16, 'rgba(120,240,255,.4)'], [5, '#ffffff']]) { ctx.lineWidth = lw * (1 - k * 0.5); ctx.strokeStyle = c; const L2 = 70 * Math.min(1, k * 4); ctx.beginPath(); ctx.moveTo(f.x - L2, f.y - L2); ctx.lineTo(f.x + L2, f.y + L2); ctx.moveTo(f.x + L2, f.y - L2); ctx.lineTo(f.x - L2, f.y + L2); ctx.stroke(); } }
@@ -436,7 +436,7 @@ const LM = {
     for (const f of this.fx) {
       const k = f.age / f.life;
       if (f.kind === 'orb') { if (f.age < 0 || f.age > 0.22) continue; const p = f.age / 0.22, tx = f.t.f ? f.t.f.x : f.t.x, ty = f.t.f ? f.t.f.y - 80 * lerp(0.85, 1.1, f.t.f.d) : f.t.y;
-        const P = q => [lerp(f.x0, tx, q), lerp(f.y0, ty, q) + f.dy * 4 * q * (1 - q)], k2 = WK() * 0.7 + 0.3;
+        const P = q => [lerp(f.x0, tx, q), lerp(f.y0, ty, q) + f.dy * 4 * q * (1 - q)], k2 = UK() < 1 ? WK() * 0.4 + 0.3 : WK() * 0.7 + 0.3;   /* 11-15 눈 확인(효과재기 흰 픽셀 1등): 폰에서 지배자 구슬 꼬리가 굵기 80의 흰 띠가 되어 전장을 가로지름 → 폰은 꼬리 굵기 0.65배 */
         ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1;
         for (let j = 7; j >= 0; j--) { const q = Math.max(0, p - j * 0.045), [x, y] = P(q), r = (f.crit ? 15 : 12) * k2 * (1 - j * 0.1); ctx.globalAlpha = 1 - j * 0.12; const g = ctx.createRadialGradient(x, y, 1, x, y, r * 1.8); g.addColorStop(0, '#ffffff'); g.addColorStop(0.35, f.col); g.addColorStop(1, 'rgba(120,60,255,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 1.8, 0, 7); ctx.fill(); }
         ctx.globalAlpha = 1; continue; }
