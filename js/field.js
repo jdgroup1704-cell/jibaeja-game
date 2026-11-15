@@ -50,10 +50,10 @@ const HF = {
      → 영웅이 뛰어들 자리를 소환수 · 다른 영웅이 서 있지 않은 칸으로 고르고(앞뒤 · 위아래 몇 칸 중 가장 덜 겹치는 곳), 큰 소환수 위로는 껑충 뛰어넘어 감 */
   dashTo(h, tx, ty, maxDx) {
     const big = S.army.some(a => !a.fly && a.big), occ = S.army.filter(a => !a.fly && a.rise >= 1).map(a => [a.x, a.y, a.big ? 95 : 55]);
-    for (const o of this.list) if (o !== h && o.dash) occ.push([o.x + o.dash.dx, o.y + o.dash.dy, 80]);
+    for (const o of this.list) if (o !== h) occ.push(o.dash ? [o.x + o.dash.dx, o.y + o.dash.dy, 80] : [o.x, o.y, 70]);   /* 11-15 대표님 「뭉쳐 보여」: 서 있는 다른 영웅 자리도 피함 */
     let best = null, bs = 1e9;
-    for (const ox of [0, 60, 110, -50]) for (const oy of [0, 50, -50, 80, -80]) {
-      const lx = h.x + clamp(tx + ox - h.x, 0, maxDx), ly = clamp(ty + oy, 545, 735);
+    for (const ox of [0, 60, 110, -50]) for (const oy of [0, 50, -50, 80, -80, 120, -120]) {
+      const lx = h.x + clamp(tx + ox - h.x, 0, maxDx), ly = clamp(ty + oy, 485, 730);   /* 11-15 세 줄 배치(490~712)에 맞춰 위아래로 더 넓게 */
       let pen = Math.abs(ox) * 0.3 + Math.abs(oy) * 0.4; for (const [x, y, r] of occ) { const ddx = Math.abs(lx - x), ddy = Math.abs(ly - y); if (ddx < r * 0.75 && ddy < 45) pen += (r * 0.75 - ddx) * 6 + (45 - ddy) * 3; }
       if (pen < bs) { bs = pen; best = [lx - h.x, ly - h.y]; } }
     const jump = big ? 70 : 28;   /* 큰 소환수 줄 위로 껑충 · 11-15 줄이 없어도 낮게 한 번 뛰어 들어감(미끄러져 보이지 않게) */
