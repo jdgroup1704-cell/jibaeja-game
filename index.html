@@ -513,7 +513,7 @@
   #tabbody .slot.sq .sqt small{display:block;color:#b9a6d8;font-size:10.5px}
   #tabbody .btn[disabled]{color:#cdbfe6!important;opacity:1!important;filter:saturate(.45) brightness(.85)}
   html:not(.trailer) #reraise{top:auto!important;bottom:.5em!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;max-width:44%!important;white-space:normal!important;line-height:1.25;font-size:12px}   /* 21:50 위 가운데 큰 판 표시와 겹쳐 → 23:28 왼쪽은 지배자 머리 · 말풍선을 가려서 오른쪽(설정 단추 옆)으로 */
-  @media (max-width:520px){ html:not(.trailer) #app.stbig #toast{top:3.55em!important} html:not(.trailer) #stagewrap:has(#reraise.on) #toast{left:3.4em!important;right:3.4em!important} }   /* 알림은 큰 판 표시 밑으로 */
+  @media (max-width:520px){ html:not(.trailer) #app.stbig #toast{top:3.55em!important} html:not(.trailer) #toast{z-index:7!important} html:not(.trailer) #toast .toast{background:rgba(22,8,40,.96)!important} html:not(.trailer) #toast .toast b{display:inline!important;font-size:1em!important} html:not(.trailer) #toast .toast{white-space:normal!important;line-height:1.3!important;padding:.25em .6em!important;max-height:2.9em} html:not(.trailer) #stagewrap:has(#reraise.on) #toast{left:3.4em!important;right:3.4em!important} }   /* 알림은 큰 판 표시 밑으로 */   /* 11-15 19:25 눈 확인(군주보기): 「새로 열림」 제목이 한 줄을 따로 차지해 두 줄 상자가 전장 윗부분(영웅 머리 · 군주 날개)을 덮음 → 제목을 같은 줄 앞에 붙이고, 판 표시 자리(위)에 잠깐 덮어 뜸 — 판 이름 자리에 올렸더니 관문⑤가 「알림 × 판표시 385번」으로 막음 → 판 표시 밑 그대로 두고 한 줄로만(높이 절반) */
   html:not(.trailer) #app.stbig #hud .chip.stg{display:none}   /* 큰 판 표시가 있으면 위 띠의 작은 판 표시는 뺌(두 번 나옴) */
   html:not(.trailer) #panel.t-up > #goal .gk{display:none}   /* 강화 탭: 목표 줄이 ×1 · ×10 단추와 나란히라 「오늘의 임무」 머리말을 빼고 내용만(잘렸음) */
   /* ⑳ 21:55 다른 게임 비교: 영웅 목록 한 줄 · 작은 무기 단추 · 모집 단추 글씨 · 보물 기사 잘림 */
@@ -773,7 +773,7 @@
     <!-- 11-14 17:55 「그림 비교 ①②③④」 시험 단추 지움: ③ 예전 개선 + 영상 장면으로 정함(16:30). 시험할 땐 주소에 ?style=2d 처럼 -->
     <button id="reraise"></button>
     <div id="testbar"></div>
-    <div id="ver">판 11-15 19:25</div>
+    <div id="ver">판 11-15 20:32</div>
   </div>
   <div id="grip"><i></i></div>
   <div id="skillbar"><button id="raiseBtn"></button><div id="slots"></div><button id="cast"></button></div>
@@ -787,19 +787,19 @@
 </div>
 <div id="modal"><div class="box"></div></div>
 <script>window.BUILD = '1115102811';</script>   <!-- 11-14 18:12 대표님 「바뀐 새 버전 줘, 저장된 거 주지 말고 첫 시작」: 판마다 저장 이름이 달라 새 판은 늘 1-1부터 -->
-<script src="lang_ko.js?v=1794738326"></script>
-<script src="balance.js?v=1794738326"></script>
-<script src="logic.js?v=1794738326"></script>
-<script src="js/base.js?v=1794738326"></script>
-<script src="js/sound.js?v=1794738326"></script>
-<script src="js/art.js?v=1794738326"></script>
-<script src="js/draw.js?v=1794738326"></script>
-<script src="js/director.js?v=1794738326"></script>
-<script src="js/field.js?v=1794738326"></script>
-<script src="js/ui.js?v=1794738326"></script>
-<script src="js/extra.js?v=1794738326"></script>
-<script src="js/social.js?v=1794738326"></script>
-<script src="js/legal.js?v=1794738326"></script>
-<script src="js/main.js?v=1794738326"></script>
+<script src="lang_ko.js?v=1794742376"></script>
+<script src="balance.js?v=1794742376"></script>
+<script src="logic.js?v=1794742376"></script>
+<script src="js/base.js?v=1794742376"></script>
+<script src="js/sound.js?v=1794742376"></script>
+<script src="js/art.js?v=1794742376"></script>
+<script src="js/draw.js?v=1794742376"></script>
+<script src="js/director.js?v=1794742376"></script>
+<script src="js/field.js?v=1794742376"></script>
+<script src="js/ui.js?v=1794742376"></script>
+<script src="js/extra.js?v=1794742376"></script>
+<script src="js/social.js?v=1794742376"></script>
+<script src="js/legal.js?v=1794742376"></script>
+<script src="js/main.js?v=1794742376"></script>
 </body>
 </html>

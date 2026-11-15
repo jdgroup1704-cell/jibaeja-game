@@ -6,9 +6,9 @@ const HF = {
   list: [], shots: [], fx: [],
   /* 수하마다 공격 빠르기 · 기술 간격 · 색 · 기술 모양(베기 · 마법탄 · 범위 · 북) */
   KIND: {
-    serafine: { iv: 0.9, sk: 7, col: '#ff4d6d', fx: 'slash' }, morde: { iv: 1.4, sk: 9, col: '#9b7bff', fx: 'aoe', far: 1 },
-    nox: { iv: 0.7, sk: 6, col: '#7cf0ff', fx: 'slash' }, twins: { iv: 1.2, sk: 8, col: '#ff7ae0', fx: 'bolt', far: 1 },
-    krag: { iv: 1.1, sk: 8, col: '#e8dcc0', fx: 'slash' }, wisp: { iv: 1.0, sk: 8, col: '#7dffb0', fx: 'bolt', far: 1 },
+    serafine: { iv: 1.45, sk: 7, col: '#ff4d6d', fx: 'slash' }, morde: { iv: 2.1, sk: 9, col: '#9b7bff', fx: 'aoe', far: 1 },
+    nox: { iv: 1.2, sk: 6, col: '#7cf0ff', fx: 'slash' }, twins: { iv: 1.9, sk: 8, col: '#ff7ae0', fx: 'bolt', far: 1 },
+    krag: { iv: 1.75, sk: 8, col: '#e8dcc0', fx: 'slash' }, wisp: { iv: 1.6, sk: 8, col: '#7dffb0', fx: 'bolt', far: 1 },
     drummer: { iv: 1.3, sk: 10, col: '#ffb35a', fx: 'drum' }, porter: { iv: 1.5, sk: 10, col: '#b7d36a', fx: 'aoe' },
   },
   RMUL: { N: 0.6, R: 0.9, SR: 1.3, SSR: 1.8 },
@@ -77,14 +77,14 @@ const HF = {
     const dmg = JB.dps(st) * this.share(h) * k.iv * mul * (crit ? 2 : 1);
     const land = () => {   /* 닿는 순간: 숫자 · 터짐 · 번쩍 */
       const jx = rnd(-26, 26), jy = rnd(-22, 10);
-      say(fmt(dmg), t.x + jx, t.y - 10 + jy, { size: big ? 40 : crit ? 30 : 22, col: big ? k.col : crit ? '#ffe14d' : '#ffffff', glow: big ? k.col : crit ? '#ff9d2a' : null, life: big ? 1.1 : 0.8, vy: -70 });
+      say(fmtD(dmg), t.x + jx, t.y - 10 + jy, { size: big ? 40 : crit ? 30 : 22, col: big ? k.col : crit ? '#ffe14d' : '#ffffff', glow: big ? k.col : crit ? '#ff9d2a' : null, life: big ? 1.1 : 0.8, vy: -70 });
       if (crit) { say(L.field.crit, t.x + jx, t.y - 44 + jy, { size: 16, col: '#ffe14d', life: 0.7, vy: -60 }); punch(0.035, 3, 0); Snd.smp && Snd.smp('slam', 0.12, 0, 1.9); }
-      if (big) { punch(0.06, 6, 25); Snd.smp && Snd.smp('hit', 0.55, 0, rnd(0.65, 0.8)); } else if (Snd.smp && Math.random() < 0.5) Snd.smp('hit', 0.18, 0, rnd(0.9, 1.35));   /* 타격음 높이를 매번 다르게 */
+      if (!crit && !big) punch(0.055, 2.5, 0);   /* 11-15 19:30 영웅 평타 = 묵직한 한 방(멈칫 0.055 · 0.85초에 한 번까지) */ if (big) { punch(0.08, 6, 25); Snd.smp && Snd.smp('hit', 0.55, 0, rnd(0.65, 0.8)); } else if (Snd.smp && Math.random() < 0.5) Snd.smp('hit', 0.18, 0, rnd(0.9, 1.35));   /* 타격음 높이를 매번 다르게 */
       burst(t.x, t.y, big ? 18 : 5, { col: [k.col, '#ffffff'], vmin: 40, vmax: big ? 320 : 160, up: 60, lmax: big ? 0.6 : 0.35 });
       if (t.foe) t.foe.flash = 0.15;
       if (!k.far) this.fx.push({ kind: 'slash', x: t.x - 10, y: t.y, age: 0, life: 0.22, col: k.col, big });
     };
-    h.swg = 0; h.swgL = k.far ? 0.4 : 0.42; h.swgB = big ? 1.35 : 1;   /* 윗몸 휘두르기 시작 */
+    h.swg = 0; h.swgL = k.far ? 0.45 : 0.52; h.swgB = big ? 1.35 : 1; h.ka = 0;   /* 때리기 영상 시작(0.9초: 젖히기 0.4 · 내려침 0.15 · 돌아오기 0.35 — 6번째 장이 닿는 순간 = 돌진 끝 0.42초쯤) */   /* 윗몸 휘두르기 시작 */
     if (k.far) { this.shots.push({ x: h.x + (h.flip ? -30 : 30), y: h.y - 110, tx: t.x, ty: t.y, age: 0, life: big ? 0.35 : 0.45, col: k.col, big, land }); h.lunge = 0.2; }
     else if (h.flip) h.dash = { age: 0, life: 0.42, dx: -70, dy: clamp(t.y + 40 - h.y, -60, 60), land, hit: false };
     else { const q = this.dashTo(h, t.back ? t.x - 70 : t.x - 60, h.y + clamp(t.y + 40 - h.y, -60, 60), t.back ? 520 : 260); h.dash = { age: 0, life: t.back ? 0.62 : q.jump ? 0.5 : 0.42, dx: q.dx, dy: q.dy, jump: q.jump, land, hit: false }; }
@@ -102,7 +102,7 @@ const HF = {
     const k = this.KIND[h.id] || this.KIND.krag, name = L.field.skills[h.id];
     if (!this.target(h)) return;
     if (!UI.cutIn || !UI.cutIn(h.id, name, k.col)) say(name, h.x, h.y - 150, { size: 24, col: '#ffffff', glow: k.col, life: 1.1, vy: -20 });   /* 19:38 영웅 기술 = 얼굴 그림이 옆에서 쓱 들어오는 컷인(장르 공식). 4초에 한 번만, 나머지는 작은 글자 */
-    { const tier = { N: 0, R: 1, SR: 2, SSR: 3 }[JB.heroById(h.id).rarity] || 0; if (tier >= 2) { LM.fx.push({ kind: 'nova', hit: true, x: h.x, y: h.y - 70, age: 0, life: tier >= 3 ? 1.0 : 0.7, col: k.col, big: tier >= 3 }); burst(h.x, h.y - 80, tier >= 3 ? 48 : 24, { col: [k.col, '#ffffff'], vmin: 120, vmax: tier >= 3 ? 560 : 380, up: 220, lmax: 0.8 }); S.flash = Math.max(S.flash || 0, tier >= 3 ? 0.22 : 0.1); if (tier >= 3) { S.shake = Math.max(S.shake || 0, 8); S.hitstop = Math.max(S.hitstop || 0, 0.06); } } }   /* 22:58 대표님 「뽑아서 강한 건 스킬이 화려하고」: 상급 · 최고 등급 영웅은 기술 때 빛기둥 · 충격파 · 불꽃이 훨씬 크게 */
+    { const tier = { N: 0, R: 1, SR: 2, SSR: 3 }[JB.heroById(h.id).rarity] || 0; if (tier >= 2) { LM.fx.push({ kind: 'nova', hit: true, x: h.x, y: h.y - 70, age: 0, life: tier >= 3 ? 1.0 : 0.7, col: k.col, big: tier >= 3 }); burst(h.x, h.y - 80, tier >= 3 ? 48 : 24, { col: [k.col, '#ffffff'], vmin: 120, vmax: tier >= 3 ? 560 : 380, up: 220, lmax: 0.8 }); S.flash = Math.max(S.flash || 0, tier >= 3 ? 0.22 : 0.1); if (tier >= 3) { S.shake = Math.max(S.shake || 0, 8); punch(0.06, 0); } } }   /* 22:58 대표님 「뽑아서 강한 건 스킬이 화려하고」: 상급 · 최고 등급 영웅은 기술 때 빛기둥 · 충격파 · 불꽃이 훨씬 크게 */
     if (this.UNIQ[h.id]) this.UNIQ[h.id].call(this, h, k);   /* 11-14 대표님 「다양한 캐릭 스킬」: 수하마다 다른 기술 */
     else if (k.fx === 'drum') { for (const a of S.army) if (!a.fly && Math.random() < 0.6) a.hop = 0.6; Snd.stamp && Snd.stamp(0.4); this.hit(h, 3, true); }
     else if (k.fx === 'aoe') { let n = 0; for (const f of S.foes) { if (f.dead || f.flee || n > 3) continue; n++; burst(f.x, f.y - 30, 14, { col: [k.col, '#ffffff'], vmin: 60, vmax: 300, up: 80, lmax: 0.6 }); } this.hit(h, 4, true); Snd.rumble && Snd.rumble(0.6); }
@@ -115,7 +115,7 @@ const HF = {
     if (Snd.smp) Snd.smp('hit', 0.5, 0, rnd(0.8, 1));
   },
   foesLive() { return S.foes.filter(f => !f.dead && !f.flee && f.x < VX1 + 40); },
-  num(x, y, mul, col, big) { say(fmt(JB.dps(st) * 0.12 * mul * rnd(0.85, 1.15)), x + rnd(-16, 16), y, { size: big ? 34 : 24, col: '#ffffff', glow: col, life: 0.9, vy: -60 }); },
+  num(x, y, mul, col, big) { say(fmtD(JB.dps(st) * 0.12 * mul * rnd(0.85, 1.15)), x + rnd(-16, 16), y, { size: big ? 34 : 24, col: '#ffffff', glow: col, life: 0.9, vy: -60 }); },
   /* 수하 8명 고유 기술 — 모양 · 효과가 다 다름. 피해 계산은 규칙이 그대로, 여기선 보여 주기 + 작은 덤(회복 · 해골 일으키기 · 공격 빨라짐 · 영혼) */
   UNIQ: {
     serafine(h, k) {   // 피의 일섬: 화면을 가로지르는 붉은 일섬이 줄 위 적을 모두 베고, 수하들 체력을 조금 채움
@@ -164,14 +164,14 @@ const HF = {
   skelHurt(a) {   /* 쫄따구가 맞음: 움찔 + 작은 빨간 숫자, 4번에 1번쯤 부서짐(뼈 조각 튐) → 무덤에서 새 해골이 일어나 줄을 채움 */
     a.hurt = 0.25; a.flash = 0.12; a.vh = Math.max(0.12, (a.vh ?? 1) - rnd(0.15, 0.32)); a.hbT = 2.5; S.shieldHits = (S.shieldHits || 0) + 1;   /* 18:42 체력 막대: 맞으면 머리 위에 2.5초 보였다 사라짐(보여주기 체력, 천천히 다시 참) */
     burst(a.x + 8, a.y - 60, 4, { col: ['#ffffff', '#ff8a8a'], vmin: 60, vmax: 200, up: 40, lmax: 0.22 });
-    if (Math.random() < 0.5) say('-' + fmt(Math.max(1, JB.dps(st) * 0.01 * rnd(0.7, 1.3))), a.x + rnd(-10, 10), a.y - 70, { size: 16, col: '#ff6a6a', life: 0.6, vy: -50 });
+    if (Math.random() < 0.12) say('-' + fmtD(Math.max(1, JB.dps(st) * 0.01 * rnd(0.7, 1.3))), a.x + rnd(-10, 10), a.y - 70, { size: 16, col: '#ff6a6a', life: 0.6, vy: -50 });
     if (!a.evo && a.rf == null && Math.random() < 0.25) { a.gone = true; skelFall(a);   /* 진화한 놈 · 부활한 병사는 안 부서짐 */ S.skelDown = (S.skelDown || 0) + 1; burst(a.x, a.y - 30, 10, { col: ['#e8dcc0', '#bfb59a'], vmin: 60, vmax: 220, up: 120, g: 600, lmax: 0.7, smin: 2, smax: 5, add: false }); }
   },
   /* 수하가 맞음: 빨간 숫자 · 뒤로 밀림 · 붉은 번쩍 · 체력 막대가 깎였다가 다시 참 */
   hurt(h, mul, big) {
     const dmg = Math.max(1, JB.dps(st) * 0.03 * mul * rnd(0.7, 1.3));
-    h.hp = Math.max(0.3, h.hp - (big ? rnd(0.12, 0.2) : rnd(0.04, 0.09))); h.hurtT = big ? 0.3 : 0.2; h.kb = big ? 0.35 : 0.22; if (big) { S.shake = Math.max(S.shake || 0, 7); S.hitstop = Math.max(S.hitstop || 0, 0.06); }
-    say('-' + fmt(dmg), h.x + rnd(-18, 18), h.y - 120 + rnd(-10, 10), { size: big ? 34 : 24, col: '#ff4a4a', glow: big ? '#ff0000' : null, life: 0.75, vy: -60 });
+    h.hp = Math.max(0.3, h.hp - (big ? rnd(0.12, 0.2) : rnd(0.04, 0.09))); h.hurtT = big ? 0.3 : 0.2; h.kb = big ? 0.35 : 0.22; if (big) { S.shake = Math.max(S.shake || 0, 7); punch(0.05, 0); }
+    say('-' + fmtD(dmg), h.x + rnd(-18, 18), h.y - 120 + rnd(-10, 10), { size: big ? 34 : 24, col: '#ff4a4a', glow: big ? '#ff0000' : null, life: 0.75, vy: -60 });
     burst(h.x + 10, h.y - 70, big ? 10 : 4, { col: ['#ff3030', '#ffffff'], vmin: 30, vmax: big ? 220 : 120, up: 40, lmax: 0.3 });
   },
   update(dt) {
@@ -181,7 +181,7 @@ const HF = {
       h.enter = Math.min(1, h.enter + dt * 1.5);
       { const ox = h.x, oy = h.y; if (Math.abs(h.tx - h.x) > 14) h.x += Math.sign(h.tx - h.x) * Math.min(Math.abs(h.tx - h.x) - 10, 110 * dt); if (Math.abs(h.ty - h.y) > 8) h.y += Math.sign(h.ty - h.y) * Math.min(Math.abs(h.ty - h.y) - 6, 75 * dt); const v = Math.hypot(h.x - ox, (h.y - oy) * 1.6) / Math.max(dt, 1e-3);   /* 11-15 대표님 「크라그는 밑에서 앞으로 걷는 게 아니라 스르르 미끄러져」: 위아래로 옮길 땐 걸음(들썩 · 기우뚱) 없이 미끄러졌음 → 위아래도 일정한 걸음 빠르기 + 걸음 흔들림 */ h.wamp = lerp(h.wamp || 0, v > 12 ? 1 : 0, Math.min(1, dt * 10)); h.wph = (h.wph || 0) + dt * 11 * (h.wamp > 0.1 ? 1 : 0); h.wf = ((h.wf || 0) + Math.min(v, 160) * dt * 16 / 80) % 16; }   /* 걷기 영상: 80 걸으면 한 바퀴(16장) */   /* 21:58 대표님 「밀리는 애」: 영웅이 그림 한 장째로 미끄러지던 것 → 일정한 걸음 빠르기로 걷고, 걸을 땐 걸음마다 들썩 · 기우뚱. 조금 벗어난 건 그 자리에 서 있음 */
       h.lunge = Math.max(0, h.lunge - dt); h.flash = Math.max(0, h.flash - dt);
-      if (h.swg != null) { h.swg += dt; if (h.swg >= h.swgL) h.swg = null; }
+      if (h.swg != null) { h.swg += dt; if (h.swg >= h.swgL) h.swg = null; } if (h.ka != null) { h.ka += dt; if (h.ka >= 0.9) h.ka = null; }
       if (h.dash && fight) { const d = h.dash; d.age += dt; if (!d.hit && d.age >= d.life * 0.5) { d.hit = true; d.land(); } if (d.age >= d.life) h.dash = null; }
       if (!fight) { h.dash = null; continue; }
       h.atkT -= dt; h.skT -= dt;
@@ -265,7 +265,10 @@ const HF = {
         if (R7) { const gg = ctx.createRadialGradient(0, -H2 * 0.45, 4, 0, -H2 * 0.45, H2 * 0.8); gg.addColorStop(0, 'rgba(255,40,60,.28)'); gg.addColorStop(1, 'rgba(60,0,10,0)'); ctx.fillStyle = gg; ctx.fillRect(-H2, -H2 * 1.3, H2 * 2, H2 * 1.5); }
         ctx.restore(); } }
     if (full) { const w = H2 * full.width / full.height, src = tc ? this.glow(full, tc, Math.ceil(wp / 2)) : full, ang = this.pose(h); if (h.flip) { ctx.save(); ctx.scale(-1, 1); }
-      if (wk && !ang) vsDraw(WV, 'walk', h.wf || 0, H2, '', 0, true);
+      const KV = 'heroK_' + h.id, ka = h.ka, kf = ka == null ? -1 : ka < 0.4 ? ka / 0.4 * 5.9 : ka < 0.55 ? 6 + (ka - 0.4) / 0.15 * 4.9 : 11 + (ka - 0.55) / 0.35 * 4.9;   /* 시간 → 장 번호(장마다 시간이 다름) */
+      if (kf >= 0 && !TA && !sk && VS[KV] && need(KV + '_atk')) vsDraw(KV, 'atk', kf, H2, '', 0, false);   /* 11-15 19:45 「종이가 움직이냐」: 그림 한 장을 허리에서 돌리던 것 → 진짜 때리는 영상 */
+      else if (wk && !ang) vsDraw(WV, 'walk', h.wf || 0, H2, '', 0, true);
+      else if (!ang && !TA && !sk && !(h.wamp > 0.3) && VS['heroI_' + h.id] && need('heroI_' + h.id + '_idle')) vsDraw('heroI_' + h.id, 'idle', (S.t + h.atkT * 3) * 4.8, H2, '', 0, true);   /* 11-15 20:10 서 있을 때도 숨쉬는 영상(그림 한 장 = 종이였던 것) */
       else if (!ang) ctx.drawImage(src, -w / 2, -H2, w, H2);
       else {   /* 그림 한 장을 허리(위에서 52%)에서 나눠 아랫몸은 그대로, 윗몸(무기 든 팔)은 허리를 축으로 돌림 — 윗몸을 4% 겹쳐 그려 틈이 안 보이게 */
         const cut = 0.52, sw = src.width, sh = src.height, wy = -H2 * (1 - cut);
@@ -290,7 +293,7 @@ const HF = {
   /* 휘두르기 각도(라디안): 뒤로 젖혀 모았다가(-0.3) 앞으로 내려침(+0.6) → 돌아옴. 허리를 축으로 윗몸만 돎 */
   pose(h) {
     if (h.swg == null) return 0; const p = h.swg / h.swgL;
-    const a = p < 0.3 ? -0.3 * p / 0.3 : p < 0.5 ? -0.3 + 0.9 * (p - 0.3) / 0.2 : 0.6 * (1 - (p - 0.5) / 0.5);
+    const a = p < 0.4 ? -0.38 * Math.sin(p / 0.4 * Math.PI / 2) : p < 0.52 ? -0.38 + 1.05 * (p - 0.4) / 0.12 : 0.67 * (1 - (p - 0.52) / 0.48);   /* 11-15 19:30 크게 젖혔다(0.2초) 빠르게 내려침(0.06초) — 예비 동작이 있어야 한 방이 무거워 보임 */
     return a * (h.swgB || 1);
   },
   glow(im, col, tier) {   /* 무기 단계 테두리 빛을 한 번만 그려 두고 다시 씀(매 장 그리면 휴대폰이 버벅여 선명도가 떨어짐) */
@@ -312,7 +315,7 @@ const HF = {
     else if (f.kind === 'dustline') { ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 0.5 * (1 - k); for (let j = 0; j < 10; j++) { const x = f.x + j * 45 * Math.min(1, k * 2), r = 30 + j * 4; const g = ctx.createRadialGradient(x, f.y - 10, 2, x, f.y - 10, r); g.addColorStop(0, 'rgba(200,180,150,.6)'); g.addColorStop(1, 'rgba(120,100,80,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, f.y - 10 - r, r * 2, r * 2); } ctx.globalCompositeOperation = 'lighter'; }
     else if (f.kind === 'ring') { const r = 30 + k * 380; ctx.globalAlpha = 0.8 * (1 - k); ctx.strokeStyle = f.col; ctx.lineWidth = 8 * (1 - k) + 1; ctx.beginPath(); ctx.ellipse(f.x, f.y, r, r * 0.45, 0, 0, 7); ctx.stroke(); }
     else if (f.kind === 'wisp') { const seg = f.path.length - 1, u = k * seg, i = Math.min(seg - 1, Math.floor(u)), q = u - i, a = f.path[i], b = f.path[i + 1], x = lerp(a.x, b.x, q), y = lerp(a.y, b.y, q) - Math.sin(q * Math.PI) * 50;
-      if (i + 1 > f.hits && q > 0.9) { f.hits = i + 1; if (b.f && !b.f.dead) { b.f.flash = 0.2; this.num(b.f.x, b.f.y - 90, 1.5, f.col); } }
+      if (i + 1 > f.hits && q > 0.9) { f.hits = i + 1; if (b.f && !b.f.dead) { b.f.flash = 0.2; if (f.hits % 2) this.num(b.f.x, b.f.y - 90, 3, f.col); }   /* 11-15 19:55 여러 번 맞는 기술은 숫자를 두 번에 한 번(합친 값) */ }
       ctx.globalAlpha = 1 - Math.max(0, (k - 0.85) / 0.15); const g = ctx.createRadialGradient(x, y, 2, x, y, 22); g.addColorStop(0, 'rgba(240,255,240,1)'); g.addColorStop(0.4, 'rgba(110,255,160,.7)'); g.addColorStop(1, 'rgba(0,80,40,0)'); ctx.fillStyle = g; ctx.fillRect(x - 22, y - 22, 44, 44);
       if (Math.random() < 0.5) S.parts.push({ x, y, vx: rnd(-20, 20), vy: rnd(-40, 0), life: 0.4, age: 0, size: rnd(2, 4), col: '#7dffb0', g: -20, add: true, kind: 'dot', rot: 0, vr: 0 }); }
     ctx.globalAlpha = 1;
@@ -392,9 +395,9 @@ const LM = {
       const hit = bossOn ? [{ x: g.x - 60, y: g.y - 260, boss: 1 }] : fs.filter(f => !f.dead).map(f => ({ f, x: f.x, y: f.y - 80 * lerp(0.85, 1.1, f.d) }));
       for (const h of hit) { if (h.f) { h.f.flash = 0.22; h.f.kbT = Math.max(h.f.kbT || 0, 0.18); } else S.giant.hitFl = 0.2;
         const base = JB.dps(st) * 0.5 * Math.pow(JB.C.MAGIC_MUL, st.up.magic || 0);
-        for (let i = 0; i < 3; i++) say(fmt(base * rnd(0.8, 1.25)), Math.min(VX1 - 120, h.x) + rnd(-6, 6), h.y - 20 - i * 27, { size: 27, col: i === 0 ? '#ffe14d' : '#fff4b8', glow: '#3a1600', life: 0.8 + i * 0.06, vy: -30 });   /* 갓깨비처럼 노란 큰 숫자가 3줄 쌓임(오른쪽 끝 단추에 안 가리게 안쪽으로) */
+        if (hit.indexOf(h) < 3) say(fmtD(base * 3 * rnd(0.9, 1.1)), Math.min(VX1 - 120, h.x) + rnd(-6, 6), h.y - 20, { size: 30, col: '#ffe14d', glow: '#3a1600', life: 0.9, vy: -40 });   /* 11-15 19:35 타격 리듬 잼: 적마다 숫자 3줄씩(최대 15개)이 「따따따닥」의 큰 몫(20초에 75개) → 앞 3마리만 합친 숫자 하나씩 크게 */   /* 갓깨비처럼 노란 큰 숫자가 3줄 쌓임(오른쪽 끝 단추에 안 가리게 안쪽으로) */
         burst(h.x, h.y, 10, { col: blue ? ['#ffffff', '#9fe6ff', '#2a8cff'] : ['#ffffff', '#e0c8ff', '#9b6bff'], vmin: 120, vmax: 420, up: 40, lmax: 0.35, smin: 2, smax: 4 }); }
-      S.shake = Math.max(S.shake || 0, 7); S.hitstop = Math.max(S.hitstop || 0, 0.05); S.tint = { col: blue ? '40,140,255' : '150,70,255', a: 0.18 };
+      punch(0.06, 7); S.tint = { col: blue ? '40,140,255' : '150,70,255', a: 0.18 };
       Snd.smp && Snd.smp('hit', 0.45, 0, 0.7); Snd.slam && Snd.slam(0.25); } });
     S.lord.shotT = 0.28; S.lord.glow = 1;
   },
@@ -404,11 +407,11 @@ const LM = {
     this.fx.push({ kind: 'orbRing', x, y, age: 0, life: crit ? 0.42 : 0.3, hitAt: 9, col: crit ? '#ffd76a' : '#c58bff', big: crit });
     burst(x, y, crit ? 16 : 8, { col: crit ? ['#ffe14d', '#ffffff', '#ff9a2a'] : ['#e0c8ff', '#ffffff', '#9b6bff'], vmin: 80, vmax: crit ? 380 : 240, up: 30, lmax: 0.32, smin: 2, smax: crit ? 5 : 3.5 });
     const dmg = JB.dps(st) * 0.35 * Math.pow(JB.C.MAGIC_MUL, st.up.magic || 0) * rnd(0.85, 1.15) * (crit ? 2.2 : 1);
-    if (crit) { say(fmt(dmg), x + rnd(-10, 10), y - 26, { size: 32, col: '#ffe14d', glow: '#ff7a00', life: 0.85, vy: -70 }); say(L.field.crit, x, y - 62, { size: 15, col: '#ffb02e', life: 0.7, vy: -70 }); S.hitstop = Math.max(S.hitstop || 0, 0.045); S.shake = Math.max(S.shake || 0, 4); }
-    else say(fmt(dmg), x + rnd(-14, 14), y - 22, { size: 20, col: '#efe2ff', glow: '#8a3cff', life: 0.65, vy: -60 });
+    if (crit) { say(fmtD(dmg), x + rnd(-10, 10), y - 26, { size: 32, col: '#ffe14d', glow: '#ff7a00', life: 0.85, vy: -70 }); say(L.field.crit, x, y - 62, { size: 15, col: '#ffb02e', life: 0.7, vy: -70 }); punch(0.045, 0); S.shake = Math.max(S.shake || 0, 4); }
+    else if (Math.random() < 0.3) say(fmtD(dmg), x + rnd(-14, 14), y - 22, { size: 20, col: '#efe2ff', glow: '#8a3cff', life: 0.65, vy: -60 });   /* 11-15 19:35 지배자 구슬 평타 숫자는 반만 */
     Snd.smp && Snd.smp('hit', crit ? 0.32 : 0.2, 0, crit ? rnd(0.8, 0.9) : rnd(1.2, 1.5));
   },
-  num(x, y, mul, col) { say(fmt(JB.dps(st) * mul * Math.pow(JB.C.MAGIC_MUL, st.up.magic || 0) * rnd(0.85, 1.15)), x + rnd(-14, 14), y, { size: 26, col: '#ffffff', glow: col, life: 0.9, vy: -60 }); },
+  num(x, y, mul, col) { say(fmtD(JB.dps(st) * mul * Math.pow(JB.C.MAGIC_MUL, st.up.magic || 0) * rnd(0.85, 1.15)), x + rnd(-14, 14), y, { size: 26, col: '#ffffff', glow: col, life: 0.9, vy: -60 }); },
   cast(id) {
     const d = this.DEF[id], foes = S.foes.filter(f => !f.dead && !f.flee && f.x < VX1).sort((a, b) => a.x - b.x); if (!foes.length) return;
     this.pose = (typeof STYLE !== 'undefined' && STYLE === 'old') ? 0 : 1; S.lord.c2T = 0.9; this.shown[id] = (this.shown[id] || 0) + 1;   /* SD 지배자가 지팡이를 내지르는 동작 */

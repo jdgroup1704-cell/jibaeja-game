@@ -301,6 +301,22 @@ const VS = {
   sumv4: { f: 'sumv4', cw: 104, ch: 157, ax: 26.2, ay: 155.8, hpx: 150, n: { attack: 16, idle: 14 } },
   /* 09:55 대표님 「걷기 · 입장 자연스럽게」: 드리미나 제자리 걷기 영상 4편(우리 그림 그대로) → 한 바퀴 16장(vid/걷기줄그림.py) */
   lordw: { f: 'lordw', cw: 468, ch: 332, ax: 139.5, ay: 321.5, hpx: 300, n: { attack: 16 } },   /* 10:05 지배자 「지팡이 내지르기」 영상(그림 A 그대로 · 지팡이 늘 손에 · 16:9라 안 잘림) 1.55~2.9초 16장 */
+  heroK_krag: { f: 'heroK_krag', cw: 411, ch: 471, ax: 205.7, ay: 440.3, hpx: 300.0, n: { atk: 16 }, hit: 6 },   /* 11-15 19:45 영웅 때리기 영상(드리미나 · 젖히기 5 · 내려침 5 · 돌아오기 6장) — 대표님 「종이가 움직이냐」 */
+  heroK_morde: { f: 'heroK_morde', cw: 382, ch: 436, ax: 190.2, ay: 428.5, hpx: 300.0, n: { atk: 16 }, hit: 6 },   /* 11-15 19:45 영웅 때리기 영상(드리미나 · 젖히기 5 · 내려침 5 · 돌아오기 6장) — 대표님 「종이가 움직이냐」 */
+  heroK_serafine: { f: 'heroK_serafine', cw: 399, ch: 457, ax: 199.3, ay: 438.1, hpx: 300.0, n: { atk: 16 }, hit: 6 },   /* 11-15 19:45 영웅 때리기 영상(드리미나 · 젖히기 5 · 내려침 5 · 돌아오기 6장) — 대표님 「종이가 움직이냐」 */
+  heroK_nox: { f: 'heroK_nox', cw: 320, ch: 324, ax: 128.5, ay: 301.4, hpx: 300.0, n: { atk: 16 }, hit: 6 },   /* 11-15 19:45 영웅 때리기 영상(드리미나 · 젖히기 5 · 내려침 5 · 돌아오기 6장) — 대표님 「종이가 움직이냐」 */
+  heroK_drummer: { f: 'heroK_drummer', cw: 348, ch: 331, ax: 156.1, ay: 323.5, hpx: 300.0, n: { atk: 16 }, hit: 6 },   /* 11-15 19:45 영웅 때리기 영상(드리미나 · 젖히기 5 · 내려침 5 · 돌아오기 6장) — 대표님 「종이가 움직이냐」 */
+  heroK_porter: { f: 'heroK_porter', cw: 384, ch: 442, ax: 192.0, ay: 421.1, hpx: 300.0, n: { atk: 16 }, hit: 6 },   /* 11-15 19:45 영웅 때리기 영상(드리미나 · 젖히기 5 · 내려침 5 · 돌아오기 6장) — 대표님 「종이가 움직이냐」 */
+  heroK_twins: { f: 'heroK_twins', cw: 397, ch: 535, ax: 172.9, ay: 510.5, hpx: 300.0, n: { atk: 16 }, hit: 6 },   /* 11-15 19:45 영웅 때리기 영상(드리미나 · 젖히기 5 · 내려침 5 · 돌아오기 6장) — 대표님 「종이가 움직이냐」 */
+  heroK_wisp: { f: 'heroK_wisp', cw: 386, ch: 398, ax: 193.3, ay: 340.5, hpx: 300.0, n: { atk: 16 }, hit: 6 },   /* 11-15 19:45 영웅 때리기 영상(드리미나 · 젖히기 5 · 내려침 5 · 돌아오기 6장) — 대표님 「종이가 움직이냐」 */
+  heroI_krag: { f: 'heroI_krag', cw: 273, ch: 269, ax: 134.7, ay: 262.7, hpx: 260.0, n: { idle: 24 } },   /* 11-15 20:10 영웅 서 있기 영상 */
+  heroI_serafine: { f: 'heroI_serafine', cw: 277, ch: 270, ax: 136.3, ay: 263.7, hpx: 260.0, n: { idle: 24 } },   /* 11-15 20:10 영웅 서 있기 영상(드리미나 5초 숨쉬기 → 24장 한 바퀴) */
+  heroI_nox: { f: 'heroI_nox', cw: 223, ch: 267, ax: 111.3, ay: 261.2, hpx: 260.0, n: { idle: 24 } },   /* 11-15 20:10 영웅 서 있기 영상(드리미나 5초 숨쉬기 → 24장 한 바퀴) */
+  heroI_drummer: { f: 'heroI_drummer', cw: 238, ch: 275, ax: 117.7, ay: 269.2, hpx: 260.0, n: { idle: 24 } },   /* 11-15 20:10 영웅 서 있기 영상(드리미나 5초 숨쉬기 → 24장 한 바퀴) */
+  heroI_porter: { f: 'heroI_porter', cw: 232, ch: 270, ax: 116.1, ay: 263.6, hpx: 260.0, n: { idle: 24 } },   /* 11-15 20:10 영웅 서 있기 영상(드리미나 5초 숨쉬기 → 24장 한 바퀴) */
+  heroI_morde: { f: 'heroI_morde', cw: 221, ch: 270, ax: 110.5, ay: 264.4, hpx: 260.0, n: { idle: 24 } },   /* 11-15 20:10 영웅 서 있기 영상(드리미나 5초 숨쉬기 → 24장 한 바퀴) */
+  heroI_twins: { f: 'heroI_twins', cw: 296, ch: 279, ax: 147.0, ay: 269.8, hpx: 260.0, n: { idle: 24 } },   /* 11-15 20:10 영웅 서 있기 영상(드리미나 5초 숨쉬기 → 24장 한 바퀴) */
+  heroI_wisp: { f: 'heroI_wisp', cw: 244, ch: 291, ax: 120.9, ay: 276.6, hpx: 260.0, n: { idle: 24 } },   /* 11-15 20:10 영웅 서 있기 영상(드리미나 5초 숨쉬기 → 24장 한 바퀴) */
   heroW_krag: { f: 'heroW_krag', cw: 335, ch: 329, ax: 172.5, ay: 314.2, hpx: 304.1, n: { walk: 16 } },   /* 11-15 영웅 걷기 영상(드리미나 · 29장 한 바퀴 → 16장) 402KB */
   heroW_serafine: { f: 'heroW_serafine', cw: 344, ch: 336, ax: 188.5, ay: 326.2, hpx: 313.8, n: { walk: 16 } },   /* 11-15 영웅 걷기 영상(드리미나 · 20장 한 바퀴 → 16장) 415KB */
   heroW_nox: { f: 'heroW_nox', cw: 310, ch: 343, ax: 148.5, ay: 332.2, hpx: 325.8, n: { walk: 16 } },   /* 11-15 영웅 걷기 영상(드리미나 · 31장 한 바퀴 → 16장) 387KB */
@@ -749,7 +765,7 @@ function drawAlly() {
   if (!st || !st.dex) return; let r = -1; st.dex.l.forEach((v, i) => { if (v) r = i; }); if (r < 0) return;
   const al = S.ally && S.ally.r === r ? S.ally : (S.ally = { r, x: 340, t: 9 }); al.t += 1 / 60; al.x += (340 - al.x) * Math.min(1, 0.02);
   const art = r === 0 ? ART.giant : ART['lord_' + REGION_BG[r]] || ART.giant; if (!art) return;
-  const boss = st.boss && S.giant.alpha > 0.5 && !S.giant.dead && S.phase === 'fight'; if (boss) { al.hitT = (al.hitT || 4) - 1 / 60; if (al.hitT <= 0) { al.hitT = 4; al.slam = 0.5; say(fmt(JB.dps(st) * 2), S.giant.x - 60, 400, { size: 30, col: '#e6ffe9', glow: '#2bff8a', life: 1, vy: -50 }); S.shake = Math.max(S.shake, 5); } }
+  const boss = st.boss && S.giant.alpha > 0.5 && !S.giant.dead && S.phase === 'fight'; if (boss) { al.hitT = (al.hitT || 4) - 1 / 60; if (al.hitT <= 0) { al.hitT = 4; al.slam = 0.5; say(fmtD(JB.dps(st) * 2), S.giant.x - 60, 400, { size: 30, col: '#e6ffe9', glow: '#2bff8a', life: 1, vy: -50 }); S.shake = Math.max(S.shake, 5); } }
   al.slam = Math.max(0, (al.slam || 0) - 1 / 60);
   ctx.save(); ctx.globalAlpha = Math.min(0.42, al.t * 0.4); ctx.translate(al.x, 560); ctx.rotate(0.15 * Math.sin((al.slam / 0.5) * Math.PI)); ctx.scale(-1, 1);
   const h = 240, w = h * art.width / art.height; ctx.drawImage(tinted(art, 'ally' + r, 1, RISE_TINT), -w / 2, -h, w, h); ctx.restore(); ctx.globalAlpha = 1;
