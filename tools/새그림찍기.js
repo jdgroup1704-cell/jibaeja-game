@@ -1,0 +1,12 @@
+// node 새그림찍기.js 폴더 이름 [판] [영웅들(쉼표)] → /home/claude/rec/새그림_이름.jpg : 순서 #10 새 그림체가 실제 싸움에서 어떻게 보이는지 폰 화면(360×593) 전장 4장 가로로
+const { chromium } = require('/opt/npm-tools/node_modules/playwright');
+const http = require('http'), fs = require('fs'), path = require('path'), { execSync } = require('child_process');
+const dir = process.argv[2], nm = process.argv[3] || '확인', stg = +(process.argv[4] || 30), hs = (process.argv[5] || '').split(',').filter(Boolean), PORT = 8193;
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
+const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(PORT);
+(async () => { const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const pg = await (await b.newContext({ viewport: { width: 360, height: 593 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto(`http://localhost:${PORT}/index.html`); await pg.waitForTimeout(3000); await pg.evaluate(() => document.getElementById('opening')?.click()); await pg.waitForTimeout(1500);
+  await pg.evaluate(([s, hs]) => { st.stage = st.best = s; st.daysPlayed = 14; st.souls = 5e6; st.up.summon = 12; const H = hs.length ? hs : JB.HEROES.slice(0, 4).map(h => h.id); for (const id of H) st.heroes[id] = { lv: 2, wp: 1 }; JB.squadFit(st); st.squad = st.squad.map((_, i) => H[i] || null); st.login = { n: 1, last: st.day }; S.loginShown = 1; for (const k in st.seen) st.seen[k] = st.seen[k] || 9; UI.closeModal(); }, [stg, hs]);
+  const fr = []; for (let k = 0; k < 4; k++) { await pg.waitForTimeout(k ? 1700 : 5000); await pg.evaluate(() => { if (document.getElementById('modal').style.display === 'flex') UI.closeModal(); }); const f = `/tmp/xg_${k}.png`; await pg.screenshot({ path: f, clip: { x: 0, y: 30, width: 360, height: 300 } }); fr.push(f); }
+  execSync(`ffmpeg -y -loglevel error ${fr.map(f => '-i ' + f).join(' ')} -filter_complex "hstack=${fr.length}" -q:v 3 /home/claude/rec/새그림_${nm}.jpg`);
+  console.log('오류', errs.length, errs.slice(0, 3).join(' | ')); await b.close(); srv.close(); })();

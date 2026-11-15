@@ -2,6 +2,7 @@
 // 전장에 나오는 수하(11-13 대표님: 「캐릭터가 싸우는 게 보여야 재미를 안다」)
 // 진형의 수하가 군단 맨 앞에 서서 각자 때리고, 몇 초마다 자기 기술을 씀. 적마다 체력 막대.
 // 숫자는 보여 주기용: 실제 피해 계산은 규칙(logic.js)이 그대로 하고, 여기선 그 몫을 나눠 보여 줌
+const HERO_STILL_K = {"krag": 1.134, "porter": 1.03, "serafine": 1.177, "nox": 1.03, "morde": 1.022, "twins": 1.251, "wisp": 1.312, "drummer": 1.334};   /* 11-16 #10 정지 그림 전체 키 / 몸통 키 */
 const HF = {
   list: [], shots: [], fx: [],
   /* 수하마다 공격 빠르기 · 기술 간격 · 색 · 기술 모양(베기 · 마법탄 · 범위 · 북) */
@@ -251,7 +252,7 @@ const HF = {
     }
   },
   draw(h) {
-    const k = this.KIND[h.id] || this.KIND.krag, d = clamp((h.y - GROUND - 40) / (680 - GROUND - 40), 0, 1), sc = lerp(0.85, 1.15, d) * UKU();
+    const k = this.KIND[h.id] || this.KIND.krag, d = clamp((h.y - GROUND - 40) / (680 - GROUND - 40), 0, 1), sc = lerp(0.92, 1.08, d) * UKU();   /* 11-16 #10 새 2등신 그림: 앞뒤 줄 크기 차이가 커 뒷줄 영웅이 아이처럼 작아 보였음(0.85~1.15 → 0.92~1.08) */
     const lg = (h.flip ? -1 : 1) * (h.lunge > 0 ? Math.sin((h.lunge / 0.28) * Math.PI) * 18 : 0), bob = Math.sin(S.t * 4 + h.atkT) * 3;
     const dk = h.dash ? Math.sin(Math.min(1, h.dash.age / h.dash.life) * Math.PI) : 0, ddx = h.dash ? h.dash.dx * dk : 0, ddy = h.dash ? h.dash.dy * Math.min(1, h.dash.age / h.dash.life * 2) * (h.dash.age > h.dash.life * 0.5 ? dk : 1) - (h.dash.jump || 0) * Math.sin(Math.min(1, h.dash.age / (h.dash.life * 0.5)) * Math.PI) * (h.dash.age < h.dash.life * 0.5 ? 1 : 0) - (h.dash.jump || 0) * 0.6 * Math.sin(Math.min(1, Math.max(0, h.dash.age - h.dash.life * 0.5) / (h.dash.life * 0.5)) * Math.PI) : 0;   /* 갈 때 한 번 · 돌아올 때 낮게 한 번 뛰어넘음 */
     const kbx = h.kb > 0 ? (h.flip ? 1 : -1) * Math.sin((h.kb / 0.35) * Math.PI * 3) * 4 : 0;   /* 18:42 「그냥 밀리네」: 뒤로 16픽셀 밀리던 것 → 제자리에서 부르르 떨기 */ ctx.save(); const TA = !TRAILER && !(st.wear && st.wear[h.id]) && JB.heroStar(st.heroes[h.id]) >= 7 && need('heroT_' + h.id);   /* 11-15 ☠7 망자 군주화: 초월하면 그림 자체가 군주 모습(드리미나 · 뼈 날개 · 붉은 불꽃)으로 바뀌고 날개로 떠서 다님 */ const WV = 'heroW_' + h.id, wk = !TA && !h.dash && (h.wamp || 0) > 0.3 && typeof VS !== 'undefined' && VS[WV] && !(st.wear && st.wear[h.id]) && need(WV + '_walk'), wa = wk ? 0 : (h.wamp || 0);   /* 11-15 대표님 「크라그는 걷는 게 아니라 미끄러져」: 드리미나 걷기 영상(heroW_*_walk)이 있으면 걷는 동안 진짜 걸음, 흔들림은 끔 */ ctx.translate(h.x + lg + ddx + kbx, h.y + bob + ddy - Math.abs(Math.sin(h.wph || 0)) * 7 * wa - (TA ? 10 + Math.sin(S.t * 2.6 + h.atkT) * 6 : 0) + (1 - clamp(h.enter, 0, 1)) * 36);   /* 솟아오름 */ if (wa > 0.05) ctx.rotate(Math.sin(h.wph || 0) * 0.06 * wa); ctx.globalAlpha = Math.max(0, h.enter);
@@ -270,22 +271,22 @@ const HF = {
     ctx.save(); ctx.globalAlpha = 0.55 * Math.max(0, h.enter); ctx.fillStyle = '#05000c'; ctx.beginPath(); ctx.ellipse(0, -1, 44 * sc, 10 * sc, 0, 0, 7); ctx.fill(); ctx.restore();
     /* 발밑 빛 */
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (0.3 + 0.1 * Math.sin(S.t * 4 + h.atkT)) * Math.max(0, h.enter); ctx.fillStyle = k.col; ctx.beginPath(); ctx.ellipse(0, -2, 46 * sc, 11 * sc, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 0.5 * Math.max(0, h.enter); ctx.strokeStyle = k.col; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, -2, 50 * sc, 12 * sc, 0, 0, 7); ctx.stroke(); ctx.restore();   /* 영웅 발밑 색 고리(누가 영웅인지 한눈에) */
-    const sk = st.wear && st.wear[h.id] && JB.skinOwned(st, st.wear[h.id]) ? st.wear[h.id] : null, full = (sk && need('heroS_' + sk)) || TA || need('heroA_' + h.id) || need(artName('heroF_' + h.id)) || need('heroF_' + h.id), bust = need('hero_' + h.id), H2 = (full ? 172 : 140) * sc * (rt === 3 ? 1.16 : rt === 2 ? 1.08 : 1) * (TA ? 1.3 : 1);   /* 군주 그림은 날개가 머리 위로 솟아 몸이 작아 보임 → 1.3배 */   /* 19:56 망자병(150)과 같은 키라 영웅이 군단에 묻힘 → 조금 크게 */   /* 주인공(지배자 370)보다 확실히 작게 — 대표님 「누가 주인공인지 모르겠다」 */
+    const sk = st.wear && st.wear[h.id] && JB.skinOwned(st, st.wear[h.id]) ? st.wear[h.id] : null, full = (sk && need('heroS_' + sk)) || TA || need('heroA_' + h.id) || need(artName('heroF_' + h.id)) || need('heroF_' + h.id), bust = need('hero_' + h.id), H2 = (full ? 172 : 140) * sc * 0.74 * (rt === 3 ? 1.16 : rt === 2 ? 1.08 : 1) * (TA ? 1.3 : 1);   /* 군주 그림은 날개가 머리 위로 솟아 몸이 작아 보임 → 1.3배 */   /* 19:56 망자병(150)과 같은 키라 영웅이 군단에 묻힘 → 조금 크게 */   /* 주인공(지배자 370)보다 확실히 작게 — 대표님 「누가 주인공인지 모르겠다」 */
     { const sr = JB.heroStar(o); if (sr >= 3 && !TRAILER) { const t = S.t + h.atkT, R7 = sr >= 7; ctx.save(); ctx.globalCompositeOperation = 'lighter';   /* 11-15 별 모습: ★3 영혼 불꽃 · ★5 뼈 날개 · ★7(초월) 검붉은 군주 기운 */
         if (sr >= 5 && !TA) { ctx.save(); ctx.translate(0, -H2 * 0.68); for (const sd of [-1, 1]) { ctx.save(); ctx.scale(sd, 1); ctx.rotate(-0.18 + Math.sin(t * 2.2) * 0.07); ctx.scale(1.35, 1.35); ctx.strokeStyle = R7 ? 'rgba(255,90,100,.95)' : 'rgba(235,220,255,.92)'; ctx.lineWidth = 4.6 * sc; ctx.lineCap = 'round'; for (let f = 0; f < 4; f++) { ctx.beginPath(); ctx.moveTo(6 * sc, 0); ctx.quadraticCurveTo((30 + f * 14) * sc, (-38 + f * 6) * sc, (52 + f * 16) * sc, (-12 + f * 20) * sc); ctx.stroke(); } ctx.fillStyle = R7 ? 'rgba(220,30,50,.38)' : 'rgba(160,120,255,.32)'; ctx.beginPath(); ctx.moveTo(6 * sc, 0); ctx.quadraticCurveTo(60 * sc, -50 * sc, 102 * sc, 48 * sc); ctx.quadraticCurveTo(50 * sc, 30 * sc, 6 * sc, 0); ctx.fill(); ctx.restore(); } ctx.restore(); }
         for (let f = 0; f < (R7 ? 7 : 4); f++) { const a = t * 1.7 + f * 1.57, fx = Math.cos(a) * 34 * sc, fy = -H2 * 0.25 - ((t * 60 + f * 37) % 90) * sc, fr = (7 - ((t * 60 + f * 37) % 90) / 18) * sc; if (fr <= 0) continue; const gq = ctx.createRadialGradient(fx, fy, 0, fx, fy, fr * 2); gq.addColorStop(0, R7 ? 'rgba(255,120,120,.9)' : 'rgba(200,150,255,.9)'); gq.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gq; ctx.fillRect(fx - fr * 2, fy - fr * 2, fr * 4, fr * 4); }
         if (R7) { const gg = ctx.createRadialGradient(0, -H2 * 0.45, 4, 0, -H2 * 0.45, H2 * 0.8); gg.addColorStop(0, 'rgba(255,40,60,.28)'); gg.addColorStop(1, 'rgba(60,0,10,0)'); ctx.fillStyle = gg; ctx.fillRect(-H2, -H2 * 1.3, H2 * 2, H2 * 1.5); }
         ctx.restore(); } }
-    if (full) { const w = H2 * full.width / full.height, src = tc ? this.glow(full, tc, Math.ceil(wp / 2)) : full, ang = this.pose(h); if (h.flip) { ctx.save(); ctx.scale(-1, 1); }
+    if (full) { const SK = full === need('heroA_' + h.id) ? (HERO_STILL_K[h.id] || 1) : 1, w = H2 * SK * full.width / full.height, src = tc ? this.glow(full, tc, Math.ceil(wp / 2)) : full, ang = this.pose(h); if (h.flip) { ctx.save(); ctx.scale(-1, 1); }
       const KV = 'heroK_' + h.id, ka = h.ka, kf = ka == null ? -1 : ka < 0.4 ? ka / 0.4 * 5.9 : ka < 0.55 ? 6 + (ka - 0.4) / 0.15 * 4.9 : 11 + (ka - 0.55) / 0.35 * 4.9;   /* 시간 → 장 번호(장마다 시간이 다름) */
       if (kf >= 0 && !TA && !sk && VS[KV] && need(KV + '_atk')) vsDraw(KV, 'atk', kf, H2, '', 0, false);   /* 11-15 19:45 「종이가 움직이냐」: 그림 한 장을 허리에서 돌리던 것 → 진짜 때리는 영상 */
       else if (wk && !ang) vsDraw(WV, 'walk', h.wf || 0, H2, '', 0, true);
-      else if (!ang && !TA && !sk && !(h.wamp > 0.3) && VS['heroI_' + h.id] && need('heroI_' + h.id + '_idle')) vsDraw('heroI_' + h.id, 'idle', (S.t + h.atkT * 3) * 4.8, H2, '', 0, true);   /* 11-15 20:10 서 있을 때도 숨쉬는 영상(그림 한 장 = 종이였던 것) */
-      else if (!ang) ctx.drawImage(src, -w / 2, -H2, w, H2);
+      else if (!ang && !TA && !sk && !wk && VS['heroI_' + h.id] && need('heroI_' + h.id + '_idle')) vsDraw('heroI_' + h.id, 'idle', (S.t + h.atkT * 3) * 10, H2, '', 0, true);   /* 11-16 #10 새 그림체: 숨쉬기 20장 2초 한 바퀴 · 걷는 동안도 숨쉬기 + 들썩임(옛 그림체 걷기 띠는 치움) */   /* 11-15 20:10 서 있을 때도 숨쉬는 영상(그림 한 장 = 종이였던 것) */
+      else if (!ang) ctx.drawImage(src, -w / 2, -H2 * SK, w, H2 * SK);   /* 11-16 #10 새 정지 그림은 무기까지 키에 들어감 → 몸통 키 기준으로 맞춤 */
       else {   /* 그림 한 장을 허리(위에서 52%)에서 나눠 아랫몸은 그대로, 윗몸(무기 든 팔)은 허리를 축으로 돌림 — 윗몸을 4% 겹쳐 그려 틈이 안 보이게 */
-        const cut = 0.52, sw = src.width, sh = src.height, wy = -H2 * (1 - cut);
-        ctx.drawImage(src, 0, sh * cut, sw, sh * (1 - cut), -w / 2, wy, w, H2 * (1 - cut));
-        ctx.save(); ctx.translate(0, wy); ctx.rotate(ang); ctx.drawImage(src, 0, 0, sw, sh * (cut + 0.04), -w / 2, -H2 * cut, w, H2 * (cut + 0.04)); ctx.restore();
+        const H3 = H2 * SK, cut = 0.52, sw = src.width, sh = src.height, wy = -H3 * (1 - cut);
+        ctx.drawImage(src, 0, sh * cut, sw, sh * (1 - cut), -w / 2, wy, w, H3 * (1 - cut));
+        ctx.save(); ctx.translate(0, wy); ctx.rotate(ang); ctx.drawImage(src, 0, 0, sw, sh * (cut + 0.04), -w / 2, -H3 * cut, w, H3 * (cut + 0.04)); ctx.restore();
       }
       if (h.flip) ctx.restore(); }   /* 무기 단계 색 테두리 빛 */
     else if (bust) {   /* 전신 그림이 오기 전: 얼굴 그림을 방패 틀에 */

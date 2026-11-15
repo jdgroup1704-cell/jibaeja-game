@@ -1,0 +1,471 @@
+{
+ "설명": "순서 #10 그림체 교체 대상(쓰는그림.js로 잰, 전투에 실제로 그려지는 그림). 새그림 = 시안 1번(art_ref/style1_cute_chibi.jpg)을 드리미나 참고 그림으로 넣고 만든 원본 파일 이름 · 편: 우리(지배자 · 소환수)는 보랏빛 ≥ 기준, 영웅은 저마다 색(세라핀 빨강 · 위습 파랑)이라 보랏빛 검사 안 함, 적은 보랏빛 ≤ 기준",
+ "기준": {
+  "테두리": 0.45,
+  "우리보라": 0.06,
+  "적보라": 0.12
+ },
+ "대상": [
+  {
+   "이름": "지배자 서기",
+   "편": "우리",
+   "파일": "art/lordA.webp",
+   "칸": null,
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_lord.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "지배자 공격",
+   "편": "우리",
+   "파일": "art/lordw_attack.webp",
+   "칸": [
+    273.0,
+    351.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_lord.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "소환수 칼 idle",
+   "편": "우리",
+   "파일": "art/sumv1_idle.webp",
+   "칸": [
+    396.0,
+    452.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_sum1.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "소환수 칼 attack",
+   "편": "우리",
+   "파일": "art/sumv1_attack.webp",
+   "칸": [
+    396.0,
+    452.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_sum1.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "소환수 창 idle",
+   "편": "우리",
+   "파일": "art/sumv2_idle.webp",
+   "칸": [
+    497.0,
+    330.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_sum2.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "소환수 창 attack",
+   "편": "우리",
+   "파일": "art/sumv2_attack.webp",
+   "칸": [
+    497.0,
+    330.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_sum2.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "소환수 방패 idle",
+   "편": "우리",
+   "파일": "art/sumv3_idle.webp",
+   "칸": [
+    378.0,
+    485.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_sum3.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "소환수 방패 attack",
+   "편": "우리",
+   "파일": "art/sumv3_attack.webp",
+   "칸": [
+    378.0,
+    485.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_sum3.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "소환수 활 idle",
+   "편": "우리",
+   "파일": "art/sumv4_idle.webp",
+   "칸": [
+    366.0,
+    309.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_sum4.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "소환수 활 attack",
+   "편": "우리",
+   "파일": "art/sumv4_attack.webp",
+   "칸": [
+    366.0,
+    309.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_sum4.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 krag 서기",
+   "편": "영웅",
+   "파일": "art/heroI_krag_idle.webp",
+   "칸": [
+    363.0,
+    483.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_krag.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 krag 때리기",
+   "편": "영웅",
+   "파일": "art/heroK_krag_atk.webp",
+   "칸": [
+    363.0,
+    483.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_krag.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 porter 서기",
+   "편": "영웅",
+   "파일": "art/heroI_porter_idle.webp",
+   "칸": [
+    362.0,
+    391.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_porter.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 porter 때리기",
+   "편": "영웅",
+   "파일": "art/heroK_porter_atk.webp",
+   "칸": [
+    362.0,
+    391.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_porter.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 serafine 서기",
+   "편": "영웅",
+   "파일": "art/heroI_serafine_idle.webp",
+   "칸": [
+    413.0,
+    446.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_serafine.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 serafine 때리기",
+   "편": "영웅",
+   "파일": "art/heroK_serafine_atk.webp",
+   "칸": [
+    413.0,
+    446.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_serafine.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 nox 서기",
+   "편": "영웅",
+   "파일": "art/heroI_nox_idle.webp",
+   "칸": [
+    330.0,
+    377.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_nox.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 nox 때리기",
+   "편": "영웅",
+   "파일": "art/heroK_nox_atk.webp",
+   "칸": [
+    330.0,
+    377.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_nox.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 morde 서기",
+   "편": "영웅",
+   "파일": "art/heroI_morde_idle.webp",
+   "칸": [
+    334.0,
+    411.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_morde.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 morde 때리기",
+   "편": "영웅",
+   "파일": "art/heroK_morde_atk.webp",
+   "칸": [
+    334.0,
+    411.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_morde.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 twins 서기",
+   "편": "영웅",
+   "파일": "art/heroI_twins_idle.webp",
+   "칸": [
+    431.0,
+    480.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_twins.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 twins 때리기",
+   "편": "영웅",
+   "파일": "art/heroK_twins_atk.webp",
+   "칸": [
+    431.0,
+    480.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_twins.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 wisp 서기",
+   "편": "영웅",
+   "파일": "art/heroI_wisp_idle.webp",
+   "칸": [
+    256.0,
+    330.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_wisp.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 wisp 때리기",
+   "편": "영웅",
+   "파일": "art/heroK_wisp_atk.webp",
+   "칸": [
+    256.0,
+    330.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_wisp.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 drummer 서기",
+   "편": "영웅",
+   "파일": "art/heroI_drummer_idle.webp",
+   "칸": [
+    299.0,
+    398.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_drummer.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "영웅 drummer 때리기",
+   "편": "영웅",
+   "파일": "art/heroK_drummer_atk.webp",
+   "칸": [
+    299.0,
+    398.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_drummer.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "적 0 idle",
+   "편": "적",
+   "파일": "art/foev0_idle.webp",
+   "칸": [
+    246.0,
+    309.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe0.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "적 0 attack",
+   "편": "적",
+   "파일": "art/foev0_attack.webp",
+   "칸": [
+    246.0,
+    309.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe0.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "적 1 idle",
+   "편": "적",
+   "파일": "art/foev1_idle.webp",
+   "칸": [
+    415.0,
+    305.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe1.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "적 1 attack",
+   "편": "적",
+   "파일": "art/foev1_attack.webp",
+   "칸": [
+    415.0,
+    305.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe1.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "적 2 idle",
+   "편": "적",
+   "파일": "art/foev2_idle.webp",
+   "칸": [
+    301.0,
+    348.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe2.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "적 2 attack",
+   "편": "적",
+   "파일": "art/foev2_attack.webp",
+   "칸": [
+    301.0,
+    348.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe2.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "적 3 idle",
+   "편": "적",
+   "파일": "art/foev3_idle.webp",
+   "칸": [
+    251.0,
+    334.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe3.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16",
+   "테두리기준": 0.3,
+   "예외까닭": "사제는 흰 옷 · 금빛 테두리(시안 1번의 사제도 같은 그림체) — 11-16 잰 값 0.34, 대표님 확인 전"
+  },
+  {
+   "이름": "적 3 attack",
+   "편": "적",
+   "파일": "art/foev3_attack.webp",
+   "칸": [
+    251.0,
+    334.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe3.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16",
+   "테두리기준": 0.3,
+   "예외까닭": "사제는 흰 옷 · 금빛 테두리(시안 1번의 사제도 같은 그림체) — 11-16 잰 값 0.34, 대표님 확인 전"
+  },
+  {
+   "이름": "적 4 idle",
+   "편": "적",
+   "파일": "art/foev4_idle.webp",
+   "칸": [
+    340.0,
+    453.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe4.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "적 4 attack",
+   "편": "적",
+   "파일": "art/foev4_attack.webp",
+   "칸": [
+    340.0,
+    453.0
+   ],
+   "새그림": "드리미나 Seedream 5.0 Pro(참고 그림 = art_ref/style1_cute_chibi.jpg) → 영상 jb11_foe4.mp4(Seedance 2.0 Fast · 첫 장면) · 11-16"
+  },
+  {
+   "이름": "소환수 칼 걷기",
+   "편": "우리",
+   "파일": "art/sumv1_walk.webp",
+   "칸": [
+    442.0,
+    403.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_sum1w.mp4(첫 장면 = 시안 참고 새 그림) · 11-16"
+  },
+  {
+   "이름": "소환수 창 걷기",
+   "편": "우리",
+   "파일": "art/sumv2_walk.webp",
+   "칸": [
+    450.0,
+    368.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_sum2w.mp4(첫 장면 = 시안 참고 새 그림) · 11-16"
+  },
+  {
+   "이름": "소환수 방패 걷기",
+   "편": "우리",
+   "파일": "art/sumv3_walk.webp",
+   "칸": [
+    272.0,
+    318.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_sum3w.mp4(첫 장면 = 시안 참고 새 그림) · 11-16"
+  },
+  {
+   "이름": "소환수 활 걷기",
+   "편": "우리",
+   "파일": "art/sumv4_walk.webp",
+   "칸": [
+    375.0,
+    366.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_sum4w.mp4(첫 장면 = 시안 참고 새 그림) · 11-16"
+  },
+  {
+   "이름": "영웅 krag 걷기",
+   "편": "영웅",
+   "파일": "art/heroW_krag_walk.webp",
+   "칸": [
+    327.0,
+    328.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_kragw.mp4 · 11-16"
+  },
+  {
+   "이름": "영웅 porter 걷기",
+   "편": "영웅",
+   "파일": "art/heroW_porter_walk.webp",
+   "칸": [
+    270.0,
+    322.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_porterw.mp4 · 11-16"
+  },
+  {
+   "이름": "영웅 nox 걷기",
+   "편": "영웅",
+   "파일": "art/heroW_nox_walk.webp",
+   "칸": [
+    364.0,
+    363.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_noxw.mp4 · 11-16"
+  },
+  {
+   "이름": "영웅 morde 걷기",
+   "편": "영웅",
+   "파일": "art/heroW_morde_walk.webp",
+   "칸": [
+    305.0,
+    317.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_mordew.mp4 · 11-16"
+  },
+  {
+   "이름": "영웅 serafine 걷기",
+   "편": "영웅",
+   "파일": "art/heroW_serafine_walk.webp",
+   "칸": [
+    459.0,
+    385.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_serafinew.mp4 · 11-16"
+  },
+  {
+   "이름": "영웅 drummer 걷기",
+   "편": "영웅",
+   "파일": "art/heroW_drummer_walk.webp",
+   "칸": [
+    368.0,
+    393.0
+   ],
+   "새그림": "드리미나 제자리 걷기 영상 jb11_drummerw.mp4 · 11-16"
+  }
+ ]
+}
