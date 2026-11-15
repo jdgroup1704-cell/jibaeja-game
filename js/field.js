@@ -218,13 +218,12 @@ const HF = {
     ctx.fillStyle = col; ctx.fillRect(x0, y0, ww * clamp(v, 0, 1), hh);
     ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fillRect(x0, y0, ww * clamp(v, 0, 1), Math.max(1, hh * 0.35));
   },
-  drawArmyBars() {   /* 우리 망자병: 맞은 놈만 머리 위 초록 막대(수십 마리 모두 띄우면 화면이 막대로 덮임) */
+  drawArmyBars() {   /* 우리 망자병 · 소환수 머리 위 초록 막대(11-15부터 늘 보임 — 지금은 땅 병사가 몇 안 돼 덮지 않음) */
     for (const a of S.army) {
-      if (a.vh == null || a.fly) continue;
+      if (a.fly || !(a.rise >= 1) || a.gone) continue; if (a.vh == null) a.vh = 1;   /* 11-15 대표님 「상대든 우리든 체력바는 보여야 할 것 같아」: 맞은 놈만 → 늘 보임(땅에 선 병사 · 소환수 모두) */
       a.hbT = Math.max(0, (a.hbT || 0) - 1 / 60); a.vh = Math.min(1, a.vh + 0.06 / 60); a.vg = a.vg == null ? a.vh : Math.max(a.vh, a.vg - 0.6 / 60);
-      if (a.hbT <= 0) continue;
-      ctx.globalAlpha = Math.min(1, a.hbT * 2); const sc = lerp(0.8, 1.25, a.d);
-      this.bar(a.x, a.y - 150 * sc - 6, 30 * sc, a.vh, a.vh > 0.5 ? '#5dff8f' : a.vh > 0.25 ? '#ffcf5a' : '#ff5a5a', a.vg); ctx.globalAlpha = 1;
+      ctx.globalAlpha = a.hbT > 0 ? 1 : 0.85; const sc = lerp(0.8, 1.25, a.d) * (a.big ? a.big * UK() : 1);
+      this.bar(a.x, a.y - (a.big ? 175 : 150) * sc - 6, (a.big ? 40 : 30) * sc, a.vh, a.vh > 0.5 ? '#5dff8f' : a.vh > 0.25 ? '#ffcf5a' : '#ff5a5a', a.vg); ctx.globalAlpha = 1;
     }
   },
   draw(h) {
@@ -264,7 +263,7 @@ const HF = {
     if (h.flash > 0 || h.hurtT > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = h.flash > 0 ? h.flash : 0.4; ctx.fillStyle = h.flash > 0 ? k.col : '#ff3030'; ctx.beginPath(); ctx.ellipse(0, -70 * sc, 50 * sc, 70 * sc, 0, 0, 7); ctx.fill(); ctx.restore(); }
     ctx.globalAlpha = h.enter;
     h.hbT = Math.max(0, (h.hbT || 0) - 1 / 60); if (h.hurtT > 0) h.hbT = 2.5;
-    if (h.hbT > 0 || h.hp < 0.6) { ctx.globalAlpha = h.enter * Math.min(1, h.hp < 0.6 ? 1 : h.hbT * 2); this.bar(0, -H2 - 10, 46 * sc, h.hp, h.hp > 0.5 ? '#5dff8f' : '#ffcf5a'); ctx.globalAlpha = h.enter; }   /* 19:13 늘 떠 있던 막대 → 맞았을 때 · 다쳤을 때만 */
+    { ctx.globalAlpha = h.enter * (h.hbT > 0 || h.hp < 0.6 ? 1 : 0.85); this.bar(0, -H2 - 10, 46 * sc, h.hp, h.hp > 0.5 ? '#5dff8f' : h.hp > 0.25 ? '#ffcf5a' : '#ff5a5a'); ctx.globalAlpha = h.enter; }   /* 11-15 대표님 「우리든 체력바 보여야」: 영웅 막대도 늘 보임 */   /* 19:13 늘 떠 있던 막대 → 맞았을 때 · 다쳤을 때만 */
     { const nm = (rt >= 2 ? (rt === 3 ? '★ ' : '◆ ') : '') + L.heroes[h.id].name, nt = wp ? `${nm} +${wp}` : nm, fz = Math.round(11.5 * Math.min(WK(), 2.2));   /* 19:13 발밑 이름표 */
       this.tags.push({ m: ctx.getTransform(), nt, fz, ty: 10 + fz * 0.6, rt, RC, line: rt >= 2 ? RC : tc || k.col, txt: rt >= 2 ? RC : tc || '#f3e8ff', a: h.enter }); }   /* 11-15 눈 확인: 30판에서 영웅 넷 이름표가 서로 포개짐 → 그리기는 다 모아서 마지막에(drawTags), 겹치면 아래로 비킴 */
     ctx.restore(); ctx.globalAlpha = 1;
