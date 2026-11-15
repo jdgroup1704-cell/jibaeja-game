@@ -1,6 +1,7 @@
 // 과금 흉내 30일(11-15 18:08 대표님 「무과금도 따라올 수는 있고, 소과금도 운이 좋아서 아주 좋은 장비를 먹을 수도 있고, 그래도 현질 메리트는 느껴야」)
 // node 과금흉내.js [날수=30] [씨앗수=8] → 무 · 소 · 중 · 고 4사람 × 씨앗 N번, 하루 40분 켜고(그 사이 23시간 20분 자리 비움) 하는 일을 다 하고 날마다 최고 판 · 힘 · 장비 · 영웅 별을 적음
 const path = require('path'); const JB = require(path.join(__dirname, '..', 'logic.js'));
+if (process.env.SSRB) { JB.RARITY.SSR.bonus = +process.env.SSRB; JB.RARITY.SR.bonus = +(process.env.SRB || JB.RARITY.SR.bonus); } if (process.env.LATE) JB.C.LATE_AT = +process.env.LATE; if (process.env.LG) JB.C.LATE_GROW = +process.env.LG; if (process.env.SQ) JB.C.AWAKEN_SQ = +process.env.SQ; if (process.env.SMUL) JB.C.SIGIL_MUL = +process.env.SMUL;
 const DAYS = +(process.argv[2] || 30), SEEDS = +(process.argv[3] || 8), PLAY = 40 * 60, DT = 0.5;
 const PROFILES = {
   무과금: { buy: () => [], won: 0 },
@@ -17,7 +18,7 @@ function run(name, seed) {
     JB.newDay(st, d); st.daysPlayed = d; now += 864e5;
     for (const id of P.buy(d)) { const r = T(JB.shopBuy, st, id, now); if (r) won += JB.SHOP2[id].won; }
     T(JB.loginClaim, st); T(JB.mailClaim, st, 'all'); T(JB.monthClaim, st, now, d); T(JB.passClaim, st); T(JB.fundClaim, st); T(JB.guildCheck, st);
-    for (let q = 0; q < 3; q++) if (JB.quickCost(st) === 0) T(JB.quickReward, st);
+    st.nowMs = now; for (let q = 0; q < 6; q++) if (JB.quickCost(st) === 0) T(JB.quickReward, st);
     for (let q = 0; q < 3; q++) { T(JB.adBones, st); T(JB.gearAd, st); }
     // 40분 켜 둠
     for (let t = 0; t < PLAY; t += DT) {

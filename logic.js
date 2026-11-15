@@ -16,6 +16,7 @@ const C = {
   EVO: { waves: 3, boss: 2, adMax: 5, adN: 3, offSec: 120, offMax: 30, bonus: [0, 0.0025, 0.01, 0.035, 0.11], max: 4, minArmy: 20 },   // 쫄따구 진화(11-13 16:20): 적 무리 3번 쓰러뜨릴 때마다 해골 1마리가 스스로 진화(보스는 2마리). 같은 단계 3마리 → 다음 단계 1마리로 합체. 단계별 공격 보탬 0.25% · 1% · 3.5% · 11%(합체하면 늘 조금 이득). 16:50 봇 대조: 보탬 0 = 각성 12.4 · 21.8분, 두 배 값(0.5%~22%) = 11.0 · 16.1 · 23.1 · 28.2분(너무 빠름) → 반으로                 // 한 판의 적 무리 수
   BONE_MUL: 1.08, MAGIC_MUL: 1.15, HARVEST_MUL: 1.1, MAGIC_SOFT: 1e9, MAGIC_LIN: 0, MAGIC_MUL2: 1.15,   // 11-13 계산 봇으로 맞춤(tools/search.js)
   EARLY_HP: [0.3, 0.45, 0.65, 0.85],   // 처음 몇 판은 금방 쓰러지게(손맛)
+  LATE_AT: 80, LATE_GROW: 1.13,   /* 11-15 과금흉내: 14일 뒤 정체(2주에 5판) → LATE_AT판부터 적 체력이 덜 가파르게 */
   HP_BASE: 50, HP_GROW: 1.24, SOUL_BASE: 0.1, SOUL_GROW: 1.18, SOUL_FLAT: 0.4, SPELL_X: 25,
   BOSS_EVERY: 5,            // 5판마다 거대한 적
   LORD_EVERY: 10,           // 10판마다 '지역의 주인'(긴 연출)
@@ -66,7 +67,7 @@ const C = {
 
 const RARITY = {
   N: { weight: 50, bonus: 0.06 }, R: { weight: 35, bonus: 0.12 },
-  SR: { weight: 13, bonus: 0.25 }, SSR: { weight: 2, bonus: 0.5 },
+  SR: { weight: 13, bonus: 0.35 }, SSR: { weight: 2, bonus: 1.0 },   /* 11-15 과금흉내: 중과금(7.8만 원)이 무과금과 같은 판(129 vs 131) → 최고 · 상급을 키워 30일 무 143 · 소 128 · 중 157 · 고 177 */
 };
 // 수하: 이름·말투·대사는 언어 파일(LANG.heroes)에
 const HEROES = [
@@ -158,7 +159,7 @@ const MISSIONS = [
 // ───────── 계산식 ─────────
 const isBoss = s => s % C.BOSS_EVERY === 0;
 const isLord = s => s % C.LORD_EVERY === 0;
-const waveHp = s => C.HP_BASE * (C.EARLY_HP[s - 1] || 1) * Math.pow(C.HP_GROW, s - 1) * (s >= C.WALL_STAGE ? C.WALL_MUL : 1) * Math.pow(1.5, Math.floor((s - 1) / 50));
+const waveHp = s => C.HP_BASE * (C.EARLY_HP[s - 1] || 1) * (s > C.LATE_AT ? Math.pow(C.HP_GROW, C.LATE_AT - 1) * Math.pow(C.LATE_GROW, s - C.LATE_AT) : Math.pow(C.HP_GROW, s - 1)) * (s >= C.WALL_STAGE ? C.WALL_MUL : 1) * Math.pow(1.5, Math.floor((s - 1) / 50));
 const waveSouls = s => C.SOUL_BASE * Math.pow(C.SOUL_GROW, s - 1) + C.SOUL_FLAT;   // 처음 몇 분 동안 강화를 바로 누를 수 있게 고정 몫을 조금 더함
 const upCost = (k, lv) => k === 'magic' && lv < C.STAFF_FIRST.length ? C.STAFF_FIRST[lv] : Math.ceil(UPGRADES[k].base * Math.pow(UPGRADES[k].grow, lv));   // 지팡이 첫 3단계는 싸게(19:50 첫 플레이 3분 영상: 주력인데 3분 내내 +0이었음)
 const unlocked = (st, k) => k === 'squad4' ? (st.daysPlayed || 0) >= C.SQUAD4_DAY : k === 'lab' ? (st.daysPlayed || 0) >= C.LAB.day : k === 'map' ? (st.daysPlayed || 0) >= C.MAP.day : k === 'crypt' ? !!(st.crypt && (st.crypt.open || st.best >= C.CRYPT.unlock)) && (st.daysPlayed || 0) >= C.CRYPT.day :   // 지하 묘지: 35판 + 2번째 접속한 날(설계서 2일차, 11-13 10:40)
@@ -553,7 +554,7 @@ function applyOffline(st, g) { if (!g) return; st.souls += g.souls; st.bones += 
 
 
 // ───────── 시간과 돈 (대표님 기준: 무료는 시간을, 지친 사람은 돈을 쓴다) ─────────
-function quickCost(st) { const fr = C.QUICK_FREE + (vipLv(st) >= 1 ? 1 : 0); return st.quickUsed < fr ? 0 : C.QUICK_GEMS[Math.min(C.QUICK_GEMS.length - 1, st.quickUsed - fr)]; }   /* 귀빈 1: 무료 1번 더 */
+function quickCost(st) { const fr = C.QUICK_FREE + (vipLv(st) >= 1 ? 1 : 0) + (st.shop2 && st.shop2.gemUntil > (st.nowMs || Date.now()) ? 1 : 0);   /* 11-15 과금흉내: 소과금(월정액) 체감이 약함 → 빠른 보상 하루 1번 더(자리 비움 수입은 모두 같게 그대로) */ return st.quickUsed < fr ? 0 : C.QUICK_GEMS[Math.min(C.QUICK_GEMS.length - 1, st.quickUsed - fr)]; }   /* 귀빈 1: 무료 1번 더 */
 /* 23:40 전리품 상자(AFK 아레나처럼 첫 화면에서 쌓이는 게 보임 → 하루 몇 번 들어올 이유). 켜 있든 꺼져 있든 쌓이고 8시간에서 멈춤. 영혼은 30%만(자리 비움 보상과 겹치니) */
 const LCHEST = { cap: 8, soulEff: 0.3, gemH: 2, boneSec: 1200, gearH: 4, gearP: 0.4 };
 function lchestInfo(st, now) { if (!st.lchestT) st.lchestT = now; const cap = LCHEST.cap + 0.5 * keepLv(st, 'vault'), secs = Math.min(cap * 3600, Math.max(0, (now - st.lchestT) / 1000)), h = secs / 3600;
