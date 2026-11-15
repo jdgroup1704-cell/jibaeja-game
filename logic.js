@@ -43,6 +43,9 @@ const C = {
   VIP_ITEMS: { staff3: { vip: 3, spell: 0.10 }, banner6: { vip: 6, cd: 0.10 }, scythe8: { vip: 8, time: 5 }, scepter10: { vip: 10, spell: 0.25 }, crown12: { vip: 12, atk: 0.10 } },   /* 귀빈 전용 무기 · 물건: 3 귀빈의 뼈 지팡이(대마법 +10%) · 6 금빛 군기(대마법 대기 −10%) · 8 망자의 낫(보스 시간 +5초) · 10 영원의 왕홀(대마법 +25%) · 12 천년 왕관(군단 공격 +10% 더) */
   /* 수하 무기 강화(11-13 대표님 「무기 · 복장 업그레이드와 화려함」): 7단계까지 뼛조각, 8~10단계는 전설 강화석(상점 · 귀빈). 단계마다 그 수하 능력 +15% */
   WEAPON: { max: 10, freeMax: 7, bone0: 5, boneStep: 5, mul: 0.15 },
+  /* 11-15 17:42 대표님 「SSR 뽑고 6성 초월해서 7성 되고 스킬도 달라지던데」: 같은 영웅을 겹쳐 뽑으면 「영혼 묶기」 ★1→★6, ★6 뒤 겹친 영혼(조각)으로 「망자 군주화」 ★7(초월).
+     ★3 기술로 쓰러진 적이 우리 망자병으로 일어남 · ★5 기술 두 번 · ★7 대마법 때 함께 영창(+20%) + 최고 등급은 궁극기 */
+  STAR: { max: 6, per: 0.5, trShards: 2, trBones: 300, trMul: 1.6, shardMax: 4, chant: 0.2 },
   /* 수하 전용 겉모습(유료 · 귀빈): 입으면 전장 모습이 바뀌고 그 수하 능력 덤. vip = 그 귀빈 등급이면 공짜로 받음 */
   SKINS: { serafine_q: { hero: 'serafine', mul: 0.3, vip: 7 } },
   SQUAD4_DAY: 3,            /* 진형 넷째 칸: 3번째 접속한 날(설계서 빈 3일째 채우기, 11-13 대표님 판정) */
@@ -97,7 +100,11 @@ function bestSquad(st, stage = st.stage) {
   return own.sort((a, b) => score(b) - score(a)).slice(0, st.squad.length);
 }
 const FIRST_HERO = 'krag';   // 첫 수하는 뽑기 없이 확정
-const HERO_MAX_LV = 10, SQUAD = 3;
+const HERO_MAX_LV = 6, SQUAD = 3;   /* 11-15 레벨 = 별(★) 1~6, 그 뒤는 초월(tr) */
+const starMul = o => !o ? 0 : (1 + C.STAR.per * (Math.min(o.lv, C.STAR.max) - 1)) * (o.tr ? C.STAR.trMul : 1);
+const heroStar = o => !o ? 0 : o.tr ? 7 : Math.min(o.lv, C.STAR.max);
+function transcend(st, id) { const o = st.heroes[id]; if (!o || o.tr || o.lv < C.STAR.max) return { ok: false, why: 'star' }; if ((o.shards || 0) < C.STAR.trShards) return { ok: false, why: 'shards' }; if (st.bones < C.STAR.trBones) return { ok: false, why: 'bones' }; o.shards -= C.STAR.trShards; st.bones -= C.STAR.trBones; o.tr = 1; return { ok: true, id }; }
+const chantMul = st => 1 + C.STAR.chant * st.squad.filter(id => id && st.heroes[id] && st.heroes[id].tr).length;   /* ★7 영웅 하나마다 대마법 +20% */
 // 인연: 둘을 같이 진형에 세우면 추가 효과(설계서 3일차 '진형과 인연')
 const BONDS = [
   { id: 'vanguard', a: 'serafine', b: 'krag', talk: ['krag', 'serafine'], stat: 'atk', bonus: 0.15 },
@@ -269,7 +276,7 @@ function vipLv(st) { const n = C.VIP.need; let i = 0; while (i + 1 < n.length &&
 function addVip(st, n) { const a = vipLv(st); st.vipExp = (st.vipExp || 0) + n; return vipLv(st) > a; }
 function heroBonus(st, stat) {
   let b = stat === 'atk' ? C.VIP.atk[vipLv(st)] : 0;
-  for (const id of st.squad) { if (!id) continue; const h = heroById(id), o = st.heroes[id]; if (o && h.stat === stat) b += RARITY[h.rarity].bonus * (1 + 0.5 * (o.lv - 1)) * (1 + C.WEAPON.mul * (o.wp || 0)) * skinMul(st, id); }
+  for (const id of st.squad) { if (!id) continue; const h = heroById(id), o = st.heroes[id]; if (o && h.stat === stat) b += RARITY[h.rarity].bonus * starMul(o) * (1 + C.WEAPON.mul * (o.wp || 0)) * skinMul(st, id); }
   for (const x of bondsOn(st)) if (x.stat === stat) b += x.bonus;
   return b + gearBonus(st, stat) + (stat === 'atk' ? lskinBonus(st) : 0) + relicBonus(st, stat) + labBonus(st, stat) + (stat === 'soul' && st.map ? C.MAP.soul * st.map.taken : 0);
 }
@@ -280,7 +287,7 @@ const unitAtk = st => Math.pow(C.BONE_MUL, st.up.bone);   // 뼈 갈기 1단계�
 const graveMul = st => 1 + st.grave.reduce((a, g) => a + (g >= 0 ? GRADE_POWER[g] : 0), 0);
 /* 00:10 「군단 힘 한눈에」(장르 공식 전투력 상세): 공격이 어디서 몇 배 오는지. 곱하는 것 · 더하는 것 따로 */
 function powerParts(st) {
-  const sq = st.squad.reduce((b, id) => { if (!id) return b; const h = heroById(id), o = st.heroes[id]; return o && h.stat === 'atk' ? b + RARITY[h.rarity].bonus * (1 + 0.5 * (o.lv - 1)) * (1 + C.WEAPON.mul * (o.wp || 0)) * skinMul(st, id) : b; }, 0);
+  const sq = st.squad.reduce((b, id) => { if (!id) return b; const h = heroById(id), o = st.heroes[id]; return o && h.stat === 'atk' ? b + RARITY[h.rarity].bonus * starMul(o) * (1 + C.WEAPON.mul * (o.wp || 0)) * skinMul(st, id) : b; }, 0);
   const bd = bondsOn(st).filter(x => x.stat === 'atk').reduce((a, x) => a + x.bonus, 0);
   const mul = [['summon', armySize(st)], ['bone', unitAtk(st)], ['grave', graveMul(st)], ['evo', evoMul(st)], ['dex', dexMul(st)], ['sigil', sigilMul(st)], ['train', 1 + C.TRAIN.atk * ((st.train && st.train.lv) || 0)], ['vipItem', 1 + vipItem(st, 'atk')]];
   const add = [['hero', sq], ['bond', bd], ['gear', gearBonus(st, 'atk')], ['lskin', lskinBonus(st)], ['relic', relicBonus(st, 'atk')], ['lab', labBonus(st, 'atk')], ['vip', C.VIP.atk[vipLv(st)]]];
@@ -289,7 +296,7 @@ function powerParts(st) {
 function dps(st) {
   return (1 + C.TRAIN.atk * ((st.train && st.train.lv) || 0)) * (1 + vipItem(st, 'atk')) * armySize(st) * unitAtk(st) * graveMul(st) * evoMul(st) * dexMul(st) * (1 + heroBonus(st, 'atk')) * sigilMul(st) * (st.tide > 0 ? SPELLS.tide.mul : 1) * ((st.frozen || 0) > 0 ? SPELLS.frozen.mul : 1) * (1 + C.MORALE_MAX * (st.morale || 0)) * guildMul(st) * keepMul(st);
 }
-const spellMul = st => { const m = st.up.magic, k = C.MAGIC_SOFT; const base = m <= k ? Math.pow(C.MAGIC_MUL, m) : Math.pow(C.MAGIC_MUL, k) * (C.MAGIC_LIN > 0 ? 1 + C.MAGIC_LIN * (m - k) : Math.pow(C.MAGIC_MUL2, m - k)); return base * (1 + heroBonus(st, 'spell')) * (1 + vipItem(st, 'spell')); };   /* 마력 강화가 MAGIC_SOFT단계를 넘으면 덜 커짐(늦은 판 힘 쏠림 막기 시험용, 기본은 꺼짐) */
+const spellMul = st => { const m = st.up.magic, k = C.MAGIC_SOFT; const base = m <= k ? Math.pow(C.MAGIC_MUL, m) : Math.pow(C.MAGIC_MUL, k) * (C.MAGIC_LIN > 0 ? 1 + C.MAGIC_LIN * (m - k) : Math.pow(C.MAGIC_MUL2, m - k)); return base * (1 + heroBonus(st, 'spell')) * (1 + vipItem(st, 'spell')) * chantMul(st); };   /* 마력 강화가 MAGIC_SOFT단계를 넘으면 덜 커짐(늦은 판 힘 쏠림 막기 시험용, 기본은 꺼짐) */
 const spellDamage = (st, perfect) => dps(st) * C.SPELL_X * spellMul(st) * (perfect ? C.PERFECT_MUL : 1);
 const spellCd = st => C.SPELL_CD / (1 + heroBonus(st, 'cd')) * (1 - vipItem(st, 'cd'));
 const soulMul = st => (1 + C.TRAIN.soul * ((st.train && st.train.lv) || 0)) * Math.pow(C.HARVEST_MUL, st.up.harvest) * (1 + heroBonus(st, 'soul')) * (1 + 0.15 * st.sigils);
@@ -476,8 +483,8 @@ function probTable() {
 function grant(st, id) {
   const o = st.heroes[id]; let isNew = false, maxed = false;
   if (!o) { st.heroes[id] = { lv: 1 }; isNew = true; const free = st.squad.indexOf(null); if (free >= 0) st.squad[free] = id; }
-  else if (o.lv < HERO_MAX_LV) o.lv++; else { maxed = true; st.gems += 10; }
-  return { id, isNew, lv: st.heroes[id].lv, maxed };
+  else if (o.lv < HERO_MAX_LV) o.lv++; else if ((o.shards || 0) < C.STAR.shardMax) { o.shards = (o.shards || 0) + 1; } else { maxed = true; st.gems += 10; }
+  return { id, isNew, lv: st.heroes[id].lv, star: heroStar(st.heroes[id]), shard: !isNew && o && o.lv >= HERO_MAX_LV && !maxed, maxed };
 }
 function firstHero(st) { if (st.heroes[FIRST_HERO]) return null; return grant(st, FIRST_HERO); }
 function rollOne(st, rnd, minR) {
@@ -577,6 +584,7 @@ function deserialize(txt) {
   try {
     const o = JSON.parse(txt); if (!o || o.v !== 2) return null;
     const d = newState(); Object.assign(d, o); d.up = Object.assign(newState().up, o.up); d.crypt = Object.assign(newState().crypt, o.crypt || {}); d.crypt.relics = Object.assign({}, (o.crypt && o.crypt.relics) || {}); d.map = Object.assign(newState().map, o.map || {}); d.lab = Object.assign(newState().lab, o.lab || {}); d.lab.lv = Object.assign({}, (o.lab && o.lab.lv) || {}); d.peak = Math.max(d.peak || 1, d.best); squadFit(d);
+    for (const id in (d.heroes || {})) { const h = d.heroes[id]; if (h && h.lv > HERO_MAX_LV) { h.shards = Math.min(C.STAR.shardMax, (h.shards || 0) + h.lv - HERO_MAX_LV); h.lv = HERO_MAX_LV; } }   /* 11-15 옛 레벨 7~10은 ★6 + 영혼 조각으로 */
     if (d.boss) { d.boss = null; d.wave = 0; startWave(d); }   // 거대한 적 도중이면 다시 등장부터
     d.morale = 0; d.settings = Object.assign(newState().settings, o.settings || {});   // 켜 둔 덤은 나가면 처음부터
     return d;
@@ -679,7 +687,7 @@ function shopBuy(st, id, now) {
   st.gems += g.gems; st.bones += g.bones; S.bought[id] = (S.bought[id] || 0) + 1; addVip(st, P.won / 10); return g;
 }
 const SHOP = [{ id: 'crown119', won: [119000] }, { id: 'abyss59', won: [59000] }, { id: 'vault33', won: [33000] }, { id: 'lordPack', won: [5900] }, { id: 'skinSera', won: [9900] }, { id: 'wpStone', won: [3300] }, { id: 'first', won: [1500] }, { id: 'day1', won: [1500, 5900, 12000] }, { id: 'monthGem', won: null }, { id: 'monthBone', won: null }, { id: 'fund', won: null }, { id: 'noAds', won: null }];
-root.JB = { MAIL, mailOf, mailList, mailClaim, backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
+root.JB = { starMul, heroStar, transcend, chantMul, MAIL, mailOf, mailList, mailClaim, backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
   isBoss, isLord, waveHp, waveSouls, upCost, unlocked, heroBonus, armyCap, armySize, unitAtk, graveMul, dps, spellDamage, spellCd, soulMul, sigilsFor, awakenStage, rankOf,
   newState, startWave, tick, retryBoss, canCast, beginCast, landSpell, spellUnlocked, buy, raiseTap,
   altarTable, raiseGrave, keepGrave, scrapGrave, altarUp, altarTick, heroById, country, gachaAllowed, probTable, grant, firstHero, pull, directBuy, setSquad,

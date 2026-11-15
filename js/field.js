@@ -90,6 +90,14 @@ const HF = {
     else { const q = this.dashTo(h, t.back ? t.x - 70 : t.x - 60, h.y + clamp(t.y + 40 - h.y, -60, 60), t.back ? 520 : 260); h.dash = { age: 0, life: t.back ? 0.62 : q.jump ? 0.5 : 0.42, dx: q.dx, dy: q.dy, jump: q.jump, land, hit: false }; }
     return true;
   },
+  ult(h, k) {   /* 11-15 최고 등급 ★7 궁극기: 화면이 붉게 물들고 영웅 뒤로 거대한 영혼이 솟아 적 무리 전체를 벰 */
+    const fs = this.foesLive(); if (!fs.length || UI.awakening) return;
+    say(L.star.ult[h.id] || L.star.ultAny, W / 2, 210, { size: 44, col: '#fff0f0', glow: '#ff2040', life: 1.6, vy: 0, stamp: true, screen: true });
+    S.tint = { col: '200,20,40', a: 0.32 }; S.shake = Math.max(S.shake || 0, 14); S.hitstop = Math.max(S.hitstop || 0, 0.08);
+    LM.fx.push({ kind: 'nova', hit: true, x: h.x, y: h.y - 90, age: 0, life: 1.3, col: '#ff3a4a', big: true });
+    for (const f of fs) { f.flash = 0.4; burst(f.x, f.y - 50, 18, { col: ['#ff3a4a', '#ffffff', k.col], vmin: 100, vmax: 420, up: 80, lmax: 0.6 }); }
+    this.num(fs[0].x + 60, fs[0].y - 140, 14, '#ff3a4a'); Snd.smp && Snd.smp('boom', 0.6);
+  },
   skill(h) {
     const k = this.KIND[h.id] || this.KIND.krag, name = L.field.skills[h.id];
     if (!this.target(h)) return;
@@ -100,6 +108,10 @@ const HF = {
     else if (k.fx === 'aoe') { let n = 0; for (const f of S.foes) { if (f.dead || f.flee || n > 3) continue; n++; burst(f.x, f.y - 30, 14, { col: [k.col, '#ffffff'], vmin: 60, vmax: 300, up: 80, lmax: 0.6 }); } this.hit(h, 4, true); Snd.rumble && Snd.rumble(0.6); }
     else { this.hit(h, 5, true); S.shake = Math.max(S.shake, 4); }
     h.flash = 0.5; h.lunge = 0.4;
+    { const sr = JB.heroStar(st.heroes[h.id]);   /* 11-15 별마다 기술이 바뀜(대표님 17:42) */
+      if (sr >= 3) { const n = typeof raiseFallen === 'function' ? raiseFallen() : 0; if (n) say(L.star.rise(n), h.x, h.y - 190, { size: 15, col: '#d6b8ff', life: 0.9, vy: -30 }); }
+      if (sr >= 5 && this.UNIQ[h.id]) setTimeout(() => { if (!UI.awakening && S.phase === 'battle' && this.foesLive().length) { this.UNIQ[h.id].call(this, h, k); say(L.star.twice, h.x, h.y - 170, { size: 14, col: '#ffe08a', life: 0.7, vy: -30 }); } }, 650);
+      if (sr >= 7 && JB.heroById(h.id).rarity === 'SSR' && (h.ultN = (h.ultN || 0) + 1) % 3 === 0) setTimeout(() => this.ult(h, k), 900); }
     if (Snd.smp) Snd.smp('hit', 0.5, 0, rnd(0.8, 1));
   },
   foesLive() { return S.foes.filter(f => !f.dead && !f.flee && f.x < VX1 + 40); },
@@ -247,6 +259,11 @@ const HF = {
     /* 발밑 빛 */
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (0.3 + 0.1 * Math.sin(S.t * 4 + h.atkT)) * h.enter; ctx.fillStyle = k.col; ctx.beginPath(); ctx.ellipse(0, -2, 46 * sc, 11 * sc, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 0.5 * h.enter; ctx.strokeStyle = k.col; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, -2, 50 * sc, 12 * sc, 0, 0, 7); ctx.stroke(); ctx.restore();   /* 영웅 발밑 색 고리(누가 영웅인지 한눈에) */
     const sk = st.wear && st.wear[h.id] && JB.skinOwned(st, st.wear[h.id]) ? st.wear[h.id] : null, full = (sk && need('heroS_' + sk)) || need('heroA_' + h.id) || need(artName('heroF_' + h.id)) || need('heroF_' + h.id), bust = need('hero_' + h.id), H2 = (full ? 172 : 140) * sc * (rt === 3 ? 1.16 : rt === 2 ? 1.08 : 1);   /* 19:56 망자병(150)과 같은 키라 영웅이 군단에 묻힘 → 조금 크게 */   /* 주인공(지배자 370)보다 확실히 작게 — 대표님 「누가 주인공인지 모르겠다」 */
+    { const sr = JB.heroStar(o); if (sr >= 3 && !TRAILER) { const t = S.t + h.atkT, R7 = sr >= 7; ctx.save(); ctx.globalCompositeOperation = 'lighter';   /* 11-15 별 모습: ★3 영혼 불꽃 · ★5 뼈 날개 · ★7(초월) 검붉은 군주 기운 */
+        if (sr >= 5) { ctx.save(); ctx.translate(0, -H2 * 0.68); for (const sd of [-1, 1]) { ctx.save(); ctx.scale(sd, 1); ctx.rotate(-0.18 + Math.sin(t * 2.2) * 0.07); ctx.strokeStyle = R7 ? 'rgba(255,90,100,.85)' : 'rgba(220,200,255,.75)'; ctx.lineWidth = 3.2 * sc; ctx.lineCap = 'round'; for (let f = 0; f < 4; f++) { ctx.beginPath(); ctx.moveTo(6 * sc, 0); ctx.quadraticCurveTo((30 + f * 14) * sc, (-38 + f * 6) * sc, (52 + f * 16) * sc, (-12 + f * 20) * sc); ctx.stroke(); } ctx.fillStyle = R7 ? 'rgba(200,20,40,.22)' : 'rgba(150,110,255,.18)'; ctx.beginPath(); ctx.moveTo(6 * sc, 0); ctx.quadraticCurveTo(60 * sc, -50 * sc, 102 * sc, 48 * sc); ctx.quadraticCurveTo(50 * sc, 30 * sc, 6 * sc, 0); ctx.fill(); ctx.restore(); } ctx.restore(); }
+        for (let f = 0; f < (R7 ? 7 : 4); f++) { const a = t * 1.7 + f * 1.57, fx = Math.cos(a) * 34 * sc, fy = -H2 * 0.25 - ((t * 60 + f * 37) % 90) * sc, fr = (7 - ((t * 60 + f * 37) % 90) / 18) * sc; if (fr <= 0) continue; const gq = ctx.createRadialGradient(fx, fy, 0, fx, fy, fr * 2); gq.addColorStop(0, R7 ? 'rgba(255,120,120,.9)' : 'rgba(200,150,255,.9)'); gq.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gq; ctx.fillRect(fx - fr * 2, fy - fr * 2, fr * 4, fr * 4); }
+        if (R7) { const gg = ctx.createRadialGradient(0, -H2 * 0.45, 4, 0, -H2 * 0.45, H2 * 0.8); gg.addColorStop(0, 'rgba(255,40,60,.28)'); gg.addColorStop(1, 'rgba(60,0,10,0)'); ctx.fillStyle = gg; ctx.fillRect(-H2, -H2 * 1.3, H2 * 2, H2 * 1.5); }
+        ctx.restore(); } }
     if (full) { const w = H2 * full.width / full.height, src = tc ? this.glow(full, tc, Math.ceil(wp / 2)) : full, ang = this.pose(h); if (h.flip) { ctx.save(); ctx.scale(-1, 1); }
       if (wk && !ang) vsDraw(WV, 'walk', h.wf || 0, H2, '', 0, true);
       else if (!ang) ctx.drawImage(src, -w / 2, -H2, w, H2);
@@ -265,8 +282,8 @@ const HF = {
     ctx.globalAlpha = h.enter;
     h.hbT = Math.max(0, (h.hbT || 0) - 1 / 60); if (h.hurtT > 0) h.hbT = 2.5;
     { ctx.globalAlpha = h.enter * (h.hbT > 0 || h.hp < 0.6 ? 1 : 0.85); this.bar(0, -H2 - 10, 46 * sc, h.hp, h.hp > 0.5 ? '#5dff8f' : h.hp > 0.25 ? '#ffcf5a' : '#ff5a5a'); ctx.globalAlpha = h.enter; }   /* 11-15 대표님 「우리든 체력바 보여야」: 영웅 막대도 늘 보임 */   /* 19:13 늘 떠 있던 막대 → 맞았을 때 · 다쳤을 때만 */
-    { const nm = (rt >= 2 ? (rt === 3 ? '★ ' : '◆ ') : '') + L.heroes[h.id].name, nt = wp ? `${nm} +${wp}` : nm, fz = Math.round(11.5 * Math.min(WK(), 2.2));   /* 19:13 발밑 이름표 */
-      this.tags.push({ m: ctx.getTransform(), nt, fz, ty: 10 + fz * 0.6, rt, RC, line: rt >= 2 ? RC : tc || k.col, txt: rt >= 2 ? RC : tc || '#f3e8ff', a: h.enter }); }   /* 11-15 눈 확인: 30판에서 영웅 넷 이름표가 서로 포개짐 → 그리기는 다 모아서 마지막에(drawTags), 겹치면 아래로 비킴 */
+    { const sr = JB.heroStar(o), nm = L.heroes[h.id].name, nt = `${nm} ${sr >= 7 ? '☠' : '★'}${sr}`,   /* 11-15 이름표 = 이름 + 별 수(★1~6 · 초월 ☠7) */ fz = Math.round(11.5 * Math.min(WK(), 2.2));   /* 19:13 발밑 이름표 */
+      this.tags.push({ m: ctx.getTransform(), nt, fz, ty: 10 + fz * 0.6, rt, RC, line: sr >= 7 ? '#ff3a4a' : rt >= 2 ? RC : tc || k.col, txt: sr >= 7 ? '#ffb0b8' : rt >= 2 ? RC : tc || '#f3e8ff', a: h.enter }); }   /* 11-15 눈 확인: 30판에서 영웅 넷 이름표가 서로 포개짐 → 그리기는 다 모아서 마지막에(drawTags), 겹치면 아래로 비킴 */
     ctx.restore(); ctx.globalAlpha = 1;
   },
   glowC: {},
