@@ -375,7 +375,7 @@ function vsDraw(n, an, fi, h, filt, rot, loop) {
 /* 대기: 영상 그대로의 빠르기(5초에 한 바퀴)로 앞으로만. ph로 저마다 다른 때에서 시작 */
 const vsIdle = (ph, sp, n) => ((S.t / (sp || 5) + (((ph || 0) * 0.618) % 1)) % 1) * (n || 40);
 function drawSkel(a) {
-  const sc = lerp(0.8, 1.25, a.d) * (a.big || 1) * (a.big ? UK() : 1), img = SKEL[a.w];
+  const sc = lerp(0.8, 1.25, a.d) * (a.big || 1) * (a.big ? UKU() : 1), img = SKEL[a.w];
   if (a.big && !a.fly) { const TC = ['#9aa0a6', '#5be37a', '#4aa8ff', '#b56cff', '#ffcc33'][a.g || 0], pu = 0.75 + 0.25 * Math.sin(S.t * 3 + a.ph); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35 * pu; ctx.fillStyle = TC; ctx.beginPath(); ctx.ellipse(a.x, a.y - 2, 50 * sc, 11 * sc, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 0.7; ctx.strokeStyle = TC; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(a.x, a.y - 2, 50 * sc, 11 * sc, 0, 0, 7); ctx.stroke();
     if ((a.g || 0) >= 2) { const g2 = ctx.createRadialGradient(a.x, a.y - 80 * sc, 4, a.x, a.y - 80 * sc, 90 * sc); g2.addColorStop(0, TC + '44'); g2.addColorStop(1, TC + '00'); ctx.globalAlpha = pu; ctx.fillStyle = g2; ctx.fillRect(a.x - 90 * sc, a.y - 170 * sc, 180 * sc, 180 * sc); } ctx.restore(); }   /* 01:20 소환수: 진화 단계 색 발밑 고리(회 · 초 · 파 · 보 · 금), 3단계부터 몸 빛 */
   /* 걷기(11-13 대표님 「걷는 게 엄청 부자연스럽다」): 서 있으면 숨쉬기만, 움직이면 움직인 거리만큼 다리를 번갈아 내딛고 걸음마다 살짝 출렁 */

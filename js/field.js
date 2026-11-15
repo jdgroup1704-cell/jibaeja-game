@@ -26,7 +26,7 @@ const HF = {
     const g = S.giant, ring = st.boss && g.on && g.alpha > 0.5 && !g.dead && !g.leaving && (S.phase === 'fight' || S.phase === 'battle' || S.phase === 'prompt');
     /* 보스전: 거인을 둘러쌈 — 앞 · 거인 오른쪽 옆(왼쪽을 보고 다리를 침) · 아래 앞 · 위 앞. 휴대폰 화면 폭(오른쪽 끝 1160) 안에 들게. 끝나면 원래 마름모로 */
     const R = [[-210, 640, 0], [55, 705, 1], [-120, 690, 0], [-235, 545, 0]];
-    const PB = [[-16, 712], [-106, 600], [-151, 712], [-241, 600]], big = S.army.some(a => !a.fly && a.big);   /* 11-15 16:01 대표님 「배치 더 넓게, 위아래 대각 여러 개」: 소환수 넷 + 영웅 넷을 세 줄(위 490 · 가운데 600 · 아래 712 — 땅 위아래를 끝까지 씀) 엇갈림 — 앞에서부터 45씩 뒤로, 줄마다 번갈아 → 같은 줄 이웃은 135 떨어짐(director.js SLOT과 짝) */
+    const PB = [[-100, 712], [-230, 490], [-220, 712], [-300, 600]], big = S.army.some(a => !a.fly && a.big);   /* 11-15 16:01 대표님 「배치 더 넓게, 위아래 대각 여러 개」: 소환수 넷 + 영웅 넷을 세 줄(위 490 · 가운데 600 · 아래 712 — 땅 위아래를 끝까지 씀) 엇갈림 — 앞에서부터 45씩 뒤로, 줄마다 번갈아 → 같은 줄 이웃은 135 떨어짐(director.js SLOT과 짝) */
     this.list.forEach((h, i) => { if (!ring && big) { const q = PB[i] || PB[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; return; } if (ring) { const q = R[i] || R[0]; h.tx = g.x + q[0]; h.ty = q[1]; h.flip = !!q[2]; } else { const q = P[i] || P[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; } });
     this.ring = ring;
   },
@@ -64,7 +64,7 @@ const HF = {
     const g = S.giant;
     if (st.boss && g.alpha > 0.5 && !g.dead) return { x: g.x + (h.flip ? 30 : -90), y: h.y - 70, giant: true };
     const far = (this.KIND[h.id] || {}).far;
-    if (!far && S.army.some(a => !a.fly && a.big)) {   /* 11-15 뒤치기(제 추천, 대표님 「니 추천은 너 알아서」): 앞줄은 소환수 4마리 몫 → 근접 영웅은 적 무리 뒷줄(궁수 · 사제 쪽, 가장 뒤 적)로 뛰어들어 침. 앞줄이 덜 붐비고 영웅이 특별해 보임 */
+    if (false && !far && S.army.some(a => !a.fly && a.big)) {   /* 11-15 21:55 대표님이 보내 주신 버섯커 영상: 우리 편은 왼쪽 한 덩어리 · 적은 오른쪽 — 뒤치기로 적 뒷줄에 뛰어들면 우리 · 적이 뒤섞임(진영섞임 잼) → 끔 */   /* 11-15 뒤치기(제 추천, 대표님 「니 추천은 너 알아서」): 앞줄은 소환수 4마리 몫 → 근접 영웅은 적 무리 뒷줄(궁수 · 사제 쪽, 가장 뒤 적)로 뛰어들어 침. 앞줄이 덜 붐비고 영웅이 특별해 보임 */
       let bk = null; for (const f of S.foes) { if (f.dead || f.flee || f.fly || f.x > VX1 - 70) continue; if (!bk || f.x > bk.x) bk = f; }
       if (bk) return { x: bk.x, y: bk.y - 34, foe: bk, back: true }; }
     let best = null, bd = 1e9; for (const f of S.foes) { if (f.dead || f.flee) continue; const d = Math.abs(f.x - h.x) + Math.abs(f.y - h.y) * 0.6 - (far && f.fly ? 2000 : 0); if (d < bd) { bd = d; best = f; } }   /* 원거리 수하는 날개 적부터 쏨 */
@@ -87,7 +87,7 @@ const HF = {
     h.swg = 0; h.swgL = k.far ? 0.45 : 0.52; h.swgB = big ? 1.35 : 1; h.ka = 0;   /* 때리기 영상 시작(0.9초: 젖히기 0.4 · 내려침 0.15 · 돌아오기 0.35 — 6번째 장이 닿는 순간 = 돌진 끝 0.42초쯤) */   /* 윗몸 휘두르기 시작 */
     if (k.far) { this.shots.push({ x: h.x + (h.flip ? -30 : 30), y: h.y - 110, tx: t.x, ty: t.y, age: 0, life: big ? 0.35 : 0.45, col: k.col, big, land }); h.lunge = 0.2; }
     else if (h.flip) h.dash = { age: 0, life: 0.42, dx: -70, dy: clamp(t.y + 40 - h.y, -60, 60), land, hit: false };
-    else { const q = this.dashTo(h, t.back ? t.x - 70 : t.x - 60, h.y + clamp(t.y + 40 - h.y, -60, 60), t.back ? 520 : 260); h.dash = { age: 0, life: t.back ? 0.62 : q.jump ? 0.5 : 0.42, dx: q.dx, dy: q.dy, jump: q.jump, land, hit: false }; }
+    else { const ff = this.foesLive ? this.foesLive() : S.foes.filter(f => !f.dead && !f.flee), fr = ff.length ? Math.min(...ff.map(f => f.x)) : t.x; const q = this.dashTo(h, Math.min(t.x - 60, fr - 55), h.y + clamp(t.y + 40 - h.y, -24, 24), 260);   /* 적 맨 앞줄 앞에서 멈춰 베기(적 사이로 안 들어감) · 위아래는 조금만 */ h.dash = { age: 0, life: t.back ? 0.62 : q.jump ? 0.5 : 0.42, dx: q.dx, dy: q.dy, jump: q.jump, land, hit: false }; }
     return true;
   },
   ult(h, k) {   /* 11-15 최고 등급 ★7 궁극기: 화면이 붉게 물들고 영웅 뒤로 거대한 영혼이 솟아 적 무리 전체를 벰 */
@@ -234,12 +234,12 @@ const HF = {
     for (const a of S.army) {
       if (a.fly || !(a.rise >= 1) || a.gone) continue; if (a.vh == null) a.vh = 1;   /* 11-15 대표님 「상대든 우리든 체력바는 보여야 할 것 같아」: 맞은 놈만 → 늘 보임(땅에 선 병사 · 소환수 모두) */
       a.hbT = Math.max(0, (a.hbT || 0) - 1 / 60); a.vh = Math.min(1, a.vh + 0.06 / 60); a.vg = a.vg == null ? a.vh : Math.max(a.vh, a.vg - 0.6 / 60);
-      ctx.globalAlpha = a.hbT > 0 ? 1 : 0.85; const sc = lerp(0.8, 1.25, a.d) * (a.big ? a.big * UK() : 1);
+      ctx.globalAlpha = a.hbT > 0 ? 1 : 0.85; const sc = lerp(0.8, 1.25, a.d) * (a.big ? a.big * UKU() : 1);
       this.bar(a.x, a.y - (a.big ? 175 : 150) * sc - 6, (a.big ? 40 : 30) * sc, a.vh, a.vh > 0.5 ? '#5dff8f' : a.vh > 0.25 ? '#ffcf5a' : '#ff5a5a', a.vg); ctx.globalAlpha = 1;
     }
   },
   draw(h) {
-    const k = this.KIND[h.id] || this.KIND.krag, d = clamp((h.y - GROUND - 40) / (680 - GROUND - 40), 0, 1), sc = lerp(0.85, 1.15, d) * UK();
+    const k = this.KIND[h.id] || this.KIND.krag, d = clamp((h.y - GROUND - 40) / (680 - GROUND - 40), 0, 1), sc = lerp(0.85, 1.15, d) * UKU();
     const lg = (h.flip ? -1 : 1) * (h.lunge > 0 ? Math.sin((h.lunge / 0.28) * Math.PI) * 18 : 0), bob = Math.sin(S.t * 4 + h.atkT) * 3;
     const dk = h.dash ? Math.sin(Math.min(1, h.dash.age / h.dash.life) * Math.PI) : 0, ddx = h.dash ? h.dash.dx * dk : 0, ddy = h.dash ? h.dash.dy * Math.min(1, h.dash.age / h.dash.life * 2) * (h.dash.age > h.dash.life * 0.5 ? dk : 1) - (h.dash.jump || 0) * Math.sin(Math.min(1, h.dash.age / (h.dash.life * 0.5)) * Math.PI) * (h.dash.age < h.dash.life * 0.5 ? 1 : 0) - (h.dash.jump || 0) * 0.6 * Math.sin(Math.min(1, Math.max(0, h.dash.age - h.dash.life * 0.5) / (h.dash.life * 0.5)) * Math.PI) : 0;   /* 갈 때 한 번 · 돌아올 때 낮게 한 번 뛰어넘음 */
     const kbx = h.kb > 0 ? (h.flip ? 1 : -1) * Math.sin((h.kb / 0.35) * Math.PI * 3) * 4 : 0;   /* 18:42 「그냥 밀리네」: 뒤로 16픽셀 밀리던 것 → 제자리에서 부르르 떨기 */ ctx.save(); const TA = !TRAILER && !(st.wear && st.wear[h.id]) && JB.heroStar(st.heroes[h.id]) >= 7 && need('heroT_' + h.id);   /* 11-15 ☠7 망자 군주화: 초월하면 그림 자체가 군주 모습(드리미나 · 뼈 날개 · 붉은 불꽃)으로 바뀌고 날개로 떠서 다님 */ const WV = 'heroW_' + h.id, wk = !TA && !h.dash && (h.wamp || 0) > 0.3 && typeof VS !== 'undefined' && VS[WV] && !(st.wear && st.wear[h.id]) && need(WV + '_walk'), wa = wk ? 0 : (h.wamp || 0);   /* 11-15 대표님 「크라그는 걷는 게 아니라 미끄러져」: 드리미나 걷기 영상(heroW_*_walk)이 있으면 걷는 동안 진짜 걸음, 흔들림은 끔 */ ctx.translate(h.x + lg + ddx + kbx, h.y + bob + ddy - Math.abs(Math.sin(h.wph || 0)) * 7 * wa - (TA ? 10 + Math.sin(S.t * 2.6 + h.atkT) * 6 : 0)); if (wa > 0.05) ctx.rotate(Math.sin(h.wph || 0) * 0.06 * wa); ctx.globalAlpha = h.enter;
