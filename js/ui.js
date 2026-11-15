@@ -21,7 +21,16 @@ const UI = {
     $('goal').addEventListener('click', e => { e.stopPropagation(); Snd.init(); const r = e.target.closest('[data-gi]'); if (r && $('goal').classList.contains('ready')) { this.act('claim', r.dataset.gi); this.render(true); return; } if (JB.unlocked(st, 'mission')) { this.tab = 'mission'; this.seenTab.mission = 1; this.render(true); } });
     $('cast').addEventListener('click', e => { e.stopPropagation(); if (!$('cast').classList.contains('on')) return; Snd.init(); castPressed(); }); this.showCast(false);
     $('timing').addEventListener('pointerdown', e => { e.preventDefault(); timingTap(); });
-    $('raiseBtn').addEventListener('click', e => { e.stopPropagation(); Snd.init(); if (JB.raiseTap(st)) { Snd.smp('rise', 0.6, 0, rnd(0.9, 1.15)); if (st.raised === JB.C.RAISE_TAPS) Snd.voice('v_rise'); burst(rnd(150, 230), 640, 12, { col: '#5dff8f', vmin: 30, vmax: 140, up: 120, g: -30, lmax: 0.9, smax: 4 }); } this.render(); });
+    { const rb = $('raiseBtn'); const tap = e => { e.preventDefault(); e.stopPropagation(); Snd.init(); if (!JB.raiseTap(st)) return; const n = st.raised, last = n === JB.C.RAISE_TAPS;   /* 11-15 18:39 대표님 「부하 소환 초반 8회, 누르는 타격감 · 클릭감 없어」: click(손 뗄 때) → 누르는 순간(pointerdown) · 매번 땅에서 해골 손이 솟고 초록 기둥 · 흔들림 · 「+1」 · 진동 · 단추가 꾹 눌렸다 튀어오름 · 누를수록 소리 높아짐 */
+        Snd.smp('rise', 0.75, 0, 0.85 + n * 0.06); Snd.smp('stamp', 0.35, 0, 1.4 + n * 0.05); if (last) Snd.voice('v_rise');
+        try { navigator.vibrate && navigator.vibrate(last ? [30, 40, 60] : 18); } catch (er) {}
+        const fx = (typeof armyFront === 'function' ? armyFront() : 520) - rnd(40, 160), fy = rnd(560, 690);
+        burst(fx, fy - 10, 22, { col: ['#5dff8f', '#e8dcc0', '#ffffff'], vmin: 60, vmax: 260, up: 220, g: 500, lmax: 0.8, smin: 2, smax: 5 });
+        if (typeof LM !== 'undefined' && LM.fx) LM.fx.push({ kind: 'nova', hit: true, x: fx, y: fy - 40, age: 0, life: last ? 0.9 : 0.45, col: '#5dff8f', big: last });
+        (S.rises = S.rises || []).push({ x: fx, y: fy, t: 0 }); S.shake = Math.max(S.shake || 0, last ? 9 : 3.5); S.hitstop = Math.max(S.hitstop || 0, 0.035);
+        say('+1', fx, fy - 90, { size: 30, col: '#7dffa8', glow: '#1a8a40', life: 0.7, vy: -70 }); if (last) say(L.raiseDone || '군단이 깨어났다!', W / 2, 230, { size: 40, col: '#d8ffe4', glow: '#20c060', life: 1.4, vy: 0, stamp: true, screen: true });
+        rb.classList.remove('pop'); void rb.offsetWidth; rb.classList.add('pop'); this.render(); };
+      rb.addEventListener('pointerdown', tap); rb.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); }); }
     $('modal').addEventListener('click', e => { if (e.target.id === 'modal' || e.target.dataset.close) return this.closeModal(); const b = e.target.closest('[data-act]'); if (b && !b.disabled && /^(gear|lskin)/.test(b.dataset.act)) { Snd.init(); this.act(b.dataset.act, b.dataset.arg); } });   /* 장비 정보 창 안의 강화 단추 */
     if (TEST) {   // 시험판 전용: 며칠 뒤에 열리는 것(침공 지도 5일째 · 마법 연구 6일째)과 35판 지하 묘지를 바로 볼 수 있게
       $('testbar').innerHTML = `<button data-t="fold" class="fold">${L.test.fold}</button><span class="tb"><button data-t="gems">${L.test.gems}</button><button data-t="bones">${L.test.bones}</button><button data-t="stone">${L.weapon.test}</button><button data-t="day">${L.test.day}</button><button data-t="best">${L.test.best}</button><button data-t="perf">${L.test.perf}</button><button data-t="reset">${L.test.reset}</button></span>`;

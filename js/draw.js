@@ -42,7 +42,7 @@ function draw() {
   drawLord(); drawStaff(); drawLordTag(); if (!TRAILER) drawAtmoFront();
   if (!litLord && S.dark > 0) { ctx.fillStyle = `rgba(4,0,12,${S.dark})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
   if (S.tint > 0) { ctx.fillStyle = `rgba(20,0,45,${0.45 * S.tint})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
-  drawShock(); drawRings(); if (!S.rings.length) drawFxSun(); drawSlams(); drawElite(); drawSlashes(); drawSun(); drawParts(); drawWave(); HF.drawTags(); drawBossBar(); drawWorldTexts();   /* 11-15 이름표 · 보스 막대는 효과(바닥 고리 · 충격 · 파편)와 지배자 몸 위에 — 눈 확인: 분홍 고리 · 지배자 몸이 이름표를 덮었음 */ drawBubble(); if (typeof drawOverlay === 'function') drawOverlay();
+  drawShock(); drawRings(); if (!S.rings.length) drawFxSun(); drawSlams(); drawElite(); drawSlashes(); drawSun(); drawParts(); drawRises(); drawWave(); HF.drawTags(); drawBossBar(); drawWorldTexts();   /* 11-15 이름표 · 보스 막대는 효과(바닥 고리 · 충격 · 파편)와 지배자 몸 위에 — 눈 확인: 분홍 고리 · 지배자 몸이 이름표를 덮었음 */ drawBubble(); if (typeof drawOverlay === 'function') drawOverlay();
   ctx.restore();
   // 화면에 붙는 것 (카메라 영향 없음)
   ctx.setTransform(s, 0, 0, s, (TRAILER && cv.height > cv.width * 1.2) ? cv.width / 2 - W / 2 * s : ox, oy);   // 세로 광고: 화면 글자는 늘 가운데
@@ -753,6 +753,20 @@ function drawAlly() {
   al.slam = Math.max(0, (al.slam || 0) - 1 / 60);
   ctx.save(); ctx.globalAlpha = Math.min(0.42, al.t * 0.4); ctx.translate(al.x, 560); ctx.rotate(0.15 * Math.sin((al.slam / 0.5) * Math.PI)); ctx.scale(-1, 1);
   const h = 240, w = h * art.width / art.height; ctx.drawImage(tinted(art, 'ally' + r, 1, RISE_TINT), -w / 2, -h, w, h); ctx.restore(); ctx.globalAlpha = 1;
+}
+function drawRises() {   /* 11-15 일으켜라 한 번 = 땅이 갈라지며 뼈 손이 쑥 솟았다 가라앉음(0.8초) */
+  if (!S.rises || !S.rises.length) return; const k = typeof WK === 'function' ? Math.min(WK(), 1.8) : 1;
+  for (const r of S.rises) { r.t += 1 / 60; const p = r.t, up = p < 0.18 ? p / 0.18 : p < 0.5 ? 1 : Math.max(0, 1 - (p - 0.5) / 0.3), a = p < 0.6 ? 1 : Math.max(0, 1 - (p - 0.6) / 0.2);
+    ctx.save(); ctx.translate(r.x, r.y); ctx.scale(k, k); ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(30,18,10,.85)'; ctx.beginPath(); ctx.ellipse(0, 0, 34, 9, 0, 0, 7); ctx.fill();   /* 갈라진 흙 */
+    ctx.strokeStyle = 'rgba(93,255,143,.9)'; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i < 5; i++) { const an = -0.3 - i * 0.6; ctx.moveTo(0, 0); ctx.lineTo(Math.cos(an) * 36, Math.sin(an) * 9 + 2); } ctx.stroke();
+    const h = 58 * up; ctx.save(); ctx.beginPath(); ctx.rect(-40, -120, 80, 120); ctx.clip(); ctx.translate(0, -h + 6); ctx.rotate(Math.sin(p * 18) * 0.06);
+    ctx.strokeStyle = '#efe6d2'; ctx.lineCap = 'round'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(0, 14); ctx.stroke();   /* 팔뼈 */
+    ctx.lineWidth = 4; for (const [dx, dy] of [[-12, -16], [-5, -22], [3, -23], [10, -18], [15, -6]]) { ctx.beginPath(); ctx.moveTo(dx * 0.35, 8); ctx.lineTo(dx, dy); ctx.stroke(); }   /* 손가락 */
+    ctx.restore();
+    const g = ctx.createLinearGradient(0, -110, 0, 0); g.addColorStop(0, 'rgba(93,255,143,0)'); g.addColorStop(1, `rgba(93,255,143,${0.45 * a})`); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(-22, -110, 44, 110);   /* 초록 기둥 */
+    ctx.restore(); }
+  S.rises = S.rises.filter(r => r.t < 0.8);
 }
 function drawBossBar() {   /* 11-15 보스 머리 바로 위: 이름 · 남은 시간(막대 위) + 큰 체력 막대(안에 %) · 깎인 부분은 흰색으로 남았다 줄어듦 */
   const g = S.giant, b = st.boss; if (TRAILER || !b || !g.on || g.dead || g.alpha < 0.5 || !['fight', 'wait', 'cast'].includes(b.phase) || S.phase === 'cast') return;
