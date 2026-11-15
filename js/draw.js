@@ -977,7 +977,7 @@ function drawBubble() {   // 수하 말풍선: 이름 + 대사, 길이에 맞춰
   ctx.save(); ctx.globalAlpha = a; ctx.font = `700 24px ${SERIF}`; ctx.textAlign = 'left';
   const pic = b.who && need('hero_' + b.who), pw = pic ? 120 : 0, vx0 = Math.max(0, VIS.x0), vx1 = Math.min(W, VIS.x1);   /* 11-14 18:05 작은 폰에서 말풍선이 왼쪽 끝에 잘리던 것: 세계 폭(0~1280)이 아니라 보이는 폭 안에 */
   const lines = wrapText(b.text, Math.min(520, vx1 - vx0 - pw - 90)), w = Math.max(...lines.map(l => ctx.measureText(l).width)) + 44, h = 30 + lines.length * 32;
-  const x = clamp((b.x ?? 330) + pw * 0.6, vx0 + 20 + pw, vx1 - w - 20), y = b.y ?? 300;
+  const x = clamp((b.x ?? 330) + pw * 0.6, vx0 + 20 + pw, vx1 - w - 20), y = Math.max(b.y ?? 300, (78 * (view.dpr || 1) - view.oy) / view.s + Math.max(h + 30, pic ? 104 : 0) + 30);   /* 11-15 카메라를 내리자 말풍선이 왼쪽 위 「빠른 보상」 단추를 덮음(관문⑤ 78번) → 위 단추 줄(전장 위 78픽셀) 밑으로 */
   b.box = [x - pw - 6, y - Math.max(h + 30, pic ? 104 : 0) - 30, w + pw + 6, Math.max(h + 30, 104) + 52]; b.tf = ctx.getTransform();   /* 23:58 겹침재기용: 화면 어디를 덮는지 */
   ctx.fillStyle = 'rgba(15,5,25,.88)'; ctx.strokeStyle = '#8a5cff'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y - h, w, h, 14) : ctx.rect(x, y - h, w, h); ctx.fill(); ctx.stroke();

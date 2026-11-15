@@ -26,7 +26,7 @@ const HF = {
     const g = S.giant, ring = st.boss && g.on && g.alpha > 0.5 && !g.dead && !g.leaving && (S.phase === 'fight' || S.phase === 'battle' || S.phase === 'prompt');
     /* 보스전: 거인을 둘러쌈 — 앞 · 거인 오른쪽 옆(왼쪽을 보고 다리를 침) · 아래 앞 · 위 앞. 휴대폰 화면 폭(오른쪽 끝 1160) 안에 들게. 끝나면 원래 마름모로 */
     const R = [[-210, 640, 0], [55, 705, 1], [-120, 690, 0], [-235, 545, 0]];
-    const PB = [[-50, 690], [-165, 668], [-285, 690], [-405, 668]], big = S.army.some(a => !a.fly && a.big);   /* 09:40 소환수가 직업별로 펼쳐 선 뒤: 영웅은 창과 활 사이 아래 줄 · 11-15 소환수 바로 앞에 겹쳐 서던 것 → 소환수 사이사이(반 칸 엇갈림) */
+    const PB = [[-16, 712], [-106, 600], [-151, 712], [-241, 600]], big = S.army.some(a => !a.fly && a.big);   /* 11-15 16:01 대표님 「배치 더 넓게, 위아래 대각 여러 개」: 소환수 넷 + 영웅 넷을 세 줄(위 490 · 가운데 600 · 아래 712 — 땅 위아래를 끝까지 씀) 엇갈림 — 앞에서부터 45씩 뒤로, 줄마다 번갈아 → 같은 줄 이웃은 135 떨어짐(director.js SLOT과 짝) */
     this.list.forEach((h, i) => { if (!ring && big) { const q = PB[i] || PB[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; return; } if (ring) { const q = R[i] || R[0]; h.tx = g.x + q[0]; h.ty = q[1]; h.flip = !!q[2]; } else { const q = P[i] || P[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; } });
     this.ring = ring;
   },
@@ -56,7 +56,7 @@ const HF = {
       const lx = h.x + clamp(tx + ox - h.x, 0, maxDx), ly = clamp(ty + oy, 545, 735);
       let pen = Math.abs(ox) * 0.3 + Math.abs(oy) * 0.4; for (const [x, y, r] of occ) { const ddx = Math.abs(lx - x), ddy = Math.abs(ly - y); if (ddx < r * 0.75 && ddy < 45) pen += (r * 0.75 - ddx) * 6 + (45 - ddy) * 3; }
       if (pen < bs) { bs = pen; best = [lx - h.x, ly - h.y]; } }
-    const jump = big ? 70 : 0;   /* 큰 소환수 줄 위로 껑충 */
+    const jump = big ? 70 : 28;   /* 큰 소환수 줄 위로 껑충 · 11-15 줄이 없어도 낮게 한 번 뛰어 들어감(미끄러져 보이지 않게) */
     return { dx: best[0], dy: best[1], jump };
   },
   /* 지금 때릴 것: 거대한 적이 있으면 거인, 아니면 가장 가까운 살아 있는 적 */
@@ -167,7 +167,7 @@ const HF = {
     const fight = (S.phase === 'battle' || S.phase === 'fight') && !UI.awakening;
     for (const h of this.list) {
       h.enter = Math.min(1, h.enter + dt * 1.5);
-      { const ox = h.x; if (Math.abs(h.tx - h.x) > 14) h.x += Math.sign(h.tx - h.x) * Math.min(Math.abs(h.tx - h.x) - 10, 110 * dt); h.y += (h.ty - h.y) * Math.min(1, dt * 3); const v = Math.abs(h.x - ox) / Math.max(dt, 1e-3); h.wamp = lerp(h.wamp || 0, v > 12 ? 1 : 0, Math.min(1, dt * 10)); h.wph = (h.wph || 0) + dt * 11 * (h.wamp > 0.1 ? 1 : 0); }   /* 21:58 대표님 「밀리는 애」: 영웅이 그림 한 장째로 미끄러지던 것 → 일정한 걸음 빠르기로 걷고, 걸을 땐 걸음마다 들썩 · 기우뚱. 조금 벗어난 건 그 자리에 서 있음 */
+      { const ox = h.x, oy = h.y; if (Math.abs(h.tx - h.x) > 14) h.x += Math.sign(h.tx - h.x) * Math.min(Math.abs(h.tx - h.x) - 10, 110 * dt); if (Math.abs(h.ty - h.y) > 8) h.y += Math.sign(h.ty - h.y) * Math.min(Math.abs(h.ty - h.y) - 6, 75 * dt); const v = Math.hypot(h.x - ox, (h.y - oy) * 1.6) / Math.max(dt, 1e-3);   /* 11-15 대표님 「크라그는 밑에서 앞으로 걷는 게 아니라 스르르 미끄러져」: 위아래로 옮길 땐 걸음(들썩 · 기우뚱) 없이 미끄러졌음 → 위아래도 일정한 걸음 빠르기 + 걸음 흔들림 */ h.wamp = lerp(h.wamp || 0, v > 12 ? 1 : 0, Math.min(1, dt * 10)); h.wph = (h.wph || 0) + dt * 11 * (h.wamp > 0.1 ? 1 : 0); }   /* 21:58 대표님 「밀리는 애」: 영웅이 그림 한 장째로 미끄러지던 것 → 일정한 걸음 빠르기로 걷고, 걸을 땐 걸음마다 들썩 · 기우뚱. 조금 벗어난 건 그 자리에 서 있음 */
       h.lunge = Math.max(0, h.lunge - dt); h.flash = Math.max(0, h.flash - dt);
       if (h.swg != null) { h.swg += dt; if (h.swg >= h.swgL) h.swg = null; }
       if (h.dash && fight) { const d = h.dash; d.age += dt; if (!d.hit && d.age >= d.life * 0.5) { d.hit = true; d.land(); } if (d.age >= d.life) h.dash = null; }
