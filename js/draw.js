@@ -37,14 +37,12 @@ function draw() {
   for (const f of S.foes) HF.drawFoeBar(f);   /* 적 체력 막대는 맨 위에 */
   HF.drawArmyBars();
   drawArmyFx(); HF.drawFx(); LM.draw();
-  HF.drawTags();   /* 11-15 영웅 이름표는 모아서(겹치면 비킴) · 눈 확인: 불꽃 효과 밑에 깔려서 효과 뒤에 그림 */
-  drawBossBar();   /* 11-15 대표님 「보스도 에너지바 맨 위 말고 따로」: 보스 머리 위에 큰 막대 */
   const litLord = S.phase === 'cast' || S.phase === 'stare';   /* 11-14 18:10 대마법 영창 때 화면이 어두워져도 지배자는 밝게(어둠 위에 그림) — 「5초 동안 어둡고 글자만」 고침 */
   if (litLord && S.dark > 0) { ctx.fillStyle = `rgba(4,0,12,${S.dark})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
   drawLord(); drawStaff(); drawLordTag(); if (!TRAILER) drawAtmoFront();
   if (!litLord && S.dark > 0) { ctx.fillStyle = `rgba(4,0,12,${S.dark})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
   if (S.tint > 0) { ctx.fillStyle = `rgba(20,0,45,${0.45 * S.tint})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
-  drawShock(); drawRings(); if (!S.rings.length) drawFxSun(); drawSlams(); drawElite(); drawSlashes(); drawSun(); drawParts(); drawWave(); drawWorldTexts(); drawBubble(); if (typeof drawOverlay === 'function') drawOverlay();
+  drawShock(); drawRings(); if (!S.rings.length) drawFxSun(); drawSlams(); drawElite(); drawSlashes(); drawSun(); drawParts(); drawWave(); HF.drawTags(); drawBossBar(); drawWorldTexts();   /* 11-15 이름표 · 보스 막대는 효과(바닥 고리 · 충격 · 파편)와 지배자 몸 위에 — 눈 확인: 분홍 고리 · 지배자 몸이 이름표를 덮었음 */ drawBubble(); if (typeof drawOverlay === 'function') drawOverlay();
   ctx.restore();
   // 화면에 붙는 것 (카메라 영향 없음)
   ctx.setTransform(s, 0, 0, s, (TRAILER && cv.height > cv.width * 1.2) ? cv.width / 2 - W / 2 * s : ox, oy);   // 세로 광고: 화면 글자는 늘 가운데
@@ -972,7 +970,7 @@ function drawText(x, m = 1, maxW = W - 40) {
 function drawWorldTexts() { for (const x of S.texts) if (!x.screen) drawText(x); }
 function drawScreenTexts() { if (S.t < (S.calmUntil || 0)) { const k = Math.min(1, (S.calmUntil - S.t) / 1.2) * 0.55; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = `rgba(6,0,14,${k})`; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); }   /* 각성 이름이 또렷하게: 뒤를 어둡게 */ const css = view.s / (view.dpr || 1), m = clamp(0.55 / css, 1, 1.9), x0 = -view.ox / view.s, x1 = (cv.width - view.ox) / view.s; const pad = 66 / css, y0v = -view.oy / view.s; for (const x of S.texts) if (x.screen) { if (x.y < y0v + 118 / css) x.y = y0v + 118 / css; drawText(x, m, 2 * Math.min(x.x - x0 - pad, x1 - x.x - pad) - 30); } }   /* 00:22 대표님 폰 크기 · 실제 흐름으로 재니 「부활!」 「묘지의 주인」이 위 단추 · 판 표시를 100% 덮음 → 판 표시 아래로, 좌우 단추 기둥 안쪽 폭으로 */   /* 최대 폭 = 실제로 보이는 화면 폭(휴대폰은 80~1160) 안 */   /* 휴대폰 세로처럼 전장이 작으면 화면 큰 글자를 키움(390 너비에서 약 1.8배) */
 function drawBubble() {   // 수하 말풍선: 이름 + 대사, 길이에 맞춰 오래 보임
-  if (document.querySelector('#toast .toast')) { if (S.bubble) S.bubble.box = null; return; }   /* 11-15 숨긴 동안 옛 자리(box)가 남아 겹침 관문이 「알림 × 말풍선 31%」로 잘못 셈 → 숨기면 자리도 지움   /* 20:44 알림 · 영웅 말풍선 · 「일으켜라」 표가 왼쪽 위에 겹쳐 쌓임 → 알림이 있으면 말풍선은 잠깐 숨김 */
+  if (document.querySelector('#toast .toast') || S.texts.some(t => t.screen && t.size >= 40 && t.age < t.life)) { if (S.bubble) S.bubble.box = null; return; }   /* 11-15 관문⑤: 말풍선 × 보스 이름 큰 글자 86% → 화면 큰 글자가 떠 있는 동안도 말풍선은 숨김 */   /* 11-15 숨긴 동안 옛 자리(box)가 남아 겹침 관문이 「알림 × 말풍선 31%」로 잘못 셈 → 숨기면 자리도 지움   /* 20:44 알림 · 영웅 말풍선 · 「일으켜라」 표가 왼쪽 위에 겹쳐 쌓임 → 알림이 있으면 말풍선은 잠깐 숨김 */
   const b = S.bubble; if (!b) return; const life = b.life || 3.2; const a = clamp(b.age * 3, 0, 1) * clamp((life - b.age) * 2, 0, 1); if (a <= 0) return;
   ctx.save(); ctx.globalAlpha = a; ctx.font = `700 24px ${SERIF}`; ctx.textAlign = 'left';
   const pic = b.who && need('hero_' + b.who), pw = pic ? 120 : 0, vx0 = Math.max(0, VIS.x0), vx1 = Math.min(W, VIS.x1);   /* 11-14 18:05 작은 폰에서 말풍선이 왼쪽 끝에 잘리던 것: 세계 폭(0~1280)이 아니라 보이는 폭 안에 */

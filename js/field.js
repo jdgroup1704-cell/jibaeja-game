@@ -32,7 +32,7 @@ const HF = {
   },
   tags: [],
   drawTags() {   /* 영웅 이름표: 위에서부터 놓고, 먼저 놓인 표와 겹치면 그 아래로 한 칸씩 비킴(최대 6번) */
-    const T = this.tags; this.tags = []; if (!T.length) return; T.sort((p, q) => p.m.f - q.m.f); const placed = [];
+    const T = this.tags; this.tags = []; if (!T.length || S.phase === 'cast') return; T.sort((p, q) => p.m.f - q.m.f); const placed = [];
     if (!TRAILER && S.phase !== 'cast') { const M = ctx.getTransform(), fz = Math.round(13 * Math.min(WK(), 2.2)); ctx.save(); ctx.font = `900 ${fz}px ${SERIF}`; const w = ctx.measureText('♛ ' + L.ui.lordTag).width + fz * 1.6; ctx.restore(); placed.push({ x: M.a * (230 + LDX() - w / 2) + M.e, y: M.d * (614 - fz * 0.8) + M.f, w: w * M.a, h: fz * 1.6 * M.d }); }   /* 지배자 이름표 자리도 피함 */
     { const cr = cv.getBoundingClientRect(), kx = cv.width / (cr.width || 1), ky = cv.height / (cr.height || 1); for (const b of document.querySelectorAll('#slots > *, #raiseBtn, #cast, #chatpv.on')) { const r = b.getBoundingClientRect(); if (!r.width || getComputedStyle(b).display === 'none' || getComputedStyle(b).visibility === 'hidden') continue; placed.push({ x: (r.left - cr.left) * kx, y: (r.top - cr.top) * ky, w: r.width * kx, h: r.height * ky, dom: 1 }); } }   /* 11-15 눈 확인: 이름표가 부활 · 태양 단추 밑에 깔렸음 → 전장 위 단추 자리도 피함 */
     ctx.save();
