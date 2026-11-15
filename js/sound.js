@@ -15,6 +15,7 @@ function unlockAudio() {
   } catch (e) {}
 }
 // 시험용: 소리 기록(봇 영상에 소리를 입히려고)
+function limiter(ac) { const c = ac.createDynamicsCompressor(); c.threshold.value = -6; c.knee.value = 4; c.ratio.value = 20; c.attack.value = 0.002; c.release.value = 0.12; c.connect(ac.destination); return c; }
 const BGM_V = 0.3;   /* 11-15 순서 #5: 배경음 크기(효과음보다 한 발 뒤 — 강화 「띵」이 묻히지 않게) */
 const SND_LOG = []; let sndT0 = 0;
 const Snd = {
@@ -25,7 +26,7 @@ const Snd = {
     try {
       this.ac = new (window.AudioContext || window.webkitAudioContext)();
       if (this.ac.state !== 'running' && this.ac.resume) this.ac.resume().catch(() => {});
-      this.master = this.ac.createGain(); this.master.gain.value = 0.8; this.master.connect(this.ac.destination);
+      this.master = this.ac.createGain(); this.master.gain.value = 0.8; this.master.connect(limiter(this.ac));   /* 11-16 순서 #8 효과음재기: 큰 소리 여럿이 겹치면 깨짐(45초에 46표본) → 마지막에 누르개(리미터) */
       const len = this.ac.sampleRate * 2, b = this.ac.createBuffer(1, len, this.ac.sampleRate), d = b.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
       this.noiseBuf = b;
@@ -127,7 +128,7 @@ Object.assign(Snd, {
   ring(i) { this.bufs.circle ? this.smp('circle', 0.8, 0, [1, 1.12, 1.26][i]) : SYN.chime.call(this, [659, 784, 1047][i]); },
   voice(n) { this.smp(n, 1); },
   voiceCd(n, sec, delay = 0) { const now = performance.now() / 1000; this.vT = this.vT || {}; if (now - (this.vT[n] || -1e9) < sec) return; this.vT[n] = now; this.smp(n, 1, delay); },   /* 04:40 같은 목소리가 자꾸 나오면 질림 → sec초에 한 번 */
-  rise() { this.smp('rise', 0.22, 0, rnd(0.9, 1.25)); },
+  rise() { this.smp('rise', 0.55, 0, rnd(0.9, 1.25)); },   /* 11-16 순서 #8: 망자병이 솟는 소리 -42.9dB(배경음에 묻힘) → -35 */
   droneTo(v, dur) { SYN.droneTo.call(this, v, dur); this.bgmTo(v >= 0.03 ? BGM_V : 0.02, dur); },
 });
 for (const k of ['osc', 'noise', 'startDrone', 'droneTo', 'stopDrone', 'smp', 'bgmStart', 'bgmTo', 'bgmStop', 'bgmDuck']) {
@@ -138,7 +139,7 @@ for (const k of ['osc', 'noise', 'startDrone', 'droneTo', 'stopDrone', 'smp', 'b
 window.__renderSound = async (dur) => {
   const sr = 44100, oc = new OfflineAudioContext(2, Math.ceil(sr * dur), sr);
   const keep = { ac: Snd.ac, master: Snd.master, noiseBuf: Snd.noiseBuf, drone: Snd.drone, on: Snd.on, bgm: Snd.bgm, bgmV: Snd.bgmV }; Snd.bgm = null;
-  Snd.ac = oc; Snd.master = oc.createGain(); Snd.master.gain.value = 0.8; Snd.master.connect(oc.destination); Snd.drone = null; Snd.on = true; Snd.replaying = true; Snd.renderEnd = dur;
+  Snd.ac = oc; Snd.master = oc.createGain(); Snd.master.gain.value = 0.8; Snd.master.connect(limiter(oc)); Snd.drone = null; Snd.on = true; Snd.replaying = true; Snd.renderEnd = dur;
   const len = sr * 2, nb = oc.createBuffer(1, len, sr), d = nb.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; Snd.noiseBuf = nb;
   // 오프라인에서는 '지금 시각'이 없으니 기록된 시각을 대신 씀. 드론의 setTimeout은 무시
   for (const [t, k, a] of SND_LOG) { if (t < 0 || t > dur) continue; Snd.tOff = t; if (k === 'stopDrone') { if (Snd.drone) { Snd.droneTo(0.0001, 0.3); Snd.tOff = t; Snd.drone.os.forEach(o => o.stop(t + 0.5)); Snd.drone = null; } } else Snd[k].apply(Snd, a); }
@@ -154,4 +155,5 @@ window.__renderSound = async (dur) => {
   return btoa(bin);
 };
 window.__sndLog = () => SND_LOG.map(([t, k]) => [+t.toFixed(2), k]);
+window.__sndAll = () => SND_LOG.map(([t, k, a]) => [+t.toFixed(2), k, k === 'smp' ? a[0] : k, k === 'smp' ? (a[1] ?? 1) : null]);   /* 순서 #8 효과음재기 */
 window.__sndUp = () => SND_LOG.filter(([, k, a]) => k === 'smp' && a[0] === 'up').map(([t, , a]) => [+t.toFixed(2), +(a[3] || 1).toFixed(3)]);   /* 순서 #5 관문: 강화 「띵」이 이어 누를 때 올라가는지 */

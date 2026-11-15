@@ -5,6 +5,7 @@
 const HF = {
   list: [], shots: [], fx: [],
   /* 수하마다 공격 빠르기 · 기술 간격 · 색 · 기술 모양(베기 · 마법탄 · 범위 · 북) */
+  ROLE: { krag: 0, porter: 0, serafine: 1, nox: 1, morde: 2, twins: 2, wisp: 2, drummer: 2 },   /* 11-16 순서 #9 역할: 0 탱커(맨 앞) · 1 근접 · 2 원거리 · 후원(뒤) */
   KIND: {
     serafine: { iv: 1.45, sk: 7, col: '#ff4d6d', fx: 'slash' }, morde: { iv: 2.1, sk: 9, col: '#9b7bff', fx: 'aoe', far: 1 },
     nox: { iv: 1.2, sk: 6, col: '#7cf0ff', fx: 'slash' }, twins: { iv: 1.9, sk: 8, col: '#ff7ae0', fx: 'bolt', far: 1 },
@@ -17,7 +18,7 @@ const HF = {
     const ids = st.squad.filter(Boolean), have = this.list.map(h => h.id).join(), want = ids.join();
     if (have === want) return;
     const old = Object.fromEntries(this.list.map(h => [h.id, h]));
-    this.list = ids.map((id, i) => old[id] || { id, x: VW.x - 90 - i * 85, y: [712, 490, 600, 560][i] || 600,   /* 11-15 순서 #6 「입장 자연스럽게 · 몰림」: 넷이 한 점(120, 560 — 화면 안)에서 겹쳐 나와 한 줄로 걸어오던 것 → 화면 왼쪽 밖에서 한 명씩 간격 두고 자기 줄로 걸어 들어옴 */ hp: 1, atkT: 0.3 + i * 0.27, skT: 3 + i * 1.7, lunge: 0, flash: 0, enter: 0, tgt: null, hurtT: 0 });
+    this.list = ids.map((id, i) => old[id] || { id, x: null, y: 600, upD: i * 0.35,   /* 11-15 순서 #6 「입장 자연스럽게 · 몰림」: 넷이 한 점(120, 560 — 화면 안)에서 겹쳐 나와 한 줄로 걸어오던 것 → 화면 왼쪽 밖에서 한 명씩 간격 두고 자기 줄로 걸어 들어옴 */ hp: 1, atkT: 0.3 + i * 0.27, skT: 3 + i * 1.7, lunge: 0, flash: 0, enter: 0, tgt: null, hurtT: 0 });
   },
   place() {
     const n = this.list.length; if (!n) return;
@@ -27,8 +28,17 @@ const HF = {
     /* 보스전: 거인을 둘러쌈 — 앞 · 거인 오른쪽 옆(왼쪽을 보고 다리를 침) · 아래 앞 · 위 앞. 휴대폰 화면 폭(오른쪽 끝 1160) 안에 들게. 끝나면 원래 마름모로 */
     const R = [[-210, 640, 0], [55, 705, 1], [-120, 690, 0], [-235, 545, 0]];
     const ffx = (S.phase === 'battle' || S.phase === 'fight') ? (S.foes.filter(f => !f.dead && !f.flee && !f.fly).reduce((m, f) => Math.min(m, f.x), 1e9)) : 0, PB = [[-100, 712], [-230, 490], [-220, 712], [-300, 600]], big = S.army.some(a => !a.fly && a.big);   /* 11-15 16:01 대표님 「배치 더 넓게, 위아래 대각 여러 개」: 소환수 넷 + 영웅 넷을 세 줄(위 490 · 가운데 600 · 아래 712 — 땅 위아래를 끝까지 씀) 엇갈림 — 앞에서부터 45씩 뒤로, 줄마다 번갈아 → 같은 줄 이웃은 135 떨어짐(director.js SLOT과 짝) */
+    if (!ring) {   /* 11-16 00:25 대표님 「완전 따로 포지션 · 가운데가 서브(영웅) · 서브도 탱커 · 중수 · 후미」: 영웅은 앞줄(방패 · 칼 · 창) 뒤 가운데 칸에 역할별로 고정 — 탱커 -195 · 근접 -255 · 원거리 · 후원 -335(같은 역할이 둘이면 35 더 뒤), 줄은 위 · 가운데 · 아래로 나눔. 적에게 뛰어가지 않음 */
+      const F0 = (FAR() ? foeLine() - 50 : 740) + clamp(S.engDx || 0, 0, 60), role = h => (this.ROLE[h.id] ?? (((this.KIND[h.id] || {}).far) ? 2 : 1)), ord = this.list.slice().sort((p, q) => role(p) - role(q) || this.list.indexOf(p) - this.list.indexOf(q));
+      const HS = [[-220, 490], [-220, 712], [-320, 600], [-440, 728]];   /* 바둑판 칸(director.js SLOT과 짝) — 탱커 · 근접이 앞 칸, 원거리가 뒤 칸 */
+      ord.forEach((h, j) => { const q = HS[j] || HS[3]; h.tx = F0 + q[0]; h.ty = q[1]; h.flip = false; });
+      this.ring = ring; this.rise(); return;
+    }
     this.list.forEach((h, i) => { if (!ring && big) { const q = PB[i] || PB[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; if (!(this.KIND[h.id] || {}).far && ffx && ffx < 1e8) { const mi = this.list.filter((o, j) => j < i && !(this.KIND[o.id] || {}).far).length; h.tx = Math.max(h.tx, ffx - 95 - mi * 55); h.ty = [712, 600, 490, 650][mi] ?? h.ty; } return; }   /* 11-15 순서 #6: 근접 영웅 둘(세라핀 · 녹스)이 같은 자리(앞 95 · 아래 줄 712)에 딱 포개져 한 명처럼 보였음(포개짐 34%) → 근접끼리 55씩 뒤로 · 줄도 아래 · 가운데 · 위로 나눔 */   /* 11-15 22:50 대표님 「움직임이 자꾸 이상」 · 느린 영상: 근접 영웅이 때릴 때마다 뛰어갔다 제자리로 튕겨 돌아옴(요요) → 적이 있으면 적 맨 앞줄 앞까지 걸어가 그 자리에서 계속 벰(버섯커처럼) */ if (ring) { const q = R[i] || R[0]; h.tx = g.x + q[0]; h.ty = q[1]; h.flip = !!q[2]; } else { const q = P[i] || P[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; } });
-    this.ring = ring;
+    this.ring = ring; this.rise();
+  },
+  rise() {   /* 11-16 순서 #9: 새 영웅은 왼쪽에서 걸어오다 궁수 · 다른 영웅 몸을 뚫고 지나갔음(진형재기 겹침 14%) → 자기 칸 땅에서 보랏빛 원과 함께 차례로 솟아오름 */
+    for (const h of this.list) if (h.x == null && h.tx != null) { h.x = h.tx; h.y = h.ty; h.enter = -(h.upD || 0) * 1.5; burst(h.x, h.y - 20, 16, { col: ['#c9a7ff', '#7a3cff', '#ffffff'], vmin: 40, vmax: 200, up: 220, g: -40, lmax: 0.8 }); }
   },
   tags: [],
   drawTags() {   /* 영웅 이름표: 위에서부터 놓고, 먼저 놓인 표와 겹치면 그 아래로 한 칸씩 비킴(최대 6번) */
@@ -88,6 +98,7 @@ const HF = {
     if (k.far) { this.shots.push({ x: h.x + (h.flip ? -30 : 30), y: h.y - 110, tx: t.x, ty: t.y, age: 0, life: big ? 0.35 : 0.45, col: k.col, big, land }); h.lunge = 0.2; }
     else if (h.flip) h.dash = { age: 0, life: 0.42, dx: -70, dy: clamp(t.y + 40 - h.y, -60, 60), land, hit: false };
     else if (!t.giant && Math.abs((t.x - 70) - h.x) < 110) { h.dash = { age: 0, life: 0.8, dx: 22, dy: 0, land, hit: false }; }   /* 이미 적 앞에 서 있으면 뛰지 않고 그 자리에서 한 걸음 내디디며 벰 — 닿는 순간 0.4초 = 때리기 영상 6번째 장(내려침) */
+    else if (!this.ring) { this.shots.push({ x: h.x + 40, y: h.y - 90, tx: t.x, ty: t.y - 20, age: 0, life: big ? 0.3 : 0.36, col: k.col, big, land, wave: 1 }); h.lunge = 0.25; h.dash = { age: 0, life: 0.5, dx: 14, dy: 0, land: () => {}, hit: true }; }   /* 11-16 순서 #9: 앞줄 뒤 자기 칸에서 검기를 날림(뛰어갔다 돌아오기 없음) */
     else { const ff = this.foesLive ? this.foesLive() : S.foes.filter(f => !f.dead && !f.flee), fr = ff.length ? Math.min(...ff.map(f => f.x)) : t.x; const q = this.dashTo(h, Math.min(t.x - 60, fr - 55), h.y + clamp(t.y + 40 - h.y, -24, 24), 260);   /* 적 맨 앞줄 앞에서 멈춰 베기(적 사이로 안 들어감) · 위아래는 조금만 */ h.dash = { age: 0, life: t.back ? 0.62 : q.jump ? 0.5 : 0.42, dx: q.dx, dy: q.dy, jump: q.jump, land, hit: false }; }
     return true;
   },
@@ -166,7 +177,7 @@ const HF = {
     a.hurt = 0.25; a.flash = 0.12; a.vh = Math.max(0.12, (a.vh ?? 1) - rnd(0.15, 0.32)); a.hbT = 2.5; S.shieldHits = (S.shieldHits || 0) + 1;   /* 18:42 체력 막대: 맞으면 머리 위에 2.5초 보였다 사라짐(보여주기 체력, 천천히 다시 참) */
     burst(a.x + 8, a.y - 60, 4, { col: ['#ffffff', '#ff8a8a'], vmin: 60, vmax: 200, up: 40, lmax: 0.22 });
     if (Math.random() < 0.12) say('-' + fmtD(Math.max(1, JB.dps(st) * 0.01 * rnd(0.7, 1.3))), a.x + rnd(-10, 10), a.y - 70, { size: 16, col: '#ff6a6a', life: 0.6, vy: -50 });
-    if (!a.evo && a.rf == null && Math.random() < 0.25) { a.gone = true; skelFall(a);   /* 진화한 놈 · 부활한 병사는 안 부서짐 */ S.skelDown = (S.skelDown || 0) + 1; burst(a.x, a.y - 30, 10, { col: ['#e8dcc0', '#bfb59a'], vmin: 60, vmax: 220, up: 120, g: 600, lmax: 0.7, smin: 2, smax: 5, add: false }); }
+    if (!a.evo && a.rf == null && Math.random() < (a.big ? (S.t - (a.bornT ?? -99) < 6 ? 0 : 0.05) : 0.25)) { a.gone = true; skelFall(a);   /* 11-16 순서 #9: 큰 소환수는 쓰러지면 3초 칸이 빔 → 25%면 앞줄이 늘 비어 있었음(잰 값) → 5% · 다시 솟은 뒤 6초는 안 쓰러짐 */   /* 진화한 놈 · 부활한 병사는 안 부서짐 */ S.skelDown = (S.skelDown || 0) + 1; burst(a.x, a.y - 30, 10, { col: ['#e8dcc0', '#bfb59a'], vmin: 60, vmax: 220, up: 120, g: 600, lmax: 0.7, smin: 2, smax: 5, add: false }); }
   },
   /* 수하가 맞음: 빨간 숫자 · 뒤로 밀림 · 붉은 번쩍 · 체력 막대가 깎였다가 다시 참 */
   hurt(h, mul, big) {
@@ -179,7 +190,7 @@ const HF = {
     this.sync(); this.place();
     const fight = (S.phase === 'battle' || S.phase === 'fight') && !UI.awakening;
     for (const h of this.list) {
-      h.enter = Math.min(1, h.enter + dt * 1.5);
+      h.enter = Math.min(1, h.enter + dt * 1.5); h.ea = clamp(h.enter, 0, 1);
       { const ox = h.x, oy = h.y; if (Math.abs(h.tx - h.x) > 14) h.x += Math.sign(h.tx - h.x) * Math.min(Math.abs(h.tx - h.x) - 10, (Math.abs(h.tx - h.x) > 260 ? 230 : 110) * dt);   /* 멀리서 들어올 땐 빠른 걸음 */ if (Math.abs(h.ty - h.y) > 8) h.y += Math.sign(h.ty - h.y) * Math.min(Math.abs(h.ty - h.y) - 6, 75 * dt); const v = Math.hypot(h.x - ox, (h.y - oy) * 1.6) / Math.max(dt, 1e-3);   /* 11-15 대표님 「크라그는 밑에서 앞으로 걷는 게 아니라 스르르 미끄러져」: 위아래로 옮길 땐 걸음(들썩 · 기우뚱) 없이 미끄러졌음 → 위아래도 일정한 걸음 빠르기 + 걸음 흔들림 */ h.wamp = lerp(h.wamp || 0, v > 12 ? 1 : 0, Math.min(1, dt * 10)); h.wph = (h.wph || 0) + dt * 11 * (h.wamp > 0.1 ? 1 : 0); h.wf = ((h.wf || 0) + Math.min(v, 160) * dt * 16 / 80) % 16; }   /* 걷기 영상: 80 걸으면 한 바퀴(16장) */   /* 21:58 대표님 「밀리는 애」: 영웅이 그림 한 장째로 미끄러지던 것 → 일정한 걸음 빠르기로 걷고, 걸을 땐 걸음마다 들썩 · 기우뚱. 조금 벗어난 건 그 자리에 서 있음 */
       h.lunge = Math.max(0, h.lunge - dt); h.flash = Math.max(0, h.flash - dt);
       if (h.swg != null) { h.swg += dt; if (h.swg >= h.swgL) h.swg = null; } if (h.ka != null) { h.ka += dt; if (h.ka >= 0.9) h.ka = null; }
@@ -191,7 +202,7 @@ const HF = {
       if (h.skT <= 0) { h.skT = k.sk * rnd(0.9, 1.1); this.skill(h); }
       /* 적 반격: 앞줄 쫄따구가 있으면 쫄따구가 막고 맞음(아래 shieldHits), 쫄따구가 없을 때만 수하가 맞음 */
       h.kb = Math.max(0, (h.kb || 0) - dt);
-      const wall = S.army.some(a => !a.fly && a.rise >= 1);
+      const wall = S.army.some(a => !a.fly && a.rise >= 1 && a.x > h.x + 40 && Math.abs(a.y - h.y) < 170);   /* 11-16 순서 #9: 내 앞(같은 쪽 줄)에 서 있는 소환수가 막아 줄 때만 안 맞음 — 앞줄이 무너지면 영웅이 맞음 */
       const foe = wall ? null : S.foes.find(f => !f.dead && !f.flee && f.x - h.x > -40 && f.x - h.x < 200 && Math.abs(f.y - h.y) < 110 && !(f.atk > 0));
       h.hitT = (h.hitT == null ? rnd(0.6, 1.4) : h.hitT) - dt;
       if (foe && h.hitT <= 0 && !(st.frozen > 0) && !(foe.stun > 0)) { h.hitT = rnd(0.9, 1.6); foe.atk = 0.32; foe.atkTo = h; }
@@ -243,7 +254,7 @@ const HF = {
     const k = this.KIND[h.id] || this.KIND.krag, d = clamp((h.y - GROUND - 40) / (680 - GROUND - 40), 0, 1), sc = lerp(0.85, 1.15, d) * UKU();
     const lg = (h.flip ? -1 : 1) * (h.lunge > 0 ? Math.sin((h.lunge / 0.28) * Math.PI) * 18 : 0), bob = Math.sin(S.t * 4 + h.atkT) * 3;
     const dk = h.dash ? Math.sin(Math.min(1, h.dash.age / h.dash.life) * Math.PI) : 0, ddx = h.dash ? h.dash.dx * dk : 0, ddy = h.dash ? h.dash.dy * Math.min(1, h.dash.age / h.dash.life * 2) * (h.dash.age > h.dash.life * 0.5 ? dk : 1) - (h.dash.jump || 0) * Math.sin(Math.min(1, h.dash.age / (h.dash.life * 0.5)) * Math.PI) * (h.dash.age < h.dash.life * 0.5 ? 1 : 0) - (h.dash.jump || 0) * 0.6 * Math.sin(Math.min(1, Math.max(0, h.dash.age - h.dash.life * 0.5) / (h.dash.life * 0.5)) * Math.PI) : 0;   /* 갈 때 한 번 · 돌아올 때 낮게 한 번 뛰어넘음 */
-    const kbx = h.kb > 0 ? (h.flip ? 1 : -1) * Math.sin((h.kb / 0.35) * Math.PI * 3) * 4 : 0;   /* 18:42 「그냥 밀리네」: 뒤로 16픽셀 밀리던 것 → 제자리에서 부르르 떨기 */ ctx.save(); const TA = !TRAILER && !(st.wear && st.wear[h.id]) && JB.heroStar(st.heroes[h.id]) >= 7 && need('heroT_' + h.id);   /* 11-15 ☠7 망자 군주화: 초월하면 그림 자체가 군주 모습(드리미나 · 뼈 날개 · 붉은 불꽃)으로 바뀌고 날개로 떠서 다님 */ const WV = 'heroW_' + h.id, wk = !TA && !h.dash && (h.wamp || 0) > 0.3 && typeof VS !== 'undefined' && VS[WV] && !(st.wear && st.wear[h.id]) && need(WV + '_walk'), wa = wk ? 0 : (h.wamp || 0);   /* 11-15 대표님 「크라그는 걷는 게 아니라 미끄러져」: 드리미나 걷기 영상(heroW_*_walk)이 있으면 걷는 동안 진짜 걸음, 흔들림은 끔 */ ctx.translate(h.x + lg + ddx + kbx, h.y + bob + ddy - Math.abs(Math.sin(h.wph || 0)) * 7 * wa - (TA ? 10 + Math.sin(S.t * 2.6 + h.atkT) * 6 : 0)); if (wa > 0.05) ctx.rotate(Math.sin(h.wph || 0) * 0.06 * wa); ctx.globalAlpha = h.enter;
+    const kbx = h.kb > 0 ? (h.flip ? 1 : -1) * Math.sin((h.kb / 0.35) * Math.PI * 3) * 4 : 0;   /* 18:42 「그냥 밀리네」: 뒤로 16픽셀 밀리던 것 → 제자리에서 부르르 떨기 */ ctx.save(); const TA = !TRAILER && !(st.wear && st.wear[h.id]) && JB.heroStar(st.heroes[h.id]) >= 7 && need('heroT_' + h.id);   /* 11-15 ☠7 망자 군주화: 초월하면 그림 자체가 군주 모습(드리미나 · 뼈 날개 · 붉은 불꽃)으로 바뀌고 날개로 떠서 다님 */ const WV = 'heroW_' + h.id, wk = !TA && !h.dash && (h.wamp || 0) > 0.3 && typeof VS !== 'undefined' && VS[WV] && !(st.wear && st.wear[h.id]) && need(WV + '_walk'), wa = wk ? 0 : (h.wamp || 0);   /* 11-15 대표님 「크라그는 걷는 게 아니라 미끄러져」: 드리미나 걷기 영상(heroW_*_walk)이 있으면 걷는 동안 진짜 걸음, 흔들림은 끔 */ ctx.translate(h.x + lg + ddx + kbx, h.y + bob + ddy - Math.abs(Math.sin(h.wph || 0)) * 7 * wa - (TA ? 10 + Math.sin(S.t * 2.6 + h.atkT) * 6 : 0) + (1 - clamp(h.enter, 0, 1)) * 36);   /* 솟아오름 */ if (wa > 0.05) ctx.rotate(Math.sin(h.wph || 0) * 0.06 * wa); ctx.globalAlpha = Math.max(0, h.enter);
     /* 무기 기운: 단계가 오를수록 몸을 감싸는 빛이 커지고 진해짐, 금 · 빨강은 불꽃이 피어오름 */
     const o = st.heroes[h.id], wp = (o && o.wp) || 0, tc = this.TIER[Math.ceil(wp / 2)];
     if (tc) { const tier = Math.ceil(wp / 2), pu = 0.75 + 0.25 * Math.sin(S.t * 4 + h.atkT); ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g2 = ctx.createRadialGradient(0, -75 * sc, 6, 0, -75 * sc, (60 + tier * 14) * sc); g2.addColorStop(0, tc + Math.round((0.08 + tier * 0.04) * pu * 255).toString(16).padStart(2, '0')); g2.addColorStop(1, tc + '00'); ctx.fillStyle = g2; ctx.beginPath(); ctx.ellipse(0, -75 * sc, (60 + tier * 14) * sc, (95 + tier * 12) * sc, 0, 0, 7); ctx.fill(); ctx.restore();
@@ -252,13 +263,13 @@ const HF = {
     const rr = JB.heroById(h.id).rarity, RC = { SSR: '#ffcc33', SR: '#c08cff', R: '#5ab0ff', N: '#b8bcc4' }[rr] || '#b8bcc4', rt = { N: 0, R: 1, SR: 2, SSR: 3 }[rr] || 0;
     if (rt >= 2) { const pu = 0.7 + 0.3 * Math.sin(S.t * 3 + h.atkT), big = rt === 3 ? 1 : 0.7; ctx.save(); ctx.globalCompositeOperation = 'lighter';
       const pg = ctx.createLinearGradient(0, -300 * sc, 0, 0); pg.addColorStop(0, RC + '00'); pg.addColorStop(0.55, RC + Math.round(40 * pu * big).toString(16).padStart(2, '0')); pg.addColorStop(1, RC + Math.round(90 * pu * big).toString(16).padStart(2, '0'));
-      ctx.globalAlpha = h.enter; ctx.fillStyle = pg; ctx.beginPath(); ctx.ellipse(0, -130 * sc, 52 * sc * big + 20, 170 * sc, 0, 0, 7); ctx.fill();
-      ctx.save(); ctx.scale(1, 0.26); ctx.rotate(S.t * 0.8); ctx.strokeStyle = RC; ctx.globalAlpha = 0.75 * h.enter; ctx.lineWidth = 3 / 0.26 * 0.5; ctx.setLineDash([14, 9]); ctx.beginPath(); ctx.arc(0, 0, 62 * sc, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 2; ctx.globalAlpha = 0.45 * h.enter; ctx.beginPath(); ctx.arc(0, 0, 76 * sc, 0, 7); ctx.stroke(); ctx.restore();
+      ctx.globalAlpha = Math.max(0, h.enter); ctx.fillStyle = pg; ctx.beginPath(); ctx.ellipse(0, -130 * sc, 52 * sc * big + 20, 170 * sc, 0, 0, 7); ctx.fill();
+      ctx.save(); ctx.scale(1, 0.26); ctx.rotate(S.t * 0.8); ctx.strokeStyle = RC; ctx.globalAlpha = 0.75 * Math.max(0, h.enter); ctx.lineWidth = 3 / 0.26 * 0.5; ctx.setLineDash([14, 9]); ctx.beginPath(); ctx.arc(0, 0, 62 * sc, 0, 7); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 2; ctx.globalAlpha = 0.45 * Math.max(0, h.enter); ctx.beginPath(); ctx.arc(0, 0, 76 * sc, 0, 7); ctx.stroke(); ctx.restore();
       ctx.restore(); if (Math.random() < (rt === 3 ? 0.35 : 0.15)) S.parts.push({ x: h.x + rnd(-40, 40), y: h.y - rnd(0, 40), vx: rnd(-8, 8), vy: rnd(-120, -60), life: 1.1, age: 0, size: rnd(2, 4.5), col: RC, g: -10, add: true, kind: 'dot', rot: 0, vr: 0 }); }
     /* 발밑 그림자(땅에 서 있게) */
-    ctx.save(); ctx.globalAlpha = 0.55 * h.enter; ctx.fillStyle = '#05000c'; ctx.beginPath(); ctx.ellipse(0, -1, 44 * sc, 10 * sc, 0, 0, 7); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.globalAlpha = 0.55 * Math.max(0, h.enter); ctx.fillStyle = '#05000c'; ctx.beginPath(); ctx.ellipse(0, -1, 44 * sc, 10 * sc, 0, 0, 7); ctx.fill(); ctx.restore();
     /* 발밑 빛 */
-    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (0.3 + 0.1 * Math.sin(S.t * 4 + h.atkT)) * h.enter; ctx.fillStyle = k.col; ctx.beginPath(); ctx.ellipse(0, -2, 46 * sc, 11 * sc, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 0.5 * h.enter; ctx.strokeStyle = k.col; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, -2, 50 * sc, 12 * sc, 0, 0, 7); ctx.stroke(); ctx.restore();   /* 영웅 발밑 색 고리(누가 영웅인지 한눈에) */
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (0.3 + 0.1 * Math.sin(S.t * 4 + h.atkT)) * Math.max(0, h.enter); ctx.fillStyle = k.col; ctx.beginPath(); ctx.ellipse(0, -2, 46 * sc, 11 * sc, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 0.5 * Math.max(0, h.enter); ctx.strokeStyle = k.col; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(0, -2, 50 * sc, 12 * sc, 0, 0, 7); ctx.stroke(); ctx.restore();   /* 영웅 발밑 색 고리(누가 영웅인지 한눈에) */
     const sk = st.wear && st.wear[h.id] && JB.skinOwned(st, st.wear[h.id]) ? st.wear[h.id] : null, full = (sk && need('heroS_' + sk)) || TA || need('heroA_' + h.id) || need(artName('heroF_' + h.id)) || need('heroF_' + h.id), bust = need('hero_' + h.id), H2 = (full ? 172 : 140) * sc * (rt === 3 ? 1.16 : rt === 2 ? 1.08 : 1) * (TA ? 1.3 : 1);   /* 군주 그림은 날개가 머리 위로 솟아 몸이 작아 보임 → 1.3배 */   /* 19:56 망자병(150)과 같은 키라 영웅이 군단에 묻힘 → 조금 크게 */   /* 주인공(지배자 370)보다 확실히 작게 — 대표님 「누가 주인공인지 모르겠다」 */
     { const sr = JB.heroStar(o); if (sr >= 3 && !TRAILER) { const t = S.t + h.atkT, R7 = sr >= 7; ctx.save(); ctx.globalCompositeOperation = 'lighter';   /* 11-15 별 모습: ★3 영혼 불꽃 · ★5 뼈 날개 · ★7(초월) 검붉은 군주 기운 */
         if (sr >= 5 && !TA) { ctx.save(); ctx.translate(0, -H2 * 0.68); for (const sd of [-1, 1]) { ctx.save(); ctx.scale(sd, 1); ctx.rotate(-0.18 + Math.sin(t * 2.2) * 0.07); ctx.scale(1.35, 1.35); ctx.strokeStyle = R7 ? 'rgba(255,90,100,.95)' : 'rgba(235,220,255,.92)'; ctx.lineWidth = 4.6 * sc; ctx.lineCap = 'round'; for (let f = 0; f < 4; f++) { ctx.beginPath(); ctx.moveTo(6 * sc, 0); ctx.quadraticCurveTo((30 + f * 14) * sc, (-38 + f * 6) * sc, (52 + f * 16) * sc, (-12 + f * 20) * sc); ctx.stroke(); } ctx.fillStyle = R7 ? 'rgba(220,30,50,.38)' : 'rgba(160,120,255,.32)'; ctx.beginPath(); ctx.moveTo(6 * sc, 0); ctx.quadraticCurveTo(60 * sc, -50 * sc, 102 * sc, 48 * sc); ctx.quadraticCurveTo(50 * sc, 30 * sc, 6 * sc, 0); ctx.fill(); ctx.restore(); } ctx.restore(); }
@@ -283,11 +294,11 @@ const HF = {
       ctx.lineWidth = 3; ctx.strokeStyle = k.col; ctx.beginPath(); ctx.moveTo(-w / 2, -hh - 20); ctx.lineTo(w / 2, -hh - 20); ctx.lineTo(w / 2, -40); ctx.lineTo(0, -8); ctx.lineTo(-w / 2, -40); ctx.closePath(); ctx.stroke();
     }
     if (h.flash > 0 || h.hurtT > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = h.flash > 0 ? h.flash : 0.4; ctx.fillStyle = h.flash > 0 ? k.col : '#ff3030'; ctx.beginPath(); ctx.ellipse(0, -70 * sc, 50 * sc, 70 * sc, 0, 0, 7); ctx.fill(); ctx.restore(); }
-    ctx.globalAlpha = h.enter;
+    ctx.globalAlpha = Math.max(0, h.enter);
     h.hbT = Math.max(0, (h.hbT || 0) - 1 / 60); if (h.hurtT > 0) h.hbT = 2.5;
-    { ctx.globalAlpha = h.enter * (h.hbT > 0 || h.hp < 0.6 ? 1 : 0.85); this.bar(0, -H2 - 10, 46 * sc, h.hp, h.hp > 0.5 ? '#5dff8f' : h.hp > 0.25 ? '#ffcf5a' : '#ff5a5a'); ctx.globalAlpha = h.enter; }   /* 11-15 대표님 「우리든 체력바 보여야」: 영웅 막대도 늘 보임 */   /* 19:13 늘 떠 있던 막대 → 맞았을 때 · 다쳤을 때만 */
+    { ctx.globalAlpha = Math.max(0, h.enter) * (h.hbT > 0 || h.hp < 0.6 ? 1 : 0.85); this.bar(0, -H2 - 10, 46 * sc, h.hp, h.hp > 0.5 ? '#5dff8f' : h.hp > 0.25 ? '#ffcf5a' : '#ff5a5a'); ctx.globalAlpha = Math.max(0, h.enter); }   /* 11-15 대표님 「우리든 체력바 보여야」: 영웅 막대도 늘 보임 */   /* 19:13 늘 떠 있던 막대 → 맞았을 때 · 다쳤을 때만 */
     { const sr = JB.heroStar(o), nm = L.heroes[h.id].name, nt = `${nm} ${sr >= 7 ? '☠' : '★'}${sr}`,   /* 11-15 이름표 = 이름 + 별 수(★1~6 · 초월 ☠7) */ fz = Math.round(11.5 * Math.min(WK(), 2.2));   /* 19:13 발밑 이름표 */
-      this.tags.push({ m: ctx.getTransform(), nt, fz, ty: 10 + fz * 0.6, rt, RC, line: sr >= 7 ? '#ff3a4a' : rt >= 2 ? RC : tc || k.col, txt: sr >= 7 ? '#ffb0b8' : rt >= 2 ? RC : tc || '#f3e8ff', a: h.enter }); }   /* 11-15 눈 확인: 30판에서 영웅 넷 이름표가 서로 포개짐 → 그리기는 다 모아서 마지막에(drawTags), 겹치면 아래로 비킴 */
+      this.tags.push({ m: ctx.getTransform(), nt, fz, ty: 10 + fz * 0.6, rt, RC, line: sr >= 7 ? '#ff3a4a' : rt >= 2 ? RC : tc || k.col, txt: sr >= 7 ? '#ffb0b8' : rt >= 2 ? RC : tc || '#f3e8ff', a: Math.max(0, h.enter) }); }   /* 11-15 눈 확인: 30판에서 영웅 넷 이름표가 서로 포개짐 → 그리기는 다 모아서 마지막에(drawTags), 겹치면 아래로 비킴 */
     ctx.restore(); ctx.globalAlpha = 1;
   },
   glowC: {},
@@ -324,6 +335,9 @@ const HF = {
   drawFx() {   /* 마법탄(꼬리 달린 빛) · 베기 궤적(초승달) */
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     for (const b of this.shots) {
+      if (b.wave) { const k = clamp(b.age / b.life, 0, 1), x = lerp(b.x, b.tx, k), y = lerp(b.y, b.ty, k), R = (b.big ? 70 : 50) * (0.7 + 0.3 * k); ctx.save(); ctx.translate(x, y); ctx.globalCompositeOperation = 'lighter';   /* 검기: 날아가는 초승달 */
+        for (let i = 3; i >= 0; i--) { ctx.globalAlpha = (0.9 - i * 0.2) * (1 - k * 0.3); ctx.strokeStyle = i ? b.col : '#ffffff'; ctx.lineWidth = (b.big ? 16 : 11) - i * 3; ctx.beginPath(); ctx.arc(-R * 0.55 - i * 10, 0, R, -1.0, 1.0); ctx.stroke(); }
+        ctx.restore(); ctx.globalAlpha = 1; continue; }
       const k = clamp(b.age / b.life, 0, 1), x = lerp(b.x, b.tx, k), y = lerp(b.y, b.ty, k) - Math.sin(k * Math.PI) * 60, r = (b.big ? 16 : 9) * Math.min(1.6, WK() * 0.7 + 0.3);
       for (let i = 4; i >= 0; i--) { const kk = Math.max(0, k - i * 0.05), xx = lerp(b.x, b.tx, kk), yy = lerp(b.y, b.ty, kk) - Math.sin(kk * Math.PI) * 60; ctx.globalAlpha = 0.18 * (5 - i); ctx.fillStyle = b.col; ctx.beginPath(); ctx.arc(xx, yy, r * (1 - i * 0.15), 0, 7); ctx.fill(); }
       ctx.globalAlpha = 1; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, 7); ctx.fill();
@@ -386,7 +400,7 @@ const LM = {
     }
     S.lord.shotT = 0.28; S.lord.glow = Math.max(S.lord.glow || 0, 0.6);
     if (!(!window.LORDV_OK && need('lordw_attack') && JB.vipLv(st) < 5 && this.bN % 2 === 0)) { const s = this.staff(); burst(s.x, s.y, 6, { col: ['#ffffff', '#c58bff'], vmin: 60, vmax: 200, up: 20, lmax: 0.25, smin: 2, smax: 4 }); }
-    Snd.smp && Snd.smp('soul', 0.12, 0, rnd(1.5, 1.8));
+    Snd.smp && Snd.smp('soul', 0.38, 0, rnd(1.5, 1.8));   /* 11-16 순서 #8 효과음재기: 지배자 지팡이 한 발 소리가 -46.6dB로 안 들렸음(초당 0.9번 나는 주인공 소리) → -36.6 */
   },
   bigSlash(bossOn) {   /* 지배자 앞에서 적 무리를 가로질러 큰 초승달 궤적(보라 → 흰빛), 맞은 적마다 숫자 3줄이 쌓임 · 쓰러지면 뼈 · 갑옷 조각이 사방으로 */
     const g = S.giant, fs = bossOn ? [] : S.foes.filter(f => !f.dead && !f.flee && f.x < VX1 - 40).sort((a, b) => a.x - b.x).slice(0, 5);
