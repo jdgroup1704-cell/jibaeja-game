@@ -17,6 +17,7 @@ const EX = {
     UI.openModal(`<h3>${L.ad.title}</h3><p class="muted">${L.ad.body}</p><button class="btn big gold" data-x="adOk">${L.ad.ok}</button>`);
   },
   act(x, arg) {
+    if (typeof BRAG !== 'undefined' && BRAG.act(x)) return;   /* 11-16 #11 자랑 카드 */
     if (typeof SO !== 'undefined' && SO.act(x, arg)) return;   /* 04:05 채팅 · 길드 */
     if (x === 'adOk') { UI.closeModal(); const f = this.adThen; this.adThen = null; if (f) f(); }
     if (x === 'evoAd') this.ad(() => { const ev = JB.evoAd(st); if (!ev) return; for (const e of ev) { if (e.e === 'evo') evoShow(1, false); if (e.e === 'merge') evoShow(e.lv, true); } UI.toast(L.evo.adDone, ''); UI.render(true); });
@@ -104,7 +105,7 @@ const EX = {
   // 위 오른쪽 도구 줄 + 사기 표시
   render() {
     const now = Date.now(), left = Math.ceil(((st.speedUntil || 0) - now) / 60000), sp = JB.speedMul(st, now) > 1;
-    const sR = `<button data-x="speed" class="${sp ? 'on' : ''}">${IC('b_speed')}${L.speed.btn(sp ? left : 0)}</button>` + `<button data-x="settings">${IC('b_set')}${L.settings.btn}</button>` + `<button data-x="chat">${IC('b_chat')}${L.so.chat}</button>` + (JB.unlocked(st, 'guild') ? `<button data-x="guild" class="${JB.guildOf(st) && (!JB.guildOf(st).checked || JB.guildOf(st).hits < JB.GUILD.hits) && JB.guildOf(st).day === st.day ? 'dot' : !JB.guildOf(st) ? 'dot' : ''}">${IC('b_guild')}${L.so.guild}</button>` : ''),
+    const sR = `<button data-x="speed" class="${sp ? 'on' : ''}">${IC('b_speed')}${L.speed.btn(sp ? left : 0)}</button>` + `<button data-x="settings">${IC('b_set')}${L.settings.btn}</button>` + `<button data-x="chat">${IC('b_chat')}${L.so.chat}</button>` + ((st.thralls || 0) >= 1 || (st.best || 0) >= 6 ? `<button data-x="brag" class="${(st.thralls || 0) >= 1 && !st.seen.brag ? 'ready' : ''}">${IC('i_army')}${L.brag.btn}</button>` : '') + (JB.unlocked(st, 'guild') ? `<button data-x="guild" class="${JB.guildOf(st) && (!JB.guildOf(st).checked || JB.guildOf(st).hits < JB.GUILD.hits) && JB.guildOf(st).day === st.day ? 'dot' : !JB.guildOf(st) ? 'dot' : ''}">${IC('b_guild')}${L.so.guild}</button>` : ''),
       lg = JB.lchestInfo(st, now), lp = Math.round(lg.h / (lg.cap || JB.LCHEST.cap) * 20) * 5,
       fw = `<img src="art/chest${lg.full ? 3 : lg.h >= 4 ? 2 : lg.h >= 1 ? 1 : 0}.webp" alt=""><i class="fb"><i style="width:${lp}%"></i></i>${lg.h >= 1 ? `<b>${lg.full ? L.lchest.full : L.lchest.tap}</b>` : ''}`,
       sL = `<button data-x="lchest" class="lch${lg.full ? ' full' : lg.h >= 1 ? ' ready' : ''}">${IC('chest' + (lg.full ? 3 : lg.h >= 4 ? 2 : lg.h >= 1 ? 1 : 0))}${L.lchest.btn}<i class="lbar"><i style="width:${lp}%"></i></i></button>` + (JB.unlocked(st, 'grave') ? `<button data-x="quick">${IC('b_quick')}${L.quick.btn}${st.quickUsed < JB.C.QUICK_FREE ? ' •' : ''}</button>` : '');   /* 23:45 상점은 위 띠(귀빈 옆)로 — 왼쪽 줄에 전리품 · 빠른 보상 · 상점 셋이면 큰 판 표시와 겹침 */

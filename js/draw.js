@@ -34,6 +34,7 @@ function draw() {
   for (const h of HF.list) list.push(['h', h.y + 400, h]);   /* 00:35 영웅(모르데 y540)이 병사 뒤에 그려져 묻힘 → 영웅은 늘 병사 · 적 위에 */
   list.sort((p, q) => p[1] - q[1]);
   for (const [k, , o] of list) k === 'a' ? drawSkel(o) : k === 'h' ? HF.draw(o) : k === 'c' ? drawCorpse(o) : k === 'd' ? drawFallen(o) : drawFoe(o);
+  if (typeof TH !== 'undefined') TH.draw();   /* 11-16 망자 거인은 군단 · 적 위에(앞으로 솟아 내려찍음) */
   for (const f of S.foes) HF.drawFoeBar(f);   /* 적 체력 막대는 맨 위에 */
   HF.drawArmyBars();
   drawArmyFx(); HF.drawFx(); LM.draw();
@@ -803,6 +804,10 @@ function drawGiant() {
   const lordArt = st && st.boss && st.boss.lord && REGION_BG[regionOf(st.stage)] ? ART['lord_' + REGION_BG[regionOf(st.stage)]] : null;
   if (lordArt) ctx.filter = 'none';
   const GV = VS.foev4 && need('foev4_idle') && need('foev4_attack');
+  if (GV && g.dead) {   /* 11-16 #12 새 그림 보스 쓰러짐: 옛 그림(foeA4)으로 바뀌던 것 → 새 띠 첫 장을 뒤로 넘어뜨리며 흐려짐(그 자리에서 망자 거인으로 일어남 — thrall.js) */
+    g.dT = (g.dT || 0) + 1 / 60; const k = Math.min(1, g.dT / 0.9); ctx.filter = 'none'; ctx.globalAlpha = g.alpha * (g.dT < 1.2 ? 1 : Math.max(0, 1 - (g.dT - 1.2) / 0.5)); ctx.rotate(0.85 * ease(k)); vsDraw('foev4', 'idle', 0, 400, 'brightness(0.75) saturate(0.6)', 0, false);
+    ctx.restore(); ctx.globalAlpha = 1; return;
+  }
   if (GV && !g.dead) {   /* 03:20 보스 영상: 힘 모으기 = 망치 치켜듦(공격 앞 절반) → 내려찍기(뒤 절반) · 평소 숨쉬기 */
     ctx.filter = 'none'; const M = VS.foev4; let an = 'idle', fi = (n => { const q = (S.t * 8) % (2 * n - 2); return q < n ? q : 2 * n - 2 - q; })(M.n.idle);
     if (g.wind > 0) { an = 'attack'; fi = (1 - g.wind / GWIND) * 11; } else if (g.slam > 0) { an = 'attack'; fi = 11 + (1 - g.slam / 0.6) * (M.n.attack - 12); } else if (g.raise > 0.15) { an = 'attack'; fi = Math.min(1, g.raise * 1.5) * 10; }

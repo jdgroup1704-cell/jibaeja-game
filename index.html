@@ -621,6 +621,7 @@
   #tools button.lch .lbar{position:absolute;left:8px;right:8px;bottom:2px;height:3px;border-radius:2px;background:#0008;overflow:hidden}
   #tools button.lch .lbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#b58cff,#ffd76a)}
   #tools button.lch.ready img.ic{animation:lchb 1.6s ease-in-out infinite}
+  #tools button[data-x="brag"].ready{animation:hintp 1s ease-in-out infinite;box-shadow:0 0 14px #ffd76a}   /* 11-16 #11 망자 거인이 처음 일어나면 「자랑」 단추가 반짝임 */
   #tools button.lch.full{color:#ffe08a!important}#tools button.lch.full img.ic{animation:lchb .9s ease-in-out infinite;filter:drop-shadow(0 0 6px #ffcc33)}
   @keyframes lchb{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-2px) rotate(-6deg)}60%{transform:translateY(0) rotate(5deg)}}
   #hud .chip.shopc{margin-left:auto;background:linear-gradient(90deg,#3a1d6b,#6b3fb8);border-color:#b58cff;color:#f3eaff;font-weight:800;cursor:pointer;pointer-events:auto}
@@ -797,7 +798,7 @@
     <!-- 11-14 17:55 「그림 비교 ①②③④」 시험 단추 지움: ③ 예전 개선 + 영상 장면으로 정함(16:30). 시험할 땐 주소에 ?style=2d 처럼 -->
     <button id="reraise"></button>
     <div id="testbar"></div>
-    <div id="ver">판 11-16 03:29</div>
+    <div id="ver">판 11-16 04:31</div>
   </div>
   <div id="grip"><i></i></div>
   <div id="skillbar"><button id="raiseBtn"></button><div id="slots"></div><button id="cast"></button></div>
@@ -811,19 +812,21 @@
 </div>
 <div id="modal"><div class="box"></div></div>
 <script>window.BUILD = '1115102811';</script>   <!-- 11-14 18:12 대표님 「바뀐 새 버전 줘, 저장된 거 주지 말고 첫 시작」: 판마다 저장 이름이 달라 새 판은 늘 1-1부터 -->
-<script src="lang_ko.js?v=1794767392"></script>
-<script src="balance.js?v=1794767392"></script>
-<script src="logic.js?v=1794767392"></script>
-<script src="js/base.js?v=1794767392"></script>
-<script src="js/sound.js?v=1794767392"></script>
-<script src="js/art.js?v=1794767392"></script>
-<script src="js/draw.js?v=1794767392"></script>
-<script src="js/director.js?v=1794767392"></script>
-<script src="js/field.js?v=1794767392"></script>
-<script src="js/ui.js?v=1794767392"></script>
-<script src="js/extra.js?v=1794767392"></script>
-<script src="js/social.js?v=1794767392"></script>
-<script src="js/legal.js?v=1794767392"></script>
-<script src="js/main.js?v=1794767392"></script>
+<script src="lang_ko.js?v=1794771080"></script>
+<script src="balance.js?v=1794771080"></script>
+<script src="logic.js?v=1794771080"></script>
+<script src="js/base.js?v=1794771080"></script>
+<script src="js/sound.js?v=1794771080"></script>
+<script src="js/art.js?v=1794771080"></script>
+<script src="js/draw.js?v=1794771080"></script>
+<script src="js/director.js?v=1794771080"></script>
+<script src="js/field.js?v=1794771080"></script>
+<script src="js/thrall.js?v=1794771080"></script>
+<script src="js/brag.js?v=1794771080"></script>
+<script src="js/ui.js?v=1794771080"></script>
+<script src="js/extra.js?v=1794771080"></script>
+<script src="js/social.js?v=1794771080"></script>
+<script src="js/legal.js?v=1794771080"></script>
+<script src="js/main.js?v=1794771080"></script>
 </body>
 </html>

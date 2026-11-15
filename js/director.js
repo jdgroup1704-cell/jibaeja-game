@@ -41,7 +41,7 @@ function burst(x, y, n, o) {
 /* 11-14 17:45 휴대폰 세로에서 대마법 마법진이 오른쪽에서 잘리던 것(녹화로 확인): 좁은 화면이면 마법진 가운데(RC)가 화면 가운데 오게 카메라를 옮김 */
 function ringCam() { const narrow = cv.width / Math.max(1, cv.height) < 1.6; if (!narrow) return [820, 340]; const R = 310 * NS(), dx = Math.max(0, RC.x + R + 15 - (VW.x + VW.w)); return [W / 2 + dx, H / 2 + (Math.min(RC.y + 55, VW.y + VW.h / 2) - (VW.y + VW.h / 2))]; }   /* 18:22 마법진이 들어올 만큼만 옮김(전엔 마법진을 가운데로 → 지배자가 왼쪽 밖으로 잘림) */
 function camTo(x, y, z, dur) { S.camT = { fx: S.cam.x, fy: S.cam.y, fz: S.cam.z, x, y, z, t: 0, dur }; }
-function say(text, x, y, o = {}) { const sz = o.size || 28; if (!o.screen && ((typeof UI !== 'undefined' && UI.awakening) || S.t < (S.calmUntil || 0))) return;
+function say(text, x, y, o = {}) { const sz = o.size || 28; if (!o.screen && ((typeof UI !== 'undefined' && UI.awakening) || S.t < (S.calmUntil || 0) || S.t < (S.quietUntil || 0))) return;
   if (!o.screen && typeof L !== 'undefined' && L.field && text === L.field.crit) return;
   if (!o.screen && typeof fmtD !== 'undefined' && text === fmtD.s && fmtD.v != null) { const v = fmtD.v, col = o.col || '#fff', m = S.texts.find(t => !t.screen && t.val != null && t.col === col && t.age < 0.3 && Math.abs(t.x - x) < 90 && Math.abs(t.y - y) < 70); fmtD.v = null;
     if (m) { m.val += v; m.text = fmtD(m.val); fmtD.v = null;  m.size = Math.min(36, Math.max(m.size, o.size || 28)); m.bump = 0.12; return; }   /* 11-15 19:58 타격 리듬 잼: 0.3초 안에 가까이 뜨는 같은 색 숫자는 하나로 합쳐 커짐(장르 게임 방식 — 숫자가 비처럼 쏟아지지 않게) */
@@ -337,6 +337,7 @@ function onEvents(ev) {
     if (e.e === 'cryptSoon') { UI.toast(L.crypt.title, L.crypt.soon); UI.feed(L.crypt.soon); }
     if (e.e === 'riseFoe') riseFoeShow(e.r);
     if (e.e === 'riseLord') setTimeout(() => riseLordShow(e.r), 1300);
+    if (e.e === 'thrall' && !TRAILER && typeof TH !== 'undefined') { const gx = Math.min(S.giant.x, VW.x + VW.w * 0.6), gy = S.giant.y;   /* 휴대폰 화면 가운데 쪽에서 일어나게(보스 자리는 오른쪽 끝이라 단추 기둥 · 알림에 가렸음 — 영상_망자거인2 65초) */ setTimeout(() => TH.start(gx, gy), 900); }   /* 11-16 #11 · #12 잡은 보스가 망자 거인으로 일어남 */
     if (e.e === 'evo') evoShow(1, false);
     if (e.e === 'merge') evoShow(e.lv, true);
     if (e.e === 'waveDown') { S.soulTick++; if (S.soulTick % 3 === 0) Snd.smp('soul', 0.8, 0, rnd(0.9, 1.2));   /* 11-16 순서 #8 효과음재기: 영혼 줍는 소리가 -46.6dB로 안 들렸음 → -36.5 */ for (let i = 0; i < 3; i++) S.parts.push({ x: rnd(900, 1150), y: rnd(500, 640), vx: rnd(-520, -380), vy: rnd(-260, -120), life: 1.1, age: 0, size: rnd(3, 5), col: '#9fffd0', g: 160, add: true, kind: 'dot', rot: 0, vr: 0, real: true }); }

@@ -370,7 +370,7 @@ const LM = {
   T: {}, fx: [], pose: 0, shown: {},
   open(id) { const d = this.DEF[id]; return d.vip ? JB.vipLv(st) >= d.vip : (st.best >= d.at || st.awakens > 0); },
   staff() { const r = this.staff0(); r.x += LDX() + (!window.LORDV_OK && S.lord && S.lord.pkx || 0); return r; },
-  staff0() { if (typeof need === 'function' && !window.LORDV_OK && need('lordA') && JB.vipLv(st) < 5) return { x: 196 + 10 - 79, y: 560 + 34 - 292 };   /* 09:58 그림 A 지배자 지팡이 보석 자리(그림 276×420의 38,48) — 영혼탄이 진짜 보석에서 나감 */
+  staff0() { if (typeof need === 'function' && !window.LORDV_OK && need('lordA') && JB.vipLv(st) < 5) return { x: 196 + 10 - 92, y: 560 + 34 - 297 };   /* 11-16 #10 새 지배자 그림(758×899)의 지팡이 구슬(130,89) — 새동작.py 재기 */   /* 09:58 그림 A 지배자 지팡이 보석 자리(그림 276×420의 38,48) — 영혼탄이 진짜 보석에서 나감 */
     if (typeof STYLE !== 'undefined' && STYLE === 'old' && need('ld7_idle')) return { x: 222 + LDX() + 29 * LSC(), y: 594 - 358 * LSC() }; if (typeof STYLE !== 'undefined' && STYLE === '2d') return { x: 321, y: 330 }; if (typeof lordSD === 'function' && lordSD()) return { x: 328, y: 352 }; return JB.vipLv(st) >= 5 ? { x: 340, y: 232 } : { x: 260, y: 250 }; },   /* 11-14 SD 지배자: 내지른 지팡이 구슬 자리 */   /* 지팡이 끝 보석(세계 좌표) — 21:20 지팡이 등급 그림을 손에 들린 뒤 그 그림 끝에 맞춤 */
   update(dt) {
     for (const id in this.DEF) if (this.open(id) && !st.seen['lm_' + id]) { st.seen['lm_' + id] = 1; UI.toast(L.unlock.title, L.lm.unlock(L.lm.names[id] || L.vip.spell[id])); this.T[id] = 1.5; }

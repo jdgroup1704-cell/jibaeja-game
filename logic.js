@@ -10,6 +10,7 @@ const C = {
   EARLY_SOUL: { start: 2.2, step: 0.08 },   // 첫 각성 전 영혼 배수 = 시작 − 판×줄임(1 밑으론 안 내려감) — 20:30 초반 1~2분 살 게 없던 것
   STAFF_FIRST: [25, 60, 120],               // 지팡이 첫 단계 값(주력 강화를 일찍 눌러 보게)
   WAVE_LIMIT: 40,   // 보통 무리를 이 초 안에 못 깨면 군단이 밀려 한 판 물러남(11-14 대표님 「점점 버거워질 때 우리 모습은?」: 전엔 한 무리에 11분 넘게 서 있었음)
+  THRALL: { per: 0.03, max: 30 },   // 11-16 순서 #11 「처음 3분 와」 · #12 보스전: 잡은 보스가 망자 거인으로 일어나 내 군단이 됨 — 거인 하나당 군단 공격 +3%(최대 30마리 · +90%)
   RISE: { foe: 25, lordP: 0.35, lordPity: 3, foeMul: 0.02, lordMul: 0.05, regions: 8 },   // 부활(11-13 20:40): 한 지역 적 무리 25번 → 그 지역 병사가 내 편 · 지역의 주인은 깰 때 35%(3번째엔 반드시) → 망자가 되어 내 편. 도감 칸마다 공격 +2% · +5%(각성해도 남음). +3% · +8%면 봇 각성 11.1 · 16.1분으로 빨라져서 줄임
   TRAIT_FROM: 20, TRAIT_TWO: 40, TRAIT_HP: 1.3,   // 보스 특징: 20판부터 1개, 40판부터 2개
   AUTO_CAST_AFTER: 3,       // 대마법 자동: 직접 3번 쓰면 열림(11-13 대표님 「마법 자동도」 — 전엔 각성 2번). 자동은 「완벽」 ×1.5가 없어 손으로 누르는 재미는 남음
@@ -297,8 +298,9 @@ function powerParts(st) {
   const add = [['hero', sq], ['bond', bd], ['gear', gearBonus(st, 'atk')], ['lskin', lskinBonus(st)], ['relic', relicBonus(st, 'atk')], ['lab', labBonus(st, 'atk')], ['vip', C.VIP.atk[vipLv(st)]]];
   return { mul, add, addSum: add.reduce((a, x) => a + x[1], 0), total: dps(st) };
 }
+const thrallMul = st => 1 + C.THRALL.per * Math.min(C.THRALL.max, st.thralls || 0);
 function dps(st) {
-  return (1 + C.TRAIN.atk * ((st.train && st.train.lv) || 0)) * (1 + vipItem(st, 'atk')) * armySize(st) * unitAtk(st) * graveMul(st) * evoMul(st) * dexMul(st) * (1 + heroBonus(st, 'atk')) * sigilMul(st) * (st.tide > 0 ? SPELLS.tide.mul : 1) * ((st.frozen || 0) > 0 ? SPELLS.frozen.mul : 1) * (1 + C.MORALE_MAX * (st.morale || 0)) * guildMul(st) * keepMul(st);
+  return thrallMul(st) * (1 + C.TRAIN.atk * ((st.train && st.train.lv) || 0)) * (1 + vipItem(st, 'atk')) * armySize(st) * unitAtk(st) * graveMul(st) * evoMul(st) * dexMul(st) * (1 + heroBonus(st, 'atk')) * sigilMul(st) * (st.tide > 0 ? SPELLS.tide.mul : 1) * ((st.frozen || 0) > 0 ? SPELLS.frozen.mul : 1) * (1 + C.MORALE_MAX * (st.morale || 0)) * guildMul(st) * keepMul(st);
 }
 const spellMul = st => { const m = st.up.magic, k = C.MAGIC_SOFT; const base = m <= k ? Math.pow(C.MAGIC_MUL, m) : Math.pow(C.MAGIC_MUL, k) * (C.MAGIC_LIN > 0 ? 1 + C.MAGIC_LIN * (m - k) : Math.pow(C.MAGIC_MUL2, m - k)); return base * (1 + heroBonus(st, 'spell')) * (1 + vipItem(st, 'spell')) * chantMul(st); };   /* 마력 강화가 MAGIC_SOFT단계를 넘으면 덜 커짐(늦은 판 힘 쏠림 막기 시험용, 기본은 꺼짐) */
 const spellDamage = (st, perfect) => dps(st) * C.SPELL_X * spellMul(st) * (perfect ? C.PERFECT_MUL : 1);
@@ -417,7 +419,7 @@ function bossDown(st, ev) {
   const g = waveSouls(st.stage) * 10 * soulMul(st);
   st.souls += g; st.bones += C.BONE_BOSS;
   let gems = 0; if (!st.bossCleared[st.stage]) { st.bossCleared[st.stage] = 1; gems = C.GEM_BOSS_FIRST; st.gems += gems; }
-  ev.push({ e: 'bossDown', souls: g, gems, stage: st.stage, lord: st.boss && st.boss.lord }); gearDrop(st, ev, true); evoGain(st, C.EVO.waves * C.EVO.boss, ev); riseLord(st, ev, st.stage);
+  ev.push({ e: 'bossDown', souls: g, gems, stage: st.stage, lord: st.boss && st.boss.lord }); st.thralls = (st.thralls || 0) + 1; ev.push({ e: 'thrall', n: st.thralls, stage: st.stage, lord: !!(st.boss && st.boss.lord) }); gearDrop(st, ev, true); evoGain(st, C.EVO.waves * C.EVO.boss, ev); riseLord(st, ev, st.stage);
   st.boss = null; st.retreat = false; st.stage++; st.wave = 0; startWave(st);
   if (st.stage > st.best) { st.best = st.stage; ev.push({ e: 'best', stage: st.best }); }
   ev.push({ e: 'stage', stage: st.stage });
@@ -691,7 +693,7 @@ function shopBuy(st, id, now) {
   st.gems += g.gems; st.bones += g.bones; S.bought[id] = (S.bought[id] || 0) + 1; addVip(st, P.won / 10); return g;
 }
 const SHOP = [{ id: 'crown119', won: [119000] }, { id: 'abyss59', won: [59000] }, { id: 'vault33', won: [33000] }, { id: 'lordPack', won: [5900] }, { id: 'skinSera', won: [9900] }, { id: 'wpStone', won: [3300] }, { id: 'first', won: [1500] }, { id: 'day1', won: [1500, 5900, 12000] }, { id: 'monthGem', won: null }, { id: 'monthBone', won: null }, { id: 'fund', won: null }, { id: 'noAds', won: null }];
-root.JB = { trOpen, trCost, starMul, heroStar, transcend, chantMul, MAIL, mailOf, mailList, mailClaim, backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
+root.JB = { thrallMul, trOpen, trCost, starMul, heroStar, transcend, chantMul, MAIL, mailOf, mailList, mailClaim, backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
   isBoss, isLord, waveHp, waveSouls, upCost, unlocked, heroBonus, armyCap, armySize, unitAtk, graveMul, dps, spellDamage, spellCd, soulMul, sigilsFor, awakenStage, rankOf,
   newState, startWave, tick, retryBoss, canCast, beginCast, landSpell, spellUnlocked, buy, raiseTap,
   altarTable, raiseGrave, keepGrave, scrapGrave, altarUp, altarTick, heroById, country, gachaAllowed, probTable, grant, firstHero, pull, directBuy, setSquad,
