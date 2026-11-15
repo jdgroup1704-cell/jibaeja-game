@@ -38,9 +38,9 @@ const HF = {
     ctx.save();
     for (const g of T) { const m = g.m; ctx.setTransform(m.a, 0, 0, m.d, m.e, m.f); ctx.font = `800 ${g.fz}px sans-serif`; const tw = ctx.measureText(g.nt).width + g.fz * 0.9, th = g.fz * 1.36;
       const x0 = m.e - tw / 2 * m.a, y0 = m.f + (g.ty - g.fz * 0.68) * m.d, w = tw * m.a, hh = th * m.d; let dy = 0;
-      const hitAt = d => placed.find(p => x0 < p.x + p.w && x0 + w > p.x && y0 + d < p.y + p.h && y0 + d + hh > p.y);
-      if (hitAt(0)) { const st2 = hh + 1.5 * m.d; let best = null; for (let k = 1; k <= 6 && best === null; k++) for (const d of [k * st2, -k * st2]) if (!hitAt(d) && best === null) best = d; dy = best === null ? 0 : best; }   /* 아래로만 비키다 단추 밑으로 들어가던 것 → 아래 · 위 번갈아 가까운 빈자리 */
-      placed.push({ x: x0, y: y0 + dy, w, h: hh }); ctx.setTransform(m.a, 0, 0, m.d, m.e, m.f + dy);
+      const hitAt = (d, e = 0) => placed.find(p => x0 + e < p.x + p.w && x0 + e + w > p.x && y0 + d < p.y + p.h && y0 + d + hh > p.y); let dx = 0;
+      if (hitAt(0)) { const st2 = hh + 1.5 * m.d, CAND = []; for (const k of [1, 2, 3, 4]) for (const e of [0, 0.55, -0.55]) for (const d of [k * st2, -k * st2]) CAND.push([d, e * w]); for (const e of [0.6, -0.6, 1.1, -1.1]) CAND.push([0, e * w]); CAND.sort((p, q) => Math.hypot(p[0], p[1] * 0.7) - Math.hypot(q[0], q[1] * 0.7)); const ok = CAND.find(([d, e]) => !hitAt(d, e)); if (ok) { dy = ok[0]; dx = ok[1]; } }   /* 11-15 눈 확인: 위아래로만 비키다 지배자 발밑까지 줄줄이 내려가 주인과 멀어짐 → 옆으로도 반 칸 비키며 가장 가까운 빈자리 */
+      placed.push({ x: x0 + dx, y: y0 + dy, w, h: hh }); ctx.setTransform(m.a, 0, 0, m.d, m.e + dx, m.f + dy);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = g.a; ctx.fillStyle = 'rgba(12,4,22,.78)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-tw / 2, g.ty - g.fz * 0.68, tw, th, g.fz * 0.68) : ctx.rect(-tw / 2, g.ty - g.fz * 0.68, tw, th); ctx.fill();
       ctx.strokeStyle = g.line; ctx.globalAlpha = g.a * (g.rt >= 2 ? 1 : 0.7); ctx.lineWidth = g.rt >= 2 ? 2.5 : 1.5; if (g.rt === 3) { ctx.shadowColor = g.RC; ctx.shadowBlur = 10; } ctx.stroke(); ctx.shadowBlur = 0; ctx.globalAlpha = g.a; ctx.fillStyle = g.txt; ctx.fillText(g.nt, 0, g.ty + 0.5); }
     ctx.restore(); ctx.textBaseline = 'alphabetic'; ctx.globalAlpha = 1;
