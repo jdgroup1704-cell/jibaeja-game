@@ -125,7 +125,7 @@ const UI = {
 
   act(a, arg) {
     if (a === 'bulk') { this.bulk = +arg || 999; this.render(true); return; }
-    if (a === 'buy') { const B = this.bulk || 1; for (let i = 1; i < (B === 999 ? 999 : B); i++) if (!JB.buy(st, arg)) break; if (JB.buy(st, arg)) { Snd.smp('click', 0.5, 0, 1.2); if (arg === 'summon') Snd.smp('rise', 0.3); this.buyFx(arg); } }
+    if (a === 'buy') { const B = this.bulk || 1; for (let i = 1; i < (B === 999 ? 999 : B); i++) if (!JB.buy(st, arg)) break; if (JB.buy(st, arg)) { Snd.upTap(); if (arg === 'summon') Snd.smp('rise', 0.3); this.buyFx(arg); } }
     if (a === 'grave') this.raiseGrave(1);
     if (a === 'graveAll') this.raiseGrave(st.bones);
     if (a === 'autoGrave') this.autoGrave = !this.autoGrave;
@@ -137,9 +137,9 @@ const UI = {
     if (a === 'altar1' || a === 'altarAll') { const r = JB.altarPull(st, a === 'altarAll' ? 10 : 1); if (r) { this.gearGot(r); Snd.smp && Snd.smp('summon', 0.5); } this.render(true); return; }
     if (a === 'gearPull1' || a === 'gearPull10') { const r = JB.gearPull(st, a === 'gearPull10' ? 10 : 1); if (r) this.gearGot(r); }
     if (a === 'gearAd') EX.ad(() => { const r = JB.gearAd(st); if (r) this.gearGot(r); this.render(true); });
-    if (a === 'gearUpAll') { const n = JB.gearUpAll(st); if (n) { Snd.smp('summon', 0.4); this.toast(L.gear.title, L.ui.lvUp(n)); } }
+    if (a === 'gearUpAll') { const n = JB.gearUpAll(st); if (n) { Snd.upTap(); Snd.smp('summon', 0.25); this.toast(L.gear.title, L.ui.lvUp(n)); } }
     if (a === 'gearSlot') this.gearInfo(arg);
-    if (a === 'gearUp') { if (JB.gearUp(st, arg)) { Snd.smp('summon', 0.4); this.gearInfo(arg); } }
+    if (a === 'gearUp') { if (JB.gearUp(st, arg)) { Snd.upTap(); this.gearInfo(arg); } }
     if (a === 'heroOdds') this.heroOdds();
     if (a === 'direct') { const r = JB.directBuy(st, arg); if (r) this.pullResult([r]); }
     if (a === 'skin') { const [hid, sid] = arg.split(':'); if (JB.wearSkin(st, hid, sid || null)) { if (sid) { this.toast(L.heroes[hid].name, L.skin.on(L.heroes[hid].name, L.skin.names[sid])); Snd.chime(1319); const fh = HF.list.find(x => x.id === hid); if (fh) { fh.flash = 1; burst(fh.x, fh.y - 80, 40, { col: ['#ff5a7a', '#ffd76a', '#ffffff'], vmin: 60, vmax: 360, up: 140, lmax: 0.9 }); } } } this.render(true); return; }
@@ -174,7 +174,7 @@ const UI = {
     if (a === 'labAd') { if (st.lab.cur && st.lab.adUsed < JB.C.LAB.adMax) EX.ad(() => { JB.labAd(st, Date.now()); this.labDone(); this.render(true); }); }
     if (a === 'take') { const t = L.map.tiles[+arg], r = JB.mapTake(st, +arg); if (r.ok) { if (!conquestFx(L.map.conquered(t), r.done ? L.map.done(L.map.kingdom(r.kingdom)) : L.map.kingdom(r.kingdom), undefined, undefined, 'conquer')) Snd.stamp(); this.toast(L.map.title, L.map.won(t, r.gems, r.bones)); this.feed(L.map.won(t, r.gems, r.bones)); if (r.done) { Snd.stamp(); Snd.cheer && Snd.cheer(); this.toast(L.map.title, L.map.done(L.map.kingdom(r.kingdom))); } } else { const w = L.map.why[r.why]; this.toast(L.map.title, typeof w === 'function' ? w(r.need) : w); } }
     if (a === 'sweep') { const r = JB.cryptSweep(st); if (r) { Snd.smp('soul', 0.6); this.toast(L.crypt.title, L.crypt.swept(r.f, r.dust)); } }
-    if (a === 'relic') { if (JB.relicUp(st, arg)) { Snd.smp('summon', 0.4); Snd.chime(1175); } }
+    if (a === 'relic') { if (JB.relicUp(st, arg)) { Snd.upTap(); Snd.chime(1175); } }
     if (a === 'key') { if (JB.buyKey(st)) Snd.smp('click', 0.6); }
     if (a === 'retry') { if (JB.retryBoss(st)) onEvents([{ e: 'bossArrive', lord: st.boss && st.boss.lord }]); }
     this.render(true);

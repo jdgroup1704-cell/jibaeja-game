@@ -30,7 +30,7 @@ function opening() {
   const ESS = ['bg', 'lord', 'lordA', 'sumA0', 'foeA0', 'i_soul', 'i_bone', 'i_gem', 'i_army', 'b_speed', 'b_set', 'b_chat', 'u_summon', 'u_bone', 'st_0', 'ui_ring', 'finger', 't_up', 't_grave', 't_hero'], gb = o.querySelector('.go'), tL = Date.now();
   ARTHOLD = new Set(ESS); ESS.forEach(n => loadImg(n)); const release = () => { if (ARTHOLD) { ARTHOLD = null; loadArt(); } }; const ready = () => AUTO || Date.now() - tL > 12000 || ESS.every(n => ART[n] || (window.ARTERR && ARTERR[n]));
   if (ready()) release(); else { o.classList.add('loading'); const tk = setInterval(() => { const k = ESS.filter(n => ART[n]).length; if (ready()) { clearInterval(tk); release(); o.classList.remove('loading'); gb.textContent = L.ui.tap; } else gb.textContent = (L.ui.loading || L.spell.loading)(Math.round(k / ESS.length * 100)); }, 200); }
-  const go = () => { Snd.init(); Snd.startDrone(); Snd.loadAll().then(() => { Snd.bgmStart(0.4); EX.applySettings(); }); o.style.display = 'none'; S.hold = false; S.lord.glow = 1; S.shake = 12; S.flash = 0.35; { const s2 = LM.staff(); burst(s2.x, s2.y, 40, { col: ['#ffffff', '#c58bff', '#7a3cff'], vmin: 80, vmax: 420, up: 120, lmax: 1.0 }); burst(260, 640, 50, { col: ['#c9a7ff', '#9b6bff', '#e8dcc0'], vmin: 60, vmax: 300, up: 380, g: -40, lmax: 1.2 }); } for (const a of S.army) a.hop = 0.6;   /* 20:17 첫 화면을 누르면 지배자가 깨어나는 순간: 지팡이 번쩍 · 땅에서 보라 기운 · 흔들림 */ Snd.osc('sine', 1800, 900, 0.5, 0.06); };
+  const go = () => { Snd.init(); Snd.startDrone(); Snd.loadAll().then(() => { Snd.bgmStart(BGM_V); EX.applySettings(); }); o.style.display = 'none'; S.hold = false; S.lord.glow = 1; S.shake = 12; S.flash = 0.35; { const s2 = LM.staff(); burst(s2.x, s2.y, 40, { col: ['#ffffff', '#c58bff', '#7a3cff'], vmin: 80, vmax: 420, up: 120, lmax: 1.0 }); burst(260, 640, 50, { col: ['#c9a7ff', '#9b6bff', '#e8dcc0'], vmin: 60, vmax: 300, up: 380, g: -40, lmax: 1.2 }); } for (const a of S.army) a.hop = 0.6;   /* 20:17 첫 화면을 누르면 지배자가 깨어나는 순간: 지팡이 번쩍 · 땅에서 보라 기운 · 흔들림 */ Snd.osc('sine', 1800, 900, 0.5, 0.06); };
   if (AUTO) setTimeout(go, 400); else { const tap = () => { if (o.classList.contains('loading')) return; o.removeEventListener('click', tap); go(); }; o.addEventListener('click', tap); }   /* 불러오는 동안 누르면 무시 */
 }
 /* 예전 저장(대마법 자동이 생기기 전부터 쓴 사람): 이미 3번 넘게 썼으면 켜서 시작 */
@@ -78,6 +78,7 @@ let last = 0, uiT = 0, saveT = 0, botT = 0, fpsN = 0, fpsT = 0, fps = 0, slowT =
 function frame(now) {
   { const ap = document.getElementById('app'), c = S.phase === 'cast'; if (ap && ap.classList.contains('casting') !== c) ap.classList.toggle('casting', c); }   /* 11-15 폰에서 대마법 마법진(검은 태양)이 오른쪽 단추 기둥(설정 · 채팅) 밑에 깔림 → 대마법 동안 구석 단추를 흐리게 */
   const real = Math.min(0.05, (now - last) / 1000 || 0); last = now;
+  if (Snd.bgmTick) Snd.bgmTick();
   let dt = S.hold ? 0 : real * SPEED * JB.speedMul(st, Date.now()); if (S.hitstop > 0) { S.hitstop -= real; dt *= 0.06; }   /* 히트 스톱 */ fpsN++; fpsT += real; if (fpsT > 0.5) { fps = fpsN / fpsT; fpsN = 0; fpsT = 0; slowT = fps < 40 && !document.hidden && performance.now() > 10000 && !TRAILER ? slowT + 0.5 : 0; if (slowT >= 3) { slowT = 0; lowerQuality(); } }
   // 규칙: 연출 중(노려봄·대마법)에는 규칙 시간도 멈춤
   if (!(TRAILER && window.__freeze) && (!['stare', 'prompt', 'cast'].includes(S.phase) || st.boss?.phase === 'fight')) {
@@ -100,7 +101,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) save(
   resetView(); resize(); UI.init(); EX.init();
   for (let i = 0; i < Math.min(JB.armySize(st), 300); i++) addSkel(false);
   S.milestone = [1000, 300, 100, 10].find(m => JB.armySize(st) >= m) || 0;
-  if (saved) { loadArt(); offlineCheck(); autoCastFix(); document.addEventListener('pointerdown', () => { Snd.init(); Snd.startDrone(); Snd.loadAll().then(() => { Snd.bgmStart(0.4); EX.applySettings(); }); }, { once: true }); }
+  if (saved) { loadArt(); offlineCheck(); autoCastFix(); document.addEventListener('pointerdown', () => { Snd.init(); Snd.startDrone(); Snd.loadAll().then(() => { Snd.bgmStart(BGM_V); EX.applySettings(); }); }, { once: true }); }
   else opening();
   if (restored) setTimeout(() => { UI.toast(L.saveFix.title, L.saveFix.body); save(); }, 800);
   UI.render(true); requestAnimationFrame(frame);

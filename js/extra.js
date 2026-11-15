@@ -99,7 +99,7 @@ const EX = {
   applySettings() {
     const s = st.settings; if (!Snd.master) return;
     Snd.master.gain.value = s.sound ? 0.8 : 0;
-    if (Snd.bgm) Snd.bgmTo(s.bgm ? 0.4 : 0.0001, 0.3);
+    if (Snd.bgm) Snd.bgmTo(s.bgm ? BGM_V : 0.0001, 0.3);
   },
   // 위 오른쪽 도구 줄 + 사기 표시
   render() {
@@ -155,7 +155,7 @@ const EX = {
 const Saver = {
   is: false, t0: 0, s0: 0, earned: 0, last: 0, k0: 0, b0: 0, tapT: 0,
   on() { this.is = true; this.t0 = Date.now(); this.earned = 0; this.last = st.souls; this.k0 = st.kills || 0; this.b0 = st.best; this.bn0 = st.bones; const el = $('saver'); el.classList.add('on'); UI.closeModal && UI.closeModal(); this.paint(); if (Snd.bgmStop) Snd.bgmStop(); },
-  off() { this.is = false; $('saver').classList.remove('on'); if (Snd.bgmStart) Snd.bgmStart(0.4); },
+  off() { this.is = false; $('saver').classList.remove('on'); if (Snd.bgmStart) Snd.bgmStart(BGM_V); },
   tick() { if (!this.is) return; if (st.souls > this.last) this.earned += st.souls - this.last; this.last = st.souls;
     if (S.phase === 'prompt' && typeof startCast === 'function') startCast(true);   /* 보스는 대마법 자동으로 */
     const n = Date.now(); if (n - (this.pT || 0) > 1000) { this.pT = n; this.paint(); } },
