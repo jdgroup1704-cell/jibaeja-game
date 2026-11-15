@@ -34,7 +34,7 @@ function draw() {
   for (const h of HF.list) list.push(['h', h.y + 400, h]);   /* 00:35 영웅(모르데 y540)이 병사 뒤에 그려져 묻힘 → 영웅은 늘 병사 · 적 위에 */
   list.sort((p, q) => p[1] - q[1]);
   for (const [k, , o] of list) k === 'a' ? drawSkel(o) : k === 'h' ? HF.draw(o) : k === 'c' ? drawCorpse(o) : k === 'd' ? drawFallen(o) : drawFoe(o);
-  if (typeof TH !== 'undefined') TH.draw();   /* 11-16 망자 거인은 군단 · 적 위에(앞으로 솟아 내려찍음) */
+  if (typeof TH !== 'undefined') TH.draw(); if (typeof BC !== 'undefined') BC.tick();   /* 11-16 망자 거인은 군단 · 적 위에(앞으로 솟아 내려찍음) */
   for (const f of S.foes) HF.drawFoeBar(f);   /* 적 체력 막대는 맨 위에 */
   HF.drawArmyBars();
   drawArmyFx(); HF.drawFx(); LM.draw();

@@ -221,7 +221,7 @@ const HF = {
     }
     /* 보스(거인)는 2~3초마다 앞줄 수하를 한꺼번에 휩씀 */
     const gOn = (S.phase === 'battle' || S.phase === 'fight') && !UI.awakening && !(st.frozen > 0) && st.boss && S.giant.alpha > 0.5 && !S.giant.dead && this.list.length;
-    if (gOn) { this.gT = (this.gT == null ? 2.2 : this.gT) - dt; if (this.gT <= 0) { this.gT = S.giant.rage > 0.5 ? rnd(1.3, 1.9) : rnd(2.2, 3.2); S.giant.nAtk = (S.giant.nAtk || 0) + 1; if (S.giant.nAtk % 3 === 0) { bossSpecial(); this.gT += 1.2; } else { const me = this, hit = () => { S.giant.slam = Math.max(S.giant.slam || 0, 0.6); S.shake = Math.max(S.shake, S.giant.rage > 0.5 ? 13 : 9); giantSlamFx();
+    if (gOn) { this.gT = (this.gT == null ? 2.2 : this.gT) - dt; if (this.gT <= 0) { this.gT = S.giant.rage > 0.5 ? rnd(1.3, 1.9) : rnd(2.2, 3.2); S.giant.nAtk = (S.giant.nAtk || 0) + 1; if (S.giant.nAtk % 3 === 1) { if (typeof BC !== 'undefined' && BC.start()) this.gT += 1.9 + 1.2; else bossSpecial(), this.gT += 1.2; }   /* 11-16 #12 큰 기술 앞에 약점 끊기(bosscharge.js) · 첫 공격부터(3번째였을 땐 대마법에 보스가 먼저 쓰러져 못 봄) */ else { const me = this, hit = () => { S.giant.slam = Math.max(S.giant.slam || 0, 0.6); S.shake = Math.max(S.shake, S.giant.rage > 0.5 ? 13 : 9); giantSlamFx();
       for (const h of me.list) me.hurt(h, 3, true); if (Snd.smp) Snd.smp('slam', 0.25, 0, 1.2); };
       if (typeof GWIND !== 'undefined' && typeof vsOk === 'function' && vsOk('gv')) { S.giant.wind = GWIND; S.giant.windFn = hit; } else hit(); } } } else { this.gT = null; S.giant.wind = 0; S.giant.windFn = null; }   /* 11-14 17:30 망치를 먼저 치켜든 뒤(0.55초) 내려찍음 — 전엔 치켜듦 없이 바로 쾅 */
     if (!((S.phase === 'battle' || S.phase === 'fight') && !UI.awakening)) this.shots = [];

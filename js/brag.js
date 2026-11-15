@@ -35,13 +35,35 @@ const BRAG = {
     const fade = g.createLinearGradient(0, y0 + h - 120, 0, y0 + h); fade.addColorStop(0, 'rgba(7,1,15,0)'); fade.addColorStop(1, 'rgba(7,1,15,1)'); g.fillStyle = fade; g.fillRect(x0, y0 + h - 120, w, 120);
     g.restore();
   },
+  /* 11-16 #11 「해골로 일어나는 순간 짧은 영상 저장」: 망자 거인이 일어나는 5.5초를 전장 캔버스 그대로(소리 포함) 녹화 → 자랑 창에서 영상으로 보냄 */
+  clipStart() {   /* webm 먼저(11-16 시험: 크롬 mp4 녹화는 ffmpeg로 풀면 장면이 깨져 멈춤 · webm은 깨짐 0) — 아이폰 사파리는 webm 녹화가 없어 mp4로 */
+    if (this.rec || typeof MediaRecorder === 'undefined' || !cv.captureStream || AUTO || TRAILER) return;
+    try {
+      const vs = cv.captureStream(30); let stream = vs, dest = null;
+      if (Snd.ac && Snd.master) { dest = Snd.ac.createMediaStreamDestination(); Snd.master.connect(dest); stream = new MediaStream([...vs.getVideoTracks(), ...dest.stream.getAudioTracks()]); }
+      const type = (window.__clipTypes || ['video/webm;codecs=vp9', 'video/webm', 'video/mp4']).find(t => MediaRecorder.isTypeSupported(t)) || '';
+      const r = new MediaRecorder(stream, type ? { mimeType: type, videoBitsPerSecond: 3e6 } : {}), ch = [];
+      r.ondataavailable = e => { if (e.data && e.data.size) ch.push(e.data); };
+      r.onstop = () => { this.clip = new Blob(ch, { type: (r.mimeType || type || 'video/webm').split(';')[0] }); this.rec = null; if (dest) try { Snd.master.disconnect(dest); } catch (e) { } vs.getTracks().forEach(t => t.stop()); st.seen.clip = (st.seen.clip || 0) + 1; };
+      r.start(250); this.rec = r; setTimeout(() => { if (r.state !== 'inactive') r.stop(); }, 5500);
+    } catch (e) { this.rec = null; }
+  },
+  async sendClip() {
+    const c = this.clip; if (!c) return; const ext = /mp4/.test(c.type) ? 'mp4' : 'webm', file = new File([c], 'giant_rise.' + ext, { type: c.type }), txt = this.text();
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: txt, title: L.brag.title }); st.seen.clipSent = (st.seen.clipSent || 0) + 1; return; }
+      const a = document.createElement('a'); a.href = URL.createObjectURL(c); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+      try { await navigator.clipboard.writeText(txt); } catch (e) { }
+      UI.toast(L.brag.title, L.brag.saved); st.seen.clipSent = (st.seen.clipSent || 0) + 1;
+    } catch (e) { if (e && e.name !== 'AbortError') UI.toast(L.brag.title, L.brag.fail); }
+  },
   text() { return L.brag.msg(fmt(JB.dps(st)), typeof SN === 'function' ? SN(st.best || st.stage) : (st.best || st.stage), st.thralls || 0) + ' ' + location.href.split('?')[0]; },
   async open() {
     const ks = ['foev4_idle', 'lordA', 'sumv1_idle', 'sumv2_idle', 'sumv3_idle', 'sumv4_idle', ...(st.squad || []).filter(Boolean).map(id => 'heroI_' + id + '_idle')];
     for (let i = 0; i < 20 && ks.some(k => !(typeof need === 'function' && need(k))); i++) await new Promise(r => setTimeout(r, 100));   /* 그림이 아직 안 불러졌으면 2초까지 기다림(망자 거인이 빠진 카드가 나갔음) */
     let c; try { c = this.shot(); } catch (e) { UI.toast(L.brag.title, L.brag.fail); return; }
     const url = c.toDataURL('image/jpeg', 0.9);
-    UI.openModal(`<h3>${L.brag.title}</h3><img src="${url}" style="width:100%;border-radius:14px;margin:6px 0" alt=""><p class="muted" style="margin:4px 0 10px">${L.brag.hint}</p><button class="btn gold" data-x="bragSend" style="width:100%">${L.brag.send}</button>`);
+    UI.openModal(`<h3>${L.brag.title}</h3><img src="${url}" style="width:100%;border-radius:14px;margin:6px 0" alt=""><p class="muted" style="margin:4px 0 10px">${L.brag.hint}</p><button class="btn gold" data-x="bragSend" style="width:100%">${L.brag.send}</button>${this.clip ? `<button class="btn" data-x="bragClip" style="width:100%;margin-top:8px">${L.brag.clip}</button>` : ''}`);
     this.c = c; st.seen.brag = (st.seen.brag || 0) + 1;
   },
   async send() {
@@ -54,5 +76,5 @@ const BRAG = {
       UI.toast(L.brag.title, L.brag.saved); st.seen.bragSent = (st.seen.bragSent || 0) + 1;
     } catch (e) { if (e && e.name !== 'AbortError') UI.toast(L.brag.title, L.brag.fail); }
   },
-  act(x) { if (x === 'brag') { this.open(); return true; } if (x === 'bragSend') { this.send(); return true; } return false; },
+  act(x) { if (x === 'brag') { this.open(); return true; } if (x === 'bragSend') { this.send(); return true; } if (x === 'bragClip') { this.sendClip(); return true; } return false; },
 };

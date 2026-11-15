@@ -22,7 +22,8 @@ const TH = {
     if (typeof st === 'undefined' || !st || TRAILER) return;
     const dt = 1 / 60, R = this.rise;
     if (R) {   /* ① 첫 일어남: 0~0.9 마법진 · 영혼 모임 → 0.9~2.0 솟아오름 · 도장 글자 → 2.0~3.2 포효(숨쉬기) → 3.2~3.9 가라앉음 */
-      { const rc = document.getElementById('rcard'); if (rc && rc.classList.contains('on')) { S.quietUntil = S.t + 3.6; return; } }   /* 새 지역 장 카드가 떠 있으면 기다렸다가 일어남(11-16 영상_망자거인: 1-10 보스 → 「제2장」 카드 뒤에 가려 일어나는 장면이 안 보였음) */
+      { const rc = document.getElementById('rcard'); if ((rc && rc.classList.contains('on')) || (!R.t && document.getElementById('modal').style.display === 'flex')) { S.quietUntil = S.t + 3.6; return; } }   /* 새 지역 장 카드가 떠 있으면 기다렸다가 일어남(11-16 영상_망자거인: 1-10 보스 → 「제2장」 카드 뒤에 가려 일어나는 장면이 안 보였음) */
+      if (!R.t && typeof BRAG !== 'undefined') BRAG.clipStart();   /* 일어나는 순간 녹화 시작(자랑 창에서 영상으로) */
       R.t += dt; const t = R.t, h = 300;
       { const dm = t < 0.6 ? t / 0.6 : t > 3.3 ? Math.max(0, 1 - (t - 3.3) / 0.6) : 1; if (dm > 0 && typeof VIS !== 'undefined') { ctx.save(); ctx.fillStyle = `rgba(12,0,28,${0.55 * dm})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); ctx.restore(); } }   /* 무대 조명: 둘레를 어둡게 해 거인과 글자만 보이게(싸움이 정신없어 글자가 묻혔음 — 11-16 거인_1 사진) */
       if (!R.s0) { R.s0 = 1; Snd.smp && Snd.smp('soul', 0.8, 0, 0.7); S.shake = Math.max(S.shake, 6); }
