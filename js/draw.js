@@ -38,6 +38,7 @@ function draw() {
   HF.drawArmyBars();
   drawArmyFx(); HF.drawFx(); LM.draw();
   HF.drawTags();   /* 11-15 영웅 이름표는 모아서(겹치면 비킴) · 눈 확인: 불꽃 효과 밑에 깔려서 효과 뒤에 그림 */
+  drawBossBar();   /* 11-15 대표님 「보스도 에너지바 맨 위 말고 따로」: 보스 머리 위에 큰 막대 */
   const litLord = S.phase === 'cast' || S.phase === 'stare';   /* 11-14 18:10 대마법 영창 때 화면이 어두워져도 지배자는 밝게(어둠 위에 그림) — 「5초 동안 어둡고 글자만」 고침 */
   if (litLord && S.dark > 0) { ctx.fillStyle = `rgba(4,0,12,${S.dark})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
   drawLord(); drawStaff(); drawLordTag(); if (!TRAILER) drawAtmoFront();
@@ -354,7 +355,7 @@ function vsDraw(n, an, fi, h, filt, rot, loop) {
 /* 대기: 영상 그대로의 빠르기(5초에 한 바퀴)로 앞으로만. ph로 저마다 다른 때에서 시작 */
 const vsIdle = (ph, sp, n) => ((S.t / (sp || 5) + (((ph || 0) * 0.618) % 1)) % 1) * (n || 40);
 function drawSkel(a) {
-  const sc = lerp(0.8, 1.25, a.d) * (a.big || 1), img = SKEL[a.w];
+  const sc = lerp(0.8, 1.25, a.d) * (a.big || 1) * (a.big ? UK() : 1), img = SKEL[a.w];
   if (a.big && !a.fly) { const TC = ['#9aa0a6', '#5be37a', '#4aa8ff', '#b56cff', '#ffcc33'][a.g || 0], pu = 0.75 + 0.25 * Math.sin(S.t * 3 + a.ph); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35 * pu; ctx.fillStyle = TC; ctx.beginPath(); ctx.ellipse(a.x, a.y - 2, 50 * sc, 11 * sc, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 0.7; ctx.strokeStyle = TC; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(a.x, a.y - 2, 50 * sc, 11 * sc, 0, 0, 7); ctx.stroke();
     if ((a.g || 0) >= 2) { const g2 = ctx.createRadialGradient(a.x, a.y - 80 * sc, 4, a.x, a.y - 80 * sc, 90 * sc); g2.addColorStop(0, TC + '44'); g2.addColorStop(1, TC + '00'); ctx.globalAlpha = pu; ctx.fillStyle = g2; ctx.fillRect(a.x - 90 * sc, a.y - 170 * sc, 180 * sc, 180 * sc); } ctx.restore(); }   /* 01:20 소환수: 진화 단계 색 발밑 고리(회 · 초 · 파 · 보 · 금), 3단계부터 몸 빛 */
   /* 걷기(11-13 대표님 「걷는 게 엄청 부자연스럽다」): 서 있으면 숨쉬기만, 움직이면 움직인 거리만큼 다리를 번갈아 내딛고 걸음마다 살짝 출렁 */
@@ -747,6 +748,18 @@ function drawAlly() {
   al.slam = Math.max(0, (al.slam || 0) - 1 / 60);
   ctx.save(); ctx.globalAlpha = Math.min(0.42, al.t * 0.4); ctx.translate(al.x, 560); ctx.rotate(0.15 * Math.sin((al.slam / 0.5) * Math.PI)); ctx.scale(-1, 1);
   const h = 240, w = h * art.width / art.height; ctx.drawImage(tinted(art, 'ally' + r, 1, RISE_TINT), -w / 2, -h, w, h); ctx.restore(); ctx.globalAlpha = 1;
+}
+function drawBossBar() {   /* 11-15 보스 머리 바로 위: 이름 · 남은 시간(막대 위) + 큰 체력 막대(안에 %) · 깎인 부분은 흰색으로 남았다 줄어듦 */
+  const g = S.giant, b = st.boss; if (TRAILER || !b || !g.on || g.dead || g.alpha < 0.5 || !['fight', 'wait', 'cast'].includes(b.phase) || S.phase === 'cast') return;
+  const v = clamp(st.hp / st.maxHp, 0, 1); g.hpG = g.hpG == null || g.hpG < v ? v : Math.max(v, g.hpG - 0.35 / 60);
+  const k = Math.min(WK(), 2.4), w = 200 * k, hh = Math.round(13 * k), x0 = clamp(g.x - w / 2, VIS.x0 + 20, VIS.x1 - 70 * k - w), y0 = g.y - 372;
+  ctx.save(); ctx.lineJoin = 'round'; ctx.font = `900 ${Math.round(14 * k)}px sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.lineWidth = 3.5 * k; ctx.strokeStyle = 'rgba(10,0,16,.92)';
+  const nm = '☠ ' + L.boss.name(L.regions[regionOf(st.stage)], b.lord); ctx.strokeText(nm, x0, y0 - 5 * k); ctx.fillStyle = '#ffd0b0'; ctx.fillText(nm, x0, y0 - 5 * k);
+  if (b.phase === 'fight') { const tt = '⏱ ' + L.boss.timer(Math.ceil(b.timer)); ctx.textAlign = 'right'; ctx.fillStyle = b.timer < 8 ? '#ff5a5a' : '#fff3c4'; ctx.strokeText(tt, x0 + w, y0 - 5 * k); ctx.fillText(tt, x0 + w, y0 - 5 * k); }
+  ctx.fillStyle = 'rgba(8,0,14,.92)'; ctx.fillRect(x0 - 2 * k, y0 - 2 * k, w + 4 * k, hh + 4 * k); ctx.strokeStyle = '#ffb35a'; ctx.lineWidth = 1.5 * k; ctx.strokeRect(x0 - 2 * k, y0 - 2 * k, w + 4 * k, hh + 4 * k);
+  ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(x0, y0, w * g.hpG, hh); const gr = ctx.createLinearGradient(x0, 0, x0 + w, 0); gr.addColorStop(0, '#ff3a2a'); gr.addColorStop(1, '#ff9d2a'); ctx.fillStyle = gr; ctx.fillRect(x0, y0, w * v, hh);
+  const pc = v * 100, t2 = (pc >= 10 ? Math.round(pc) : pc.toFixed(1)) + '%'; ctx.font = `900 ${Math.round(11 * k)}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3 * k; ctx.strokeText(t2, x0 + w / 2, y0 + hh / 2 + 0.5); ctx.fillStyle = '#fff'; ctx.fillText(t2, x0 + w / 2, y0 + hh / 2 + 0.5);
+  ctx.restore();
 }
 function drawGiant() {
   const g = S.giant; if (g.alpha <= 0) return;

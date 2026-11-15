@@ -26,7 +26,7 @@ const HF = {
     const g = S.giant, ring = st.boss && g.on && g.alpha > 0.5 && !g.dead && !g.leaving && (S.phase === 'fight' || S.phase === 'battle' || S.phase === 'prompt');
     /* 보스전: 거인을 둘러쌈 — 앞 · 거인 오른쪽 옆(왼쪽을 보고 다리를 침) · 아래 앞 · 위 앞. 휴대폰 화면 폭(오른쪽 끝 1160) 안에 들게. 끝나면 원래 마름모로 */
     const R = [[-210, 640, 0], [55, 705, 1], [-120, 690, 0], [-235, 545, 0]];
-    const PB = [[-225, 655], [-292, 602], [-255, 705], [-335, 650]], big = S.army.some(a => !a.fly && a.big);   /* 09:40 소환수가 직업별로 펼쳐 선 뒤: 영웅은 창과 활 사이 아래 줄 */
+    const PB = [[-50, 690], [-165, 668], [-285, 690], [-405, 668]], big = S.army.some(a => !a.fly && a.big);   /* 09:40 소환수가 직업별로 펼쳐 선 뒤: 영웅은 창과 활 사이 아래 줄 · 11-15 소환수 바로 앞에 겹쳐 서던 것 → 소환수 사이사이(반 칸 엇갈림) */
     this.list.forEach((h, i) => { if (!ring && big) { const q = PB[i] || PB[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; return; } if (ring) { const q = R[i] || R[0]; h.tx = g.x + q[0]; h.ty = q[1]; h.flip = !!q[2]; } else { const q = P[i] || P[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; } });
     this.ring = ring;
   },
@@ -226,7 +226,7 @@ const HF = {
     }
   },
   draw(h) {
-    const k = this.KIND[h.id] || this.KIND.krag, d = clamp((h.y - GROUND - 40) / (680 - GROUND - 40), 0, 1), sc = lerp(0.85, 1.15, d);
+    const k = this.KIND[h.id] || this.KIND.krag, d = clamp((h.y - GROUND - 40) / (680 - GROUND - 40), 0, 1), sc = lerp(0.85, 1.15, d) * UK();
     const lg = (h.flip ? -1 : 1) * (h.lunge > 0 ? Math.sin((h.lunge / 0.28) * Math.PI) * 18 : 0), bob = Math.sin(S.t * 4 + h.atkT) * 3;
     const dk = h.dash ? Math.sin(Math.min(1, h.dash.age / h.dash.life) * Math.PI) : 0, ddx = h.dash ? h.dash.dx * dk : 0, ddy = h.dash ? h.dash.dy * Math.min(1, h.dash.age / h.dash.life * 2) * (h.dash.age > h.dash.life * 0.5 ? dk : 1) - (h.dash.jump || 0) * Math.sin(Math.min(1, h.dash.age / (h.dash.life * 0.5)) * Math.PI) * (h.dash.age < h.dash.life * 0.5 ? 1 : 0) - (h.dash.jump || 0) * 0.6 * Math.sin(Math.min(1, Math.max(0, h.dash.age - h.dash.life * 0.5) / (h.dash.life * 0.5)) * Math.PI) : 0;   /* 갈 때 한 번 · 돌아올 때 낮게 한 번 뛰어넘음 */
     const kbx = h.kb > 0 ? (h.flip ? 1 : -1) * Math.sin((h.kb / 0.35) * Math.PI * 3) * 4 : 0;   /* 18:42 「그냥 밀리네」: 뒤로 16픽셀 밀리던 것 → 제자리에서 부르르 떨기 */ ctx.save(); ctx.translate(h.x + lg + ddx + kbx, h.y + bob + ddy - Math.abs(Math.sin(h.wph || 0)) * 7 * (h.wamp || 0)); if (h.wamp > 0.05) ctx.rotate(Math.sin(h.wph || 0) * 0.06 * h.wamp); ctx.globalAlpha = h.enter;
@@ -319,8 +319,8 @@ const HF = {
     const v = this.foeHp(f); if (v === null) return;
     const hgt = 160 * (f.big || 1) * lerp(0.85, 1.1, f.d); f.vg = f.vg == null || f.vg < v ? v : Math.max(v, f.vg - 0.5 / 60);   /* 머리 위(전엔 가슴께에 묻혀 안 보였음) */
     if (f.flash > 0.05) f.hbT = 2.2; f.hbT = Math.max(0, (f.hbT || 0) - 1 / 60);
-    const al = f.big || f.elite || f.kind === 'captain' ? 1 : Math.min(1, f.hbT * 2); if (al <= 0.02) return;   /* 19:04 무리가 겹치면 막대가 층층이 쌓여 → 맞은 적만(정예 · 대장은 늘) */
-    ctx.globalAlpha = al; this.bar(f.x, f.y - hgt - 4, 40 * (f.big || 1), v, f.elite ? '#ff9a2a' : '#ff4a4a', f.vg); ctx.globalAlpha = 1;
+    const al = f.big || f.elite || f.kind === 'captain' || f.hbT > 0 ? 1 : 0.85;   /* 19:04 맞은 적만 보이던 것 → 11-15 대표님 「상대들 에너지바도 있어서 줄어드는 거 보고 싶고」: 모든 적에게 늘 보임(맞은 적은 진하게), 조금 크게 */
+    ctx.globalAlpha = al; this.bar(f.x, f.y - hgt - 4, 54 * (f.big || 1), v, f.elite ? '#ff9a2a' : '#ff4a4a', f.vg); ctx.globalAlpha = 1;
   },
 };
 
