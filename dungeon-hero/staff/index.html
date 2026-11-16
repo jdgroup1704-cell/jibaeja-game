@@ -2007,7 +2007,8 @@
     if (state === 'town' && trial) endTrial();
     if (state === 'dshop') { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawDShop(); ctx.restore(); return; }
     if (state === 'town' && attPop) { drawTown(); buttons = []; drawAtt(); return; }
-    if (state === 'town') { drawTown(); if (rankPop) { buttons = []; drawRank(); return; } if (acctPop) { buttons = []; drawAcct(); return; } if (offerPop) { buttons = []; drawOffer(); return; } drawPopups(TOWN2 ? 122 : 320); return; }
+    if (state !== 'town' || !chatPop) chatHide();
+    if (state === 'town') { drawTown(); if (chatPop) { buttons = []; drawChat(); return; } if (mailPop) { buttons = []; drawMail(); return; } if (rankPop) { buttons = []; drawRank(); return; } if (acctPop) { buttons = []; drawAcct(); return; } if (offerPop) { buttons = []; drawOffer(); return; } drawPopups(TOWN2 ? 122 : 320); return; }
     ctx.save();
     if (gl) overlayFX();
     drawComic();
@@ -2088,7 +2089,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1117003321'; let updReady = null;
+  const BUILD = '1117004024'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -3053,7 +3054,7 @@
   }
 
   // ---------- 새 소식(업데이트 내역) ----------
-  const NEWS = [["11월 17일 새벽 업데이트 3", ["🏆 순위가 생겼어요: 최고 층 · 전투력 (마을 왼쪽 🏆)", "순위 창에서 ✏️ 이름을 바꿀 수 있어요", "첫 구매 특가 창에 황금 기사가 나와요"]], ["11월 17일 새벽 업데이트 2", ["☁️ 기록이 서버에 자동으로 저장돼요", "마을 오른쪽 ☁️ 계정 → 「구글로 이어하기」를 하면 폰을 바꿔도 이어져요 (처음 한 번 💎50)"]], ["11월 17일 새벽 업데이트", ["🚩 시즌 5: 모두 1층부터 새로 시작해요 (선물 💎100)", "용사가 조금 커졌어요 · 「층 체험」은 없앴어요", "아바타에 무료 · 유료 · 체험 딱지가 붙어요", "아바타 체험이 끝나면 🎁 첫 구매 특가(24시간)가 떠요 · 결제는 아직 준비 중", "마을에 📰 소식 · 📅 출석 버튼과 한 줄 팁이 생겼어요"]], ["11월 16일 자정 업데이트", ["첫 화면이 바뀌었어요: 맨 위 재화 한 줄, 큰 출발 버튼, 아래 메뉴 5칸", "👑 아바타 체험: 3층을 넘으면 「황금 기사」를 3판 입어 볼 수 있어요", "일반 몬스터가 조금 커졌어요"]], ["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]]];
+  const NEWS = [["11월 17일 새벽 업데이트 4", ["💬 채팅이 생겼어요: 출발 버튼 아래 한 줄을 누르면 열려요", "📬 우편함이 생겼어요: 점검 보상 · 선물이 여기로 와요 (마을 오른쪽 맨 위)"]], ["11월 17일 새벽 업데이트 3", ["🏆 순위가 생겼어요: 최고 층 · 전투력 (마을 왼쪽 🏆)", "순위 창에서 ✏️ 이름을 바꿀 수 있어요", "첫 구매 특가 창에 황금 기사가 나와요"]], ["11월 17일 새벽 업데이트 2", ["☁️ 기록이 서버에 자동으로 저장돼요", "마을 오른쪽 ☁️ 계정 → 「구글로 이어하기」를 하면 폰을 바꿔도 이어져요 (처음 한 번 💎50)"]], ["11월 17일 새벽 업데이트", ["🚩 시즌 5: 모두 1층부터 새로 시작해요 (선물 💎100)", "용사가 조금 커졌어요 · 「층 체험」은 없앴어요", "아바타에 무료 · 유료 · 체험 딱지가 붙어요", "아바타 체험이 끝나면 🎁 첫 구매 특가(24시간)가 떠요 · 결제는 아직 준비 중", "마을에 📰 소식 · 📅 출석 버튼과 한 줄 팁이 생겼어요"]], ["11월 16일 자정 업데이트", ["첫 화면이 바뀌었어요: 맨 위 재화 한 줄, 큰 출발 버튼, 아래 메뉴 5칸", "👑 아바타 체험: 3층을 넘으면 「황금 기사」를 3판 입어 볼 수 있어요", "일반 몬스터가 조금 커졌어요"]], ["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]]];
   function drawNews() { let y = 166;
     NEWS.forEach((n, ni) => { ctx.fillStyle = ni ? 'rgba(30,26,40,.9)' : 'rgba(50,40,16,.95)'; const hh = 30 + n[1].length * 21 + 8; rrect(16, y, W - 32, hh, 12); ctx.fill(); ctx.strokeStyle = ni ? 'rgba(255,255,255,.15)' : '#ffc864'; ctx.lineWidth = 2; ctx.stroke();
       tfit((ni ? '' : '🆕 ') + n[0], 28, y + 18, 15, ni ? '#c8a888' : '#ffd27a', W - 56, FT); n[1].forEach((l, i) => tfit('· ' + l, 30, y + 42 + i * 21, 12.5, '#e8d8c0', W - 60)); y += hh + 8; });
@@ -3174,7 +3175,8 @@
       ibtn('📖', '비법 ' + meta.hid.length + '/' + HIDDEN.length, 10, y, () => { state = 'book'; }, false); y += 62;
       if (SKINS.length > 1) { ibtn('👑', skinPrev ? '미리 보기 중' : '아바타', 10, y, skinNext, !!skinPrev); y += 62; }
       y = 216; const nw = meta.newsSeen !== NEWS[0][0];
-      ibtn('📰', '소식', W - 70, y, () => { meta.newsSeen = NEWS[0][0]; saveMeta(); openHelp(3, 'town'); }, nw, nw ? 'N' : ''); y += 62;
+      if (fbOK()) { const mn = mailNew(); ibtn('📬', '우편', W - 70, y, () => { mailPop = true; if (fbState === 'off' || fbState === 'err') fbInit(); mailLoad(true); }, mn > 0, mn > 0 ? '' + mn : ''); y += 62; }
+      else { ibtn('📰', '소식', W - 70, y, () => { meta.newsSeen = NEWS[0][0]; saveMeta(); openHelp(3, 'town'); }, nw, nw ? 'N' : ''); y += 62; }
       if (fbOK()) { const lk = fbLinked(), hot = !lk && fbState === 'on' && (meta.best || 0) >= 5; ibtn('☁️', lk ? '연결됨' : '계정', W - 70, y, () => { acctPop = true; if (fbState === 'off' || fbState === 'err') fbInit(); }, hot, hot ? '💎' : ''); y += 62; }
       if (!isApp && meta.instDone && !instEvt) { ibtn('✅', '설치됨', W - 70, y, () => { townPop = { txt: '✅ 앱이 설치돼 있어요', sub: '홈 화면 「던전 히어로」 아이콘으로 여세요', t0: t }; }, false); y += 62; }
       else if (!isApp && (!meta.pwaGift || instEvt || IS_AND)) { ibtn('📲', '앱 설치', W - 70, y, smartInstall, !meta.pwaGift, meta.pwaGift ? '' : '🎁'); y += 62; }
@@ -3196,7 +3198,9 @@
     { const opts = []; if (runSave && cp > 1) opts.push(['🚩 ' + cp + '층부터', () => startRun(cp)]); if (cp > 10) { const ff = Math.floor((cp - 6) / 5) * 5 + 1; opts.push(['💰 골드 모으며 ' + ff + '층부터', () => startRun(ff)]); } if (cp > 1) opts.push(['1층부터', () => startRun(1)]);
       const n = opts.length, gap = 8, bw = n ? (W - 80 - gap * (n - 1)) / n : 0; opts.forEach((o, i) => button(o[0], 40 + i * (bw + gap), y, bw, 34, o[1], false));
       if (!n) txt(meta.best <= 1 ? '화면을 끌면 움직여요 · 공격은 자동이에요' : '쓰러져도 마지막으로 간 층부터 다시 시작해요', W / 2, y + 17, 13, '#c8a888'); }
-    { const tip = TIPS63[Math.floor(Date.now() / 6000) % TIPS63.length]; tfit('💡 ' + tip, W / 2, 678, 12.5, '#b8a488', W - 40, FB, 'center'); }
+    if (fbOK()) { const m = chatMsgs[0], nw3 = m && m.ms > chatSeen && !(fbUser && m.uid === fbUser.uid); button('', 44, 662, W - 88, 30, chatOpen, false); if (nw3) { ctx.fillStyle = '#ff3b3b'; ctx.beginPath(); ctx.arc(W - 50, 666, 5, 0, 6.283); ctx.fill(); }
+      tfit(m ? '💬 ' + m.name + ': ' + m.text : '💬 채팅 · 첫 마디를 남겨 보세요', W / 2, 677, 13, nw3 ? '#fff' : '#cfe0f0', W - 110, FB, 'center'); }
+    else { const tip = TIPS63[Math.floor(Date.now() / 6000) % TIPS63.length]; tfit('💡 ' + tip, W / 2, 678, 12.5, '#b8a488', W - 40, FB, 'center'); }
     // 6) 맨 아래 고정 메뉴 5칸
     ctx.fillStyle = 'rgba(8,6,12,.92)'; ctx.fillRect(-ox / scale, 700, innerWidth / scale, (innerHeight - oy) / scale - 700 + 2); ctx.fillStyle = 'rgba(255,210,140,.25)'; ctx.fillRect(-ox / scale, 700, innerWidth / scale, 1.5);
     { const na = affordable().length, er = eqRecommend(), nb = bagBetter();
@@ -3296,7 +3300,7 @@
       else acctSay('로그인하지 못했어요 (' + c + ')'); }
   }
   if (fbOK()) { setTimeout(fbInit, 4000);
-    setInterval(() => { if (fbState === 'off' || fbState === 'loading') return; if (fbState === 'err' && !fb) { fbInit(); return; } if (fbState === 'on' && !fbReady && !fbHold) { fbAfterLogin(); return; } if (window.__fbD) { fbDirty = true; window.__fbD = 0; } if (fbDirty && Date.now() - fbLastUp > 90000) fbUpload(); }, 15000);
+    setInterval(() => { if (fbState === 'off' || fbState === 'loading') return; if (fbState === 'err' && !fb) { fbInit(); return; } if (fbState === 'on' && !fbReady && !fbHold) { fbAfterLogin(); return; } if (window.__fbD) { fbDirty = true; window.__fbD = 0; } if (fbDirty && Date.now() - fbLastUp > 90000) fbUpload(); if (fbReady) { chatLoad(); mailLoad(); } }, 15000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') fbUpload(); }); }
   function drawAcct() {
     ctx.fillStyle = 'rgba(5,3,8,.84)'; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
@@ -3367,7 +3371,82 @@
     if (t - rankMsgT < 200) tfit(rankMsg, W / 2, Y + CH - 74, 13, '#ffe14d', CW - 40, FB, 'center'); else tfit('순위는 2분마다 새로 불러와요 · 시즌마다 새로 시작해요', W / 2, Y + CH - 74, 12, '#8a7a6a', CW - 40, FB, 'center');
     const bw = (CW - 40 - 10) / 2; button('✏️ 이름 바꾸기', X + 20, Y + CH - 56, bw, 42, rankRename, false, fbState !== 'on'); button('닫기', X + 20 + bw + 10, Y + CH - 56, bw, 42, () => { rankPop = false; }, false);
   }
-  window.__dh = { set rankPop(v) { rankPop = v; }, set rankTest(v) { rankData[0] = v; rankData[1] = v; rankT[0] = rankT[1] = Date.now(); }, rankLoad, get rankInfo() { return { n0: rankData[0] ? rankData[0].length : -1, n1: rankData[1] ? rankData[1].length : -1, err: rankErr, busy: rankBusy, key: rankKey, season: RK_SEASON }; }, get fbInfo() { return { state: fbState, ready: fbReady, hold: fbHold, linked: fbLinked(), anon: !!(fbUser && fbUser.isAnonymous), lastUp: fbLastUp, err: fbErr, dirty: fbDirty, cloudBest: fbCloud ? fbCloud.best : null }; }, fbUpload, set acctPop(v) { acctPop = v; }, get acctPop() { return acctPop; }, set fbAskTest(v) { fbAsk = v; fbHold = !!v; }, set fbStateTest(v) { fbState = v; }, set offerPop(v) { offerPop = v; }, get offerPop() { return offerPop; }, get offerOn() { return offerOn(); }, skinNext, get skinNow() { return curSkin(); }, set TOWN2(v) { TOWN2 = v; }, smartInstall, chromeUrl, get IS_CHROME() { return IS_CHROME; }, fsToggle, get fsOn() { return fsOn(); }, get FS_OK() { return FS_OK; }, set HSZ(v) { HSZ = v; }, get HSZ() { return HSZ; }, get tasksN() { return tasks.length; }, openHelp, IPCT, eqBase, saveCode, loadCode, giveAppGift, get isApp() { return isApp; }, set isApp(v) { isApp = v; }, get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive: () => diaRevive(), get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
+
+  // ===================== 빌드 66: 채팅 + 우편함 =====================
+  let chatPop = false, chatMsgs = [], chatLast = 0, chatBusy = false, chatNext = 0, chatErr = '', chatSendT = 0, chatNote = '', chatNoteT = -999, chatIn = null, chatSeen = 0;
+  try { chatSeen = +localStorage.getItem('dh-chat-seen') || 0; } catch (e) {}
+  const agoTxt = ms => { const d = Math.max(0, Date.now() - ms), m = Math.floor(d / 60000); return m < 1 ? '방금' : m < 60 ? m + '분 전' : m < 1440 ? Math.floor(m / 60) + '시간 전' : Math.floor(m / 1440) + '일 전'; };
+  const wrapTxt = (s, size, maxw) => { ctx.font = size + 'px ' + FB; const out = []; let cur = ''; for (const ch of s) { if (cur && ctx.measureText(cur + ch).width > maxw) { out.push(cur); cur = ch === ' ' ? '' : ch; } else cur += ch; } if (cur) out.push(cur); return out; };
+  function chatEl() { if (chatIn) return chatIn; const e = document.createElement('input'); e.type = 'text'; e.maxLength = 80; e.placeholder = '여기에 쓰고 「보내기」'; e.autocomplete = 'off'; try { e.enterKeyHint = 'send'; } catch (_) {}
+    e.style.cssText = 'position:fixed;display:none;z-index:30;box-sizing:border-box;border:2px solid #8fd0ff;border-radius:10px;background:#0e1420;color:#fff;padding:0 10px;outline:none;font-family:sans-serif;-webkit-user-select:text;user-select:text';
+    e.addEventListener('keydown', ev => { ev.stopPropagation(); if (ev.key === 'Enter') { ev.preventDefault(); chatSend(); } }); e.addEventListener('keyup', ev => ev.stopPropagation());
+    ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'click'].forEach(n => e.addEventListener(n, ev => ev.stopPropagation()));
+    document.body.appendChild(e); chatIn = e; return e; }
+  function chatHide() { if (chatIn && chatIn.style.display !== 'none') { chatIn.style.display = 'none'; try { chatIn.blur(); } catch (e) {} } }
+  function chatOpen() { chatPop = true; if (fbState === 'off' || fbState === 'err') fbInit(); chatNext = 0; chatLoad(true); }
+  function chatClose() { chatPop = false; chatHide(); if (chatMsgs.length) { chatSeen = chatMsgs[0].ms; try { localStorage.setItem('dh-chat-seen', '' + chatSeen); } catch (e) {} } }
+  async function chatLoad(force) {
+    if (!fb || !fbUser || !fbReady || chatBusy) return; if (!force && Date.now() < chatNext) return;
+    chatBusy = true; chatErr = '';
+    try { const { S, db } = fb, col = S.collection(db, 'chat');
+      const q = chatMsgs.length ? S.query(col, S.where('ts', '>', S.Timestamp.fromMillis(chatLast + 1)), S.orderBy('ts', 'asc'), S.limit(30)) : S.query(col, S.orderBy('ts', 'desc'), S.limit(30));
+      const sn = await S.getDocs(q), ids = new Set(chatMsgs.map(m => m.id));
+      sn.forEach(d => { if (ids.has(d.id)) return; const x = d.data() || {}; chatMsgs.push({ id: d.id, uid: x.uid || '', name: ('' + (x.name || '용사')).slice(0, 16), text: ('' + (x.text || '')).slice(0, 80), ms: x.ts && x.ts.toMillis ? x.ts.toMillis() : Date.now() }); });
+      chatMsgs.sort((a, b) => b.ms - a.ms); chatMsgs = chatMsgs.slice(0, 40); if (chatMsgs.length) chatLast = chatMsgs[0].ms; }
+    catch (e) { chatErr = (e && e.code) || 'err'; }
+    chatBusy = false; chatNext = Date.now() + (chatPop ? 8000 : 180000);
+  }
+  async function chatSend() { const e = chatEl(), v = ('' + e.value).replace(/\s+/g, ' ').trim().slice(0, 80); if (!v) { chatNote = '보낼 말을 써 주세요'; chatNoteT = t; return; }
+    if (!fb || !fbUser || !fbReady) { chatNote = '서버에 연결하는 중이에요'; chatNoteT = t; return; } if (Date.now() - chatSendT < 4000) { chatNote = '조금만 천천히 보내 주세요'; chatNoteT = t; return; }
+    chatSendT = Date.now(); e.value = '';
+    try { const { S, db } = fb; await S.addDoc(S.collection(db, 'chat'), { uid: fbUser.uid, name: myNick(), text: v, ts: S.serverTimestamp() }); chatLoad(true); }
+    catch (err) { e.value = v; chatNote = '보내지 못했어요 · 다시 눌러 주세요'; chatNoteT = t; } }
+  function drawChat() {
+    ctx.fillStyle = 'rgba(5,3,8,.88)'; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
+    const X = 18, Y = 70, CW = W - 36, CH = 676;
+    ctx.fillStyle = '#141a26'; rrect(X, Y, CW, CH, 22); ctx.fill(); ctx.strokeStyle = '#8fd0ff'; ctx.lineWidth = 3; ctx.stroke();
+    txt('💬 채팅', W / 2, Y + 32, 28, '#bfe6ff', FT);
+    const e = chatEl(), on = fbState === 'on' && fbReady; e.style.left = (ox + (X + 16) * scale) + 'px'; e.style.top = (oy + (Y + 58) * scale) + 'px'; e.style.width = ((CW - 32 - 90) * scale) + 'px'; e.style.height = (44 * scale) + 'px'; e.style.fontSize = Math.max(16, Math.round(16 * scale)) + 'px'; if (e.style.display !== 'block') e.style.display = 'block';
+    button('보내기', X + CW - 16 - 82, Y + 58, 82, 44, chatSend, true, !on);
+    if (t - chatNoteT < 180) tfit(chatNote, W / 2, Y + 118, 13, '#ffe14d', CW - 40, FB, 'center'); else tfit('내 이름: ' + myNick() + ' (순위 창에서 바꿔요) · 80자까지 · 서로 예의를 지켜 주세요', W / 2, Y + 118, 11.5, '#7f93ab', CW - 30, FB, 'center');
+    if (Date.now() >= chatNext) chatLoad();
+    let y = Y + 136; const yEnd = Y + CH - 66;
+    if (!on) txt(fbState === 'err' ? '서버에 연결하지 못했어요 · 인터넷을 확인해 주세요' : '서버에 연결하는 중…', W / 2, y + 150, 15, fbState === 'err' ? '#ff9a8a' : '#c8d8ea', FB);
+    else if (!chatMsgs.length) txt(chatErr ? '채팅을 불러오지 못했어요' : chatBusy ? '불러오는 중…' : '아직 아무 말도 없어요 · 첫 마디를 남겨 보세요', W / 2, y + 150, 15, chatErr ? '#ff9a8a' : '#c8d8ea', FB);
+    else for (const m of chatMsgs) { if (!m.ln) m.ln = wrapTxt(m.text, 14.5, CW - 56).slice(0, 4); const h = 26 + 19 * m.ln.length; if (y + h > yEnd) break; const me = fbUser && m.uid === fbUser.uid;
+      ctx.fillStyle = me ? 'rgba(70,56,14,.9)' : 'rgba(0,0,0,.36)'; rrect(X + 12, y, CW - 24, h - 5, 10); ctx.fill();
+      tfit(m.name + (me ? ' (나)' : ''), X + 24, y + 13, 12.5, me ? '#ffd34d' : '#9fd0ff', 200, FB, 'left'); txt(agoTxt(m.ms), X + CW - 24, y + 13, 11, '#7f93ab', FB, 'right');
+      m.ln.forEach((s, i) => txt(s, X + 24, y + 31 + i * 19, 14.5, '#fff', FB, 'left')); y += h; }
+    button('닫기', X + 110, Y + CH - 54, CW - 220, 40, chatClose, false);
+  }
+  // ---- 우편함 ----
+  let mailPop = false, mails = [], mailNext = 0, mailBusy = false, mailNote = '', mailNoteT = -999;
+  async function mailLoad(force) { if (!fb || !fbUser || !fbReady || mailBusy) return; if (!force && Date.now() < mailNext) return; mailBusy = true;
+    try { const { S, db } = fb, sn = await S.getDocs(S.query(S.collection(db, 'mail'), S.limit(30))), a = [];
+      sn.forEach(d => { const x = d.data() || {}; a.push({ id: d.id, title: ('' + (x.title || '선물이 왔어요')).slice(0, 30), text: ('' + (x.text || '')).slice(0, 120), dia: Math.max(0, Math.min(5000, x.dia | 0)), gold: Math.max(0, Math.min(10000000, x.gold | 0)), stone: Math.max(0, Math.min(500, x.stone | 0)), from: +x.from || 0, until: +x.until || 0, s: '' + (x.s || '') }); });
+      a.sort((p, q) => q.from - p.from); mails = a; mailNext = Date.now() + 600000; } catch (e) { mailNext = Date.now() + 60000; }
+    mailBusy = false; }
+  const mailLive = () => { const n = Date.now(), got = meta.mailGot || {}; return mails.filter(m => m.from <= n && (!m.until || n <= m.until) && (!m.s || m.s === RK_SEASON)).map(m => Object.assign({}, m, { got: !!got[m.id] })).sort((a, b) => (a.got - b.got) || (b.from - a.from)); };
+  const mailNew = () => mailLive().filter(m => !m.got).length;
+  const mailRw = m => [m.dia ? '💎' + m.dia.toLocaleString() : '', m.gold ? '💰' + m.gold.toLocaleString() : '', m.stone ? '🔷' + m.stone : ''].filter(Boolean).join('  ');
+  function mailClaim(m) { meta.mailGot = meta.mailGot || {}; if (meta.mailGot[m.id]) return; meta.mailGot[m.id] = 1; meta.dia += m.dia; meta.gold += m.gold; meta.stone += m.stone; saveMeta(); try { sfx.chest(); } catch (e) {} flash = .4; flashC = '255,220,120'; mailNote = '받았어요!  ' + mailRw(m); mailNoteT = t; }
+  function drawMail() {
+    ctx.fillStyle = 'rgba(5,3,8,.88)'; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
+    const X = 18, Y = 96, CW = W - 36, CH = 620;
+    ctx.fillStyle = '#231a12'; rrect(X, Y, CW, CH, 22); ctx.fill(); ctx.strokeStyle = '#ffc864'; ctx.lineWidth = 3; ctx.stroke();
+    txt('📬 우편함', W / 2, Y + 36, 30, '#ffd27a', FT);
+    const a = mailLive(), on = fbState === 'on' && fbReady; let y = Y + 70;
+    if (!on) txt(fbState === 'err' ? '서버에 연결하지 못했어요 · 인터넷을 확인해 주세요' : '서버에 연결하는 중…', W / 2, y + 190, 15, fbState === 'err' ? '#ff9a8a' : '#c8b8a0', FB);
+    else if (!a.length) { txt(mailBusy ? '불러오는 중…' : '새 우편이 없어요', W / 2, y + 170, 18, '#ffe0b0', FT); txt('점검 보상이나 선물이 오면 여기로 와요', W / 2, y + 200, 14, '#c8b8a0', FB); }
+    else a.slice(0, 5).forEach(m => { ctx.fillStyle = m.got ? 'rgba(0,0,0,.3)' : 'rgba(60,44,20,.95)'; rrect(X + 14, y, CW - 28, 88, 12); ctx.fill(); if (!m.got) { ctx.strokeStyle = 'rgba(255,211,77,.6)'; ctx.lineWidth = 1.5; ctx.stroke(); }
+      tfit((m.got ? '' : '🎁 ') + m.title, X + 28, y + 20, 16, m.got ? '#a89878' : '#ffd34d', CW - 150, FT, 'left');
+      if (!m.ln) m.ln = wrapTxt(m.text, 12.5, CW - 150).slice(0, 2); m.ln.forEach((s, i) => txt(s, X + 28, y + 42 + i * 16, 12.5, m.got ? '#8a7a6a' : '#e8d8c0', FB, 'left'));
+      tfit(mailRw(m), X + 28, y + 76, 13, m.got ? '#8a7a6a' : '#bff4ff', CW - 150, FB, 'left');
+      button(m.got ? '받음' : '받기', X + CW - 108, y + 24, 82, 42, () => mailClaim(m), !m.got, m.got); y += 96; });
+    if (t - mailNoteT < 200) tfit(mailNote, W / 2, Y + CH - 76, 14, '#ffe14d', CW - 40, FB, 'center');
+    button('닫기', X + 110, Y + CH - 54, CW - 220, 40, () => { mailPop = false; }, false);
+  }
+  window.__dh = { set fbReadyTest(v) { fbReady = v; }, set chatPop(v) { if (v) chatPop = true; else chatClose(); }, set chatTest(v) { chatMsgs = v; chatLast = v.length ? v[0].ms : 0; chatNext = Date.now() + 9e9; }, set mailPop(v) { mailPop = v; }, set mailTest(v) { mails = v; mailNext = Date.now() + 9e9; }, get chatInfo() { return { n: chatMsgs.length, err: chatErr, busy: chatBusy, mails: mails.length, mailNew: mailNew() }; }, chatLoad, mailLoad, set rankPop(v) { rankPop = v; }, set rankTest(v) { rankData[0] = v; rankData[1] = v; rankT[0] = rankT[1] = Date.now(); }, rankLoad, get rankInfo() { return { n0: rankData[0] ? rankData[0].length : -1, n1: rankData[1] ? rankData[1].length : -1, err: rankErr, busy: rankBusy, key: rankKey, season: RK_SEASON }; }, get fbInfo() { return { state: fbState, ready: fbReady, hold: fbHold, linked: fbLinked(), anon: !!(fbUser && fbUser.isAnonymous), lastUp: fbLastUp, err: fbErr, dirty: fbDirty, cloudBest: fbCloud ? fbCloud.best : null }; }, fbUpload, set acctPop(v) { acctPop = v; }, get acctPop() { return acctPop; }, set fbAskTest(v) { fbAsk = v; fbHold = !!v; }, set fbStateTest(v) { fbState = v; }, set offerPop(v) { offerPop = v; }, get offerPop() { return offerPop; }, get offerOn() { return offerOn(); }, skinNext, get skinNow() { return curSkin(); }, set TOWN2(v) { TOWN2 = v; }, smartInstall, chromeUrl, get IS_CHROME() { return IS_CHROME; }, fsToggle, get fsOn() { return fsOn(); }, get FS_OK() { return FS_OK; }, set HSZ(v) { HSZ = v; }, get HSZ() { return HSZ; }, get tasksN() { return tasks.length; }, openHelp, IPCT, eqBase, saveCode, loadCode, giveAppGift, get isApp() { return isApp; }, set isApp(v) { isApp = v; }, get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive: () => diaRevive(), get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
 })();
 </script>
 </body>
