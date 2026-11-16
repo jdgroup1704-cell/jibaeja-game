@@ -260,7 +260,7 @@
   const eqDR = () => Math.min(.45, Math.min(.3, meta.eq.a * .01) + itOpt('dr'));
   const goldMul = () => (1 + meta.eq.r * .03) * (1 + .15 * vipLv()) * itMul('r') * (1 + itOpt('gd'));
   const eqCost = l => ({ g: Math.round(10 * (120 * Math.pow(1.17, l) + 40 * l)), s: 1 + Math.floor(l / 3) + Math.floor(l * l / 60) });
-  const eqRate = (k) => { const l = meta.eq[k]; return Math.min(1, (l < 5 ? 1 : Math.max(.25, 1 - (l - 4) * .05)) + meta.bless[k] * .06); };
+  const eqRate = (k) => { const l = meta.eq[k]; return Math.min(1, eqBase(l) + meta.bless[k] * .06); };
   let forgePop = null;
   function enhance(k, useHammer) {
     const l = meta.eq[k]; if (l >= EQMAXF()) return 0; const c = eqCost(l);
@@ -324,7 +324,7 @@
   const IG = [['일반', '#d8d0c0'], ['희귀', '#6ab8ff'], ['영웅', '#d08aff'], ['전설', '#ffd34d'], ['신화', '#ff5a7a']], IGM = [1, 1.08, 1.18, 1.32, 1.5], IDIS = [1, 2, 4, 8, 16], IEMO = { w: '⚔️', a: '🛡️', r: '💍' };
   const IOPT = { at: ['공격', .04, .10], hp: ['체력', .05, .12], gd: ['골드', .06, .15], dr: ['피해 감소', .02, .05], ms: ['이동 속도', .03, .07], bd: ['보스 피해', .06, .14], cd: ['치명 피해', .15, .4] };
   const INAME = { w: ['낡은 검', '강철 검', '룬 블레이드', '용살자의 검', '태양의 성검'], a: ['가죽 갑옷', '강철 갑옷', '수호자의 갑옷', '용비늘 갑옷', '천상의 갑주'], r: ['구리 반지', '은 반지', '마력의 반지', '용의 눈 반지', '운명의 반지'] };
-  function mkItem(luck, slot) { const wt = [60, 28, 9, 2.6, .4].map((w, g) => g ? w * (1 + luck * g) : w); let r = Math.random() * wt.reduce((a, b) => a + b, 0), g = 0; for (let i = 0; i < 5; i++) { r -= wt[i]; if (r <= 0) { g = i; break; } }
+  function mkItem(luck, slot) { const wt = IWT(luck); let r = Math.random() * wt.reduce((a, b) => a + b, 0), g = 0; for (let i = 0; i < 5; i++) { r -= wt[i]; if (r <= 0) { g = i; break; } }
     const s = slot || ['w', 'a', 'r'][Math.random() * 3 | 0], keys = Object.keys(IOPT).sort(() => Math.random() - .5).slice(0, g);
     return { s, g, o: keys.map(k => [k, Math.round((IOPT[k][1] + Math.random() * (IOPT[k][2] - IOPT[k][1])) * (1 + g * .12) * 1000) / 1000]) }; }
   const itScore = it => it ? IGM[it.g] * 100 + it.o.reduce((a, o) => a + o[1] / IOPT[o[0]][2] * 6, 0) : 0;
@@ -2044,7 +2044,7 @@
     if (!win && (meta.cp || 1) > 1) txt('🚩 ' + meta.cp + '층부터 바로 다시 시작할 수 있어요' + (meta.cp === 100 && (meta.finalPh || 1) >= 2 ? ' (' + ((meta.finalPh || 1) === 3 ? '마왕' : '엄마') + (meta.finalSeg && Math.floor(meta.finalSeg / 10) === meta.finalPh ? ' ' + (3 - meta.finalSeg % 10) + '칸 남은 데서' : '부터') + ')' : ''), W / 2, 398, 15, '#9fe0ff');
     if (false) txt('🔥 포기하지 않는 용기 Lv ' + meta.streak + '! 다음 도전 공격·체력 +' + meta.streak * 8 + '%', W / 2, 424, 14, '#ff9a5a');
     else if (!win && meta.best > runBest0) txt('🎉 새 기록! 최고 ' + meta.best + '층', W / 2, 424, 16, '#ffd34d');
-    if (overT > 50 && !win && lastDeath && !lastDeath.used && !trial) { const rc = Math.max(10, REVIVE_BASE - 6 * vipLv()), can = meta.dia >= rc; button(can ? '💎 ' + rc + ' · 이 자리에서 부활 (Lv ' + lastDeath.lv + ' 카드 그대로)' : '💎 ' + rc + ' 부활 · 다이아 충전하기', 30, 688, W - 60, 50, can ? diaRevive : () => openShop('over'), true, false); }
+    if (overT > 50 && !win && lastDeath && !lastDeath.used && !trial) { const rc = Math.max(10, REVIVE_BASE - 6 * vipLv()), can = meta.dia >= rc; button(can ? '💎 ' + rc + ' · 이 자리에서 부활' + (boss && !boss.dead && boss.maxHp ? ' · 보스 체력 ' + Math.max(1, Math.ceil(boss.hp / boss.maxHp * 100)) + '% 그대로' : ' · 남은 적 그대로') : '💎 ' + rc + ' 부활 · 다이아 충전하기', 30, 688, W - 60, 50, can ? diaRevive : () => openShop('over'), true, false); }
     if (overT > 50 && !win && !trial && (meta.streak || 0) >= 3) txt('💡 ' + (meta.streak) + '번째 도전… 상점의 성장 패키지로 벽을 넘을 수 있어요', W / 2, 752, 12, '#ffd34d');
     if (overT > 50) {
       const n = affordable().length;
@@ -2085,7 +2085,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116222954'; let updReady = null;
+  const BUILD = '1116225658'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2863,7 +2863,7 @@
         ctx.scale(fl * s * (1 + hk * .18), s * (1 - hk * .15)); ctx.drawImage(S.img, idx * S.cw, 0, S.cw, S.ch, -S.ax, -S.ay, S.cw, S.ch); ctx.filter = 'none'; ctx.restore(); }
       const look = heroLook(), blink = P.inv > 0 && P.hurtT <= 0 && Math.floor(P.inv / 4) % 2 === 0;
       if (look && (look === 1 ? SPH.ok : RIG.torso.ok)) { const md = Math.hypot(P.x - hpx, P.y - hpy); hpx = P.x; hpy = P.y; const moving = md > .4 && md < 30; if (moving && play) hWalk += md * .09;
-        if (!(blink && play)) { const [fx0, fy0] = project(P.x, P.y, 0), h = Math.max(30, pxU(P.x, P.y) * 36), fc = P.face < 0 ? -1 : 1; 
+        if (!(blink && play)) { const [fx0, fy0] = project(P.x, P.y, 0), h = Math.max(30, pxU(P.x, P.y) * HSZ), fc = P.face < 0 ? -1 : 1; 
           ctx.save(); ctx.translate(fx0, fy0); if (P.hurtT > 0) ctx.filter = 'brightness(2)';
           if (look === 1) { const S = SPH; let idx = 0; if (moving) idx = Math.floor(hWalk) % S.nw; else if (P.swing > 0) idx = S.nw + Math.min(S.na - 1, 7 + Math.floor((1 - P.swing / 12) * 6.99)); const s = h / S.H; ctx.scale(fc * s, s); ctx.drawImage(S.img, idx * S.cw, 0, S.cw, S.ch, -S.ax, -S.ay, S.cw, S.ch); }
           else { const g = h * 1.32 / 1000; ctx.scale(fc * g, g); drawRigHero(moving, P.swing > 0 ? 1 - P.swing / 12 : -1, P.hurtT > 0 ? 1 - P.hurtT / 6 : 0); }
@@ -2879,7 +2879,7 @@
       if (ICN.gold.ok) for (const g of gems) { if (g.k === 'power') continue; const [x, y] = project(g.x, g.y, .45 + Math.sin(g.t * .12 + g.x) * .1), [sx, sy] = project(g.x, g.y, 0), k = g.k === 'xp' ? 'xp' : g.k === 'gold' ? 'gold' : 'meat', sz = g.k === 'xp' ? 17 : g.k === 'gold' ? 19 : 24; ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(sx, sy, sz * .32, sz * .14, 0, 0, 6.283); ctx.fill();
         if (g.k === 'gold') { const w = Math.max(.3, Math.abs(Math.cos(g.t * .1))); ctx.save(); ctx.translate(x, y); ctx.scale(w, 1); icn(k, 0, 0, sz); ctx.restore(); } else icn(k, x, y, sz); }
       if (chest && ICN.chest.ok) { const [x, y] = project(chest.x, chest.y, .9 + Math.sin(chest.t * .1) * .12), [sx, sy] = project(chest.x, chest.y, 0); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(sx, sy, 28, 11, 0, 0, 6.283); ctx.fill(); ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g2 = ctx.createRadialGradient(x, y, 4, x, y, 70); g2.addColorStop(0, 'rgba(255,220,110,' + (.4 + .15 * Math.sin(t * .15)).toFixed(2) + ')'); g2.addColorStop(1, 'rgba(255,200,80,0)'); ctx.fillStyle = g2; ctx.beginPath(); ctx.arc(x, y, 70, 0, 6.283); ctx.fill(); ctx.restore(); icn('chest', x, y, 66); }
-      if (state === 'play') { let [hx, hy] = project(P.x, P.y, 0); hy -= Math.max(30, pxU(P.x, P.y) * 36) * 1.5 + 12; P._top = hy; P._tx = hx; const w = 46, q = Math.max(0, Math.min(1, P.hp / P.maxHp)); ctx.fillStyle = 'rgba(0,0,0,.6)'; rrect(hx - w / 2 - 1.5, hy - 1.5, w + 3, 8, 4); ctx.fill(); ctx.fillStyle = q > .5 ? '#5ae06a' : q > .25 ? '#ffc23a' : '#ff4a3c'; if (q > 0) { rrect(hx - w / 2, hy, Math.max(4, w * q), 5, 2.5); ctx.fill(); } if (P.guard) txt('🛡️', hx - w / 2 - 10, hy + 3, 10, '#9fd8ff'); } }
+      if (state === 'play') { let [hx, hy] = project(P.x, P.y, 0); hy -= Math.max(30, pxU(P.x, P.y) * HSZ) * 1.5 + 12; P._top = hy; P._tx = hx; const w = 46, q = Math.max(0, Math.min(1, P.hp / P.maxHp)); ctx.fillStyle = 'rgba(0,0,0,.6)'; rrect(hx - w / 2 - 1.5, hy - 1.5, w + 3, 8, 4); ctx.fill(); ctx.fillStyle = q > .5 ? '#5ae06a' : q > .25 ? '#ffc23a' : '#ff4a3c'; if (q > 0) { rrect(hx - w / 2, hy, Math.max(4, w * q), 5, 2.5); ctx.fill(); } if (P.guard) txt('🛡️', hx - w / 2 - 10, hy + 3, 10, '#9fd8ff'); } }
     _drawComicIc(); };
 
   const _drawTownSk = drawTown;
@@ -2976,7 +2976,146 @@
   })();
   window.__updCheck = updCheck;
 
-  window.__dh = { get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive, get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
+
+  // ===================== 빌드 54: 도움말 · 확률표 =====================
+  function IWT(luck) { return [60, 28, 9, 2.6, .4].map((w, g) => g ? w * (1 + luck * g) : w); }
+  function eqBase(l) { return l < 5 ? 1 : Math.max(.25, 1 - (l - 4) * .05); }
+  const IPCT = luck => { const w = IWT(luck), s = w.reduce((a, b) => a + b, 0); return w.map(x => x / s * 100); };
+  const pct54 = v => (v >= 1 ? v.toFixed(1) : v.toFixed(2)) + '%';
+  const dropLuck = f => Math.max(0, Math.min(1, (f - 30) / 70)) + Math.max(0, (f - 100) / 100) + .15 * vipLv();
+  let helpPg = 0, helpFrom = 'town';
+  const openHelp = (pg, from) => { helpPg = pg; helpFrom = from || 'town'; state = 'help'; if (!meta.help54) { meta.help54 = 1; saveMeta(); } try { sfx.pick(); } catch (e) {} };
+  function tfit(s, x, y, size, col, maxw, font, align) { ctx.font = size + 'px ' + (font || FB); const w = ctx.measureText(s).width; if (w > maxw) size = Math.max(9, size * maxw / w); txt(s, x, y, size, col, font || FB, align || 'left'); }
+  function drawHelp() {
+    topBar('❓ 도움말', '#9fe0ff');
+    const tabs = ['한눈에', '🎁 장비', '⚒️ 강화', '🆕 소식', '📲 설치'], tw = (W - 32 - 16) / 5;
+    tabs.forEach((n, i) => { button(n, 16 + i * (tw + 4), 112, tw, 36, () => { helpPg = i; try { sfx.pick(); } catch (e) {} }, helpPg === i); if (i === 4 && !meta.pwaGift) { circle(16 + i * (tw + 4) + tw - 4, 114, 8, '#ff3b3b'); txt('🎁', 16 + i * (tw + 4) + tw - 4, 115, 9, '#fff', FB, 'center', 'rgba(0,0,0,0)'); } });
+    if (helpPg === 0) {
+      const rows = [
+        ['💰', '골드', '#ffd34d', '얻는 곳: 모험(몬스터 · 상자) · 방치 보상', '쓰는 곳: 🛠️ 강화 상점(공격 · 체력) · ⚒️ 대장간'],
+        ['🔷', '강화석', '#8fd0ff', '얻는 곳: 보스 상자 · 정예 몬스터 · 방치 보상 · 장비 분해', '쓰는 곳: ⚒️ 대장간에서 무기 · 갑옷 · 반지를 +1씩 올려요'],
+        ['🎁', '장비 (무기 · 갑옷 · 반지)', '#d08aff', '얻는 곳: 보스 상자 · 정예 몬스터 · 💎 장비 뽑기', '쓰는 곳: 🎒 가방에서 착용 · 등급이 높을수록 강해요'],
+        ['💎', '다이아', '#bff4ff', '얻는 곳: 매일 출석 · 10층마다 첫 도착', '쓰는 곳: 💎 상점(강화석 · 망치 · 장비 뽑기 · 골드)'],
+        ['🔨', '축복의 망치', '#ffb070', '얻는 곳: 💎 상점 (다이아 ' + DSHOP[1].p + ')', '쓰는 곳: ⚒️ 대장간 강화를 100% 성공시켜요'],
+        ['🃏', '스킬 카드', '#7aff9a', '얻는 곳: 모험 중 레벨이 오를 때마다 골라요', '쓰는 곳: 고른 카드가 무기 · 능력이 돼요 (비법은 📖 히든 스킬)'],
+      ];
+      let y = 158;
+      rows.forEach(r => { ctx.fillStyle = 'rgba(40,30,22,.9)'; rrect(16, y, W - 32, 76, 12); ctx.fill(); ctx.strokeStyle = 'rgba(255,210,140,.35)'; ctx.lineWidth = 2; ctx.stroke();
+        txt(r[0], 48, y + 38, 30, '#fff', FB, 'center', 'rgba(0,0,0,0)'); tfit(r[1], 82, y + 18, 18, r[2], W - 110, FT);
+        tfit(r[3], 82, y + 42, 13, '#e8d8c0', W - 110); tfit(r[4], 82, y + 61, 13, '#9fe0ff', W - 110); y += 82; });
+      ctx.fillStyle = 'rgba(20,50,30,.85)'; rrect(16, y + 2, W - 32, 66, 12); ctx.fill(); ctx.strokeStyle = 'rgba(122,255,154,.4)'; ctx.lineWidth = 2; ctx.stroke();
+      tfit('막혔을 때: ① 🛠️ 강화 상점 → ② ⚒️ 대장간 → ③ 💰 골드 모으며 아래층부터', W / 2, y + 22, 13, '#b8ffc8', W - 52, FB, 'center');
+      tfit('유료 상품 · 아바타는 준비 중이에요 (지금은 살 수 없어요)', W / 2, y + 46, 12, '#c8a888', W - 52, FB, 'center');
+    } else if (helpPg === 1) {
+      const gi = DSHOP.findIndex(d => d.n === '장비 뽑기'), pg = IPCT(1.6), f = Math.max(1, meta.best || 1), pd = IPCT(dropLuck(f));
+      tfit('💎 장비 뽑기 1번 = 다이아 ' + DSHOP[gi].p + ' · 무기 / 갑옷 / 반지 중 하나 (각 3분의 1)', W / 2, 166, 13, '#e8f6ff', W - 40, FB, 'center');
+      const cx = [58, 140, 224, 304, 362, 408], hd = ['등급', '💎 뽑기', '보스 상자(' + f + '층)', '기본 효과', '옵션', '분해'];
+      hd.forEach((h, i) => tfit(h, cx[i], 190, 12, '#c8a888', i === 2 ? 92 : 74, FB, 'center'));
+      let y = 202;
+      for (let g = 0; g < 5; g++) { ctx.fillStyle = 'rgba(30,26,40,.9)'; rrect(16, y, W - 32, 36, 9); ctx.fill(); ctx.strokeStyle = IG[g][1]; ctx.globalAlpha = .7; ctx.lineWidth = 2; ctx.stroke(); ctx.globalAlpha = 1;
+        txt(IG[g][0], cx[0], y + 19, 17, IG[g][1], FT); txt(pct54(pg[g]), cx[1], y + 19, 16, '#fff', FB); txt(pct54(pd[g]), cx[2], y + 19, 16, '#ffe0b0', FB);
+        txt('×' + IGM[g], cx[3], y + 19, 15, '#e8d8c0', FB); txt(g + '개', cx[4], y + 19, 14, '#9fe0ff', FB); txt('🔷' + IDIS[g], cx[5], y + 19, 13, '#8fd0ff', FB); y += 41; }
+      y += 12;
+      const op = Object.keys(IOPT).map(k => IOPT[k][0] + ' ' + Math.round(IOPT[k][1] * 100) + '~' + Math.round(IOPT[k][2] * 100) + '%');
+      const notes = [
+        '· 기본 효과: 무기 = 공격 · 갑옷 = 체력 · 반지 = 골드 (반지는 그 60%)',
+        '· 옵션은 아래 7가지 중 무작위 (등급이 오를 때마다 수치 12%씩 더)',
+        '   ' + op.slice(0, 4).join(' · '),
+        '   ' + op.slice(4).join(' · '),
+        '· 보스 상자: 장비 1개 확정 · 30층부터 층이 높을수록 좋은 등급',
+        '· 정예 몬스터: 15% 확률로 장비 1개 · 40% 확률로 강화석 1개',
+        '· 가방은 20칸 · 넘치면 가장 약한 장비가 강화석으로 바뀌어요',
+        '· 분해 = 그 장비를 강화석(표의 🔷 개수)으로 바꾸기' ];
+      if (meta.abyss) notes.push('· 101층부터: 전설 · 신화가 12~32% 확률로 [심연] 등급(×' + IGM[5] + ')');
+      notes.forEach(n => { tfit(n, 24, y, 12.5, n[1] === ' ' ? '#9fe0ff' : '#e8d8c0', W - 48); y += 22; });
+    } else if (helpPg === 3) { drawNews(); } else if (helpPg === 4) { drawInstall(); } else {
+      tfit('강화 = 💰 골드 + 🔷 강화석 · 실패해도 장비와 단계는 그대로예요', W / 2, 166, 13, '#e8f6ff', W - 40, FB, 'center');
+      const cx = [86, 196, 300, 392], hd = ['단계', '성공 확률', '💰 골드', '🔷 강화석'];
+      hd.forEach((h, i) => txt(h, cx[i], 190, 12, '#c8a888', FB));
+      const L = meta.abyss ? [0, 5, 8, 10, 13, 16, 19, 29, 49] : [0, 5, 8, 10, 13, 16, 19, 25, 29]; let y = 202;
+      L.forEach(l => { const c = eqCost(l), r = eqBase(l), mine = ['w', 'a', 'r'].some(k => meta.eq[k] === l);
+        ctx.fillStyle = mine ? 'rgba(70,50,20,.95)' : 'rgba(30,26,40,.9)'; rrect(16, y, W - 32, 30, 8); ctx.fill(); if (mine) { ctx.strokeStyle = '#ffc864'; ctx.lineWidth = 2; ctx.stroke(); }
+        txt('+' + l + ' → +' + (l + 1), cx[0], y + 16, 15, '#ffe0b0', FB); txt(Math.round(r * 100) + '%', cx[1], y + 16, 16, r >= 1 ? '#7aff9a' : r >= .6 ? '#ffd34d' : '#ff9a7a', FT);
+        tfit(c.g.toLocaleString(), cx[2], y + 16, 14, '#ffd34d', 100, FB, 'center'); txt('' + c.s, cx[3], y + 16, 14, '#8fd0ff', FB); y += 34; });
+      y += 12;
+      [ '· +0~+4는 100% · +5부터 한 단계마다 5%씩 내려가 +19부터는 25%',
+        '· 실패하면 다음 성공 확률 +6% (성공할 때까지 계속 쌓여요)',
+        '· 🔨 축복의 망치를 쓰면 100% 성공 (💎 상점 · 다이아 ' + DSHOP[1].p + ')',
+        '· 무기 +1 = 공격 6%↑ · 반지 +1 = 치명타 +0.8% · 골드 +3%',
+        '· 갑옷 +1 = 체력 5%↑ · 받는 피해 1%↓ (최대 30%)',
+        '· 최고 +' + EQMAXF() + (meta.abyss ? '' : ' (심연이 열리면 +50)') + ' · 대장간 테두리 색은 +10마다 바뀌어요',
+      ].forEach(n => { tfit(n, 24, y, 12.5, '#e8d8c0', W - 48); y += 22; });
+    }
+    button('← 돌아가기', 120, 738, W - 240, 46, () => { state = helpFrom; }, false);
+  }
+
+  // ---------- 새 소식(업데이트 내역) ----------
+  const NEWS = [["11월 16일 밤 업데이트", ["❓ 도움말이 생겼어요: 골드 · 강화석 · 장비 · 다이아가 뭔지", "장비 뽑기 확률표 · 강화 확률표를 볼 수 있어요", "💎 부활이 바뀌었어요: 쓰러진 그 자리에서, 보스 체력 그대로", "📲 폰에 설치하면 [전설] 무기 + 💎100 선물", "우리 용사가 조금 커졌어요 (장비 · 변신이 더 잘 보이게)"]]];
+  function drawNews() { let y = 166;
+    NEWS.forEach((n, ni) => { ctx.fillStyle = ni ? 'rgba(30,26,40,.9)' : 'rgba(50,40,16,.95)'; const hh = 30 + n[1].length * 21 + 8; rrect(16, y, W - 32, hh, 12); ctx.fill(); ctx.strokeStyle = ni ? 'rgba(255,255,255,.15)' : '#ffc864'; ctx.lineWidth = 2; ctx.stroke();
+      tfit((ni ? '' : '🆕 ') + n[0], 28, y + 18, 15, ni ? '#c8a888' : '#ffd27a', W - 56, FT); n[1].forEach((l, i) => tfit('· ' + l, 30, y + 42 + i * 21, 12.5, '#e8d8c0', W - 60)); y += hh + 8; });
+  }
+  // ---------- 폰에 설치 · 설치 선물 · 기록 옮기기 ----------
+  const UA = navigator.userAgent || '', IS_KAKAO = /KAKAOTALK/i.test(UA), IS_IOS = /iPhone|iPad|iPod/i.test(UA), IS_AND = /Android/i.test(UA), IS_SAMSUNG = /SamsungBrowser/i.test(UA);
+  const IN_APP = IS_KAKAO || /NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(UA);
+  let isApp = false; try { isApp = /[?&]app=1/.test(location.search) || localStorage.getItem('dh-app') === '1' || navigator.standalone === true || (top === window && (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches)); if (isApp) localStorage.setItem('dh-app', '1'); } catch (e) {}
+  let instEvt = null, instMsg = '', instMsgT = 0; addEventListener('beforeinstallprompt', e => { e.preventDefault(); instEvt = e; }); addEventListener('appinstalled', () => { instEvt = null; instSay('설치됐어요! 홈 화면의 「던전 히어로」로 들어오면 선물을 받아요'); });
+  const instSay = m => { instMsg = m; instMsgT = t; };
+  const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''), b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
+  const saveCode = () => 'DH4.' + b64e(JSON.stringify(meta));
+  function loadCode(code, force) { try { const m = /DH4\.([A-Za-z0-9_-]+)/.exec(code || ''); if (!m) return 0; const inc = JSON.parse(b64d(m[1])); if (!inc || typeof inc !== 'object' || typeof inc.gold !== 'number' || !inc.eq || !inc.up) return 0;
+      const fresh = (meta.best || 0) <= 1 && !meta.eq.w && !meta.eq.a && !meta.eq.r; if (!force && !fresh && (inc.best || 0) <= (meta.best || 0)) return -1;
+      localStorage.setItem('dh-save-staff4', JSON.stringify(inc)); try { localStorage.removeItem('dh-run-staff4'); } catch (e) {} return 1; } catch (e) { return 0; } }
+  try { const m = /[?#&]mv=(DH4\.[A-Za-z0-9_-]+)/.exec((location.search || '') + (location.hash || '')); if (m) { const r = loadCode(m[1]); try { history.replaceState(null, '', location.pathname); } catch (e) {} if (r === 1) { try { sessionStorage.setItem('dh-moved', '1'); } catch (e) {} location.reload(); } } } catch (e) {}
+  let movedPop = false; try { if (sessionStorage.getItem('dh-moved')) { sessionStorage.removeItem('dh-moved'); movedPop = true; } } catch (e) {}
+  const gameUrl = () => location.origin + location.pathname.replace(/pc\.html$/, '');
+  function openOutside() { const base = gameUrl(), code = saveCode(); try { if (IS_KAKAO) location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(base + '#mv=' + code); else if (IS_AND) location.href = 'intent://' + base.replace(/^https?:\/\//, '') + '?mv=' + code + '#Intent;scheme=https;package=com.android.chrome;end'; else { copyText(base + '#mv=' + code, '주소를 복사했어요 · 사파리 주소창에 붙여 넣어 주세요'); return; } } catch (e) {} instSay('브라우저가 안 열리면 「기록 복사」 후 크롬에서 주소를 직접 열어 주세요'); }
+  function copyText(s, okMsg) { const done = () => instSay(okMsg); try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(s).then(done, () => { fbCopy(s) ? done() : instSay('복사하지 못했어요'); }); return; } } catch (e) {} fbCopy(s) ? done() : instSay('복사하지 못했어요'); }
+  function fbCopy(s) { try { const ta = document.createElement('textarea'); ta.value = s; ta.style.cssText = 'position:fixed;left:-9999px;top:0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e) { return false; } }
+  function pasteCode() { const go = s => { const r = loadCode(s, 1); if (r === 1) { try { sessionStorage.setItem('dh-moved', '1'); } catch (e) {} location.reload(); } else instSay('기록 코드가 아니에요 · 「기록 복사」를 먼저 눌러 주세요'); };
+    try { if (navigator.clipboard && navigator.clipboard.readText) { navigator.clipboard.readText().then(go, () => { const s = prompt('복사한 기록 코드를 붙여 넣어 주세요'); if (s) go(s); }); return; } } catch (e) {} const s = prompt('복사한 기록 코드를 붙여 넣어 주세요'); if (s) go(s); }
+  const GIFT_DIA = 100;
+  function giveAppGift() { if (meta.pwaGift || trial) return; meta.pwaGift = 1; const it = mkItem(0, 'w'); it.g = 3; const ks = Object.keys(IOPT).sort(() => Math.random() - .5).slice(0, 3); it.o = ks.map(k => [k, Math.round((IOPT[k][1] + Math.random() * (IOPT[k][2] - IOPT[k][1])) * (1 + 3 * .12) * 1000) / 1000]);
+    addItem(it); meta.dia += GIFT_DIA; saveMeta(); try { sfx.fanfare(); } catch (e) {} flash = .5; flashC = '255,211,77'; townPop = { txt: '📲 설치 선물!', sub: '[전설] ' + INAME.w[3] + ' + 💎' + GIFT_DIA + ' → 🎒 가방', t0: t }; }
+  function drawInstall() { let y = 160; const box = (h, c) => { ctx.fillStyle = 'rgba(30,26,40,.92)'; rrect(16, y, W - 32, h, 12); ctx.fill(); ctx.strokeStyle = c || 'rgba(255,255,255,.15)'; ctx.lineWidth = 2; ctx.stroke(); };
+    box(84, '#ffc864'); txt('🎁', 50, y + 42, 34, '#fff', FB, 'center', 'rgba(0,0,0,0)'); tfit('설치 선물: [전설] ' + INAME.w[3] + ' + 💎' + GIFT_DIA, 84, y + 24, 16, '#ffd34d', W - 112, FT);
+    tfit(meta.pwaGift ? '✔ 이미 받았어요' : '홈 화면에 설치하고 그 아이콘으로 들어오면 바로 줘요', 84, y + 48, 12.5, meta.pwaGift ? '#7aff9a' : '#e8d8c0', W - 112); tfit('설치하면: 주소창 없이 꽉 찬 화면 · 아이콘 한 번으로 실행', 84, y + 67, 12, '#9fe0ff', W - 112); y += 94;
+    if (isApp) { box(70, '#7aff9a'); tfit('✅ 설치한 앱으로 실행 중이에요', W / 2, y + 24, 17, '#7aff9a', W - 60, FT, 'center'); tfit(meta.pwaGift ? '선물은 🎒 가방에 들어 있어요' : '마을로 돌아가면 선물이 들어와요', W / 2, y + 50, 13, '#e8d8c0', W - 60, FB, 'center'); y += 80; }
+    else if (IN_APP) { box(150, '#ff9a6a'); tfit(IS_KAKAO ? '⚠ 지금은 카카오톡 안에서 열려 있어요' : '⚠ 지금은 앱 안 브라우저로 열려 있어요', W / 2, y + 22, 16, '#ffb070', W - 60, FT, 'center'); tfit('여기서는 설치가 안 돼요 · 크롬(기본 브라우저)으로 옮겨 주세요', W / 2, y + 46, 12.5, '#e8d8c0', W - 60, FB, 'center');
+      tfit('아래 버튼을 누르면 지금 기록(층 · 장비 · 다이아)도 같이 옮겨져요', W / 2, y + 66, 12.5, '#9fe0ff', W - 60, FB, 'center'); button('🌐 기록 그대로 브라우저에서 열기', 40, y + 86, W - 80, 50, openOutside, true); y += 160; }
+    else if (instEvt) { box(120, '#7ad8ff'); tfit('이 폰은 버튼 한 번으로 설치할 수 있어요', W / 2, y + 24, 15, '#bff4ff', W - 60, FT, 'center'); button('📲 지금 설치하기', 60, y + 46, W - 120, 56, () => { try { instEvt.prompt(); } catch (e) {} }, true); y += 130; }
+    else { const steps = IS_IOS ? ['① 사파리 아래쪽 가운데 「공유」(네모에 화살표) 누르기', '② 목록을 내려 「홈 화면에 추가」 누르기', '③ 오른쪽 위 「추가」 → 홈 화면의 「던전 히어로」로 실행'] : IS_SAMSUNG ? ['① 아래 오른쪽 「≡」(줄 세 개) 누르기', '② 「현재 페이지 추가」 → 「홈 화면」 누르기', '③ 「추가」 → 홈 화면의 「던전 히어로」로 실행'] : IS_AND ? ['① 크롬 오른쪽 위 「⋮」(점 세 개) 누르기', '② 「홈 화면에 추가」 또는 「앱 설치」 누르기', '③ 「설치」 → 홈 화면의 「던전 히어로」로 실행'] : ['① 휴대폰에서 이 주소를 크롬 · 사파리로 열어 주세요', '② 메뉴에서 「홈 화면에 추가」를 누르면 설치돼요', '③ PC는 주소창 오른쪽 설치 아이콘(모니터 모양)'];
+      box(34 + steps.length * 26, '#7ad8ff'); tfit('설치하는 방법 (30초)', 28, y + 18, 15, '#bff4ff', W - 56, FT); steps.forEach((s, i) => tfit(s, 30, y + 44 + i * 26, 13.5, '#fff', W - 60)); y += 44 + steps.length * 26;
+      if (IS_IOS) { tfit('※ 아이폰은 설치한 앱의 기록이 따로예요 → 아래 「기록 복사」 후', 24, y + 6, 12, '#ffb070', W - 48); tfit('   설치한 앱에서 「기록 붙여넣기」를 누르면 그대로 이어져요', 24, y + 24, 12, '#ffb070', W - 48); y += 40; } }
+    box(96); tfit('📦 기록 옮기기 (다른 브라우저 · 다른 폰으로)', 28, y + 18, 14, '#c8a888', W - 56, FT); const bw = (W - 68) / 2;
+    button('📋 기록 복사', 28, y + 36, bw, 46, () => copyText(saveCode(), '기록을 복사했어요 · 옮길 곳의 도움말 → 설치에서 「붙여넣기」'), false); button('📥 기록 붙여넣기', 40 + bw, y + 36, bw, 46, pasteCode, false); y += 106;
+    if (instMsg && t - instMsgT < 420) { ctx.fillStyle = 'rgba(20,50,30,.95)'; rrect(16, y, W - 32, 40, 10); ctx.fill(); tfit(instMsg, W / 2, y + 21, 13, '#b8ffc8', W - 52, FB, 'center'); }
+  }
+  { const _draw54 = draw; draw = function () { if (state !== 'help') return _draw54(); buttons = []; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#07060a'; ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy); ctx.imageSmoothingEnabled = false; ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawHelp(); ctx.restore(); }; }
+  { const _topBar54 = topBar; topBar = function (title, col) { _topBar54(title, col); const pg = { dshop: 1, bag: 1, forge: 2, pshop: 0, shop: 0 }[state]; if (pg !== undefined) button('❓', 12, 26, 46, 36, () => openHelp(pg, state), false); }; }
+  { const _dds54 = drawDShop; drawDShop = function () { _dds54(); const gi = DSHOP.findIndex(d => d.n === '장비 뽑기'); if (gi >= 0) button('📊 확률', 196, 138 + gi * 94 + 16, 84, 30, () => openHelp(1, 'dshop'), false); }; }
+  { const _dfg54 = drawForge; drawForge = function () { _dfg54(); if (!(townPop && t - townPop.t0 < 120) && !(powPop && t - powPop.t0 < 110)) button('📊 강화 확률표', W / 2 - 100, 728, 200, 36, () => openHelp(2, 'forge'), false); }; }
+  { const _dt54 = drawTown; drawTown = function () { _dt54(); const nw = !meta.help54;
+      if (nw) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(276, 28, 70, '120,220,255', .22 + .12 * Math.sin(t * .12)); ctx.restore(); }
+      button('❓ 도움말', 230, 12, 92, 32, () => openHelp(0, 'town'), nw); if (nw) { circle(320, 14, 9, '#ff3b3b'); txt('N', 320, 15, 11, '#fff', FB); }
+      const busy = attPop || (townPop && t - townPop.t0 < 120);
+      if (!busy && movedPop) { movedPop = false; townPop = { txt: '📦 기록을 옮겨 왔어요', sub: '최고 ' + (meta.best || 0) + '층 · 💎' + meta.dia + ' 그대로예요', t0: t }; }
+      else if (!busy && isApp && !meta.pwaGift && !trial) giveAppGift();
+      else if (!busy && meta.help54 && meta.news !== NEWS[0][0] && BUILD.indexOf('BUILD') < 0) { meta.news = NEWS[0][0]; saveMeta(); townPop = { txt: '🆕 업데이트됐어요', sub: '❓ 도움말 → 「소식」에서 바뀐 점 보기', t0: t }; }
+      if (!isApp && !meta.pwaGift && !attPop) { button('📲 설치 🎁', 8, 48, 86, 28, () => openHelp(4, 'town'), false); } }; }
+  MENU.push('help');
+
+  // ===================== 빌드 55: 💎 부활 = 그 자리에서(보스 체력 그대로) · 용사 크기 =====================
+  let HSZ = 44;
+  { const _die55 = die; die = function () { const n0 = tasks.length; _die55(); if (state === 'over') for (let i = n0; i < tasks.length; i++) tasks[i].ov = 1; }; }
+  diaRevive = function () { const rc = Math.max(10, REVIVE_BASE - 6 * vipLv()); if (state !== 'over' || !lastDeath || lastDeath.used || trial || meta.dia < rc) return;
+    meta.dia -= rc; lastDeath.used = 1; saveMeta();
+    tasks = tasks.filter(x => !x.ov); ac(); startMusic(); state = 'play'; overT = 0; paused = false; joy = null; runGold = 0;
+    P.hp = P.maxHp; P.inv = 180; P.hurtT = 0; ebul = []; enemies.forEach(e => { if (!e.elite && dist(e, P) < 170) e.hp -= 9999; });
+    flash = .8; flashC = '160,220,255'; shake = 12; try { sfx.revive(); } catch (e) {}
+    banner = '💎 부활!'; bannerSub = boss && !boss.dead ? '보스 체력 그대로 · 이어서 싸워요!' : '쓰러진 자리에서 이어서 싸워요!'; bannerT = 130; writeRun(); };
+  window.__dh = { set HSZ(v) { HSZ = v; }, get HSZ() { return HSZ; }, get tasksN() { return tasks.length; }, openHelp, IPCT, eqBase, saveCode, loadCode, giveAppGift, get isApp() { return isApp; }, set isApp(v) { isApp = v; }, get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive: () => diaRevive(), get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
 })();
 </script>
 </body>
