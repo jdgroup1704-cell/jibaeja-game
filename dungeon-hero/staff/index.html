@@ -2083,7 +2083,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116210859'; let updReady = null;
+  const BUILD = '1116211752'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2761,8 +2761,9 @@
   let hCast = null; const castSeen = new WeakSet();
   const CASTD = { win: 120, fire: 18, ck: 16, vn: 18, axe: 20, bolt: 22, holy: 22, ln: 18, mo: 20, qk: 26, mn: 18 }, CASTP = { win: 99, qk: 9, holy: 8, mo: 7, axe: 6, ln: 5, bolt: 4, fire: 3, ck: 2, vn: 2, mn: 1 },
     CASTC = { win: '255,225,120', fire: '255,140,50', ck: '140,230,255', vn: '130,230,90', axe: '255,90,80', bolt: '120,190,255', holy: '255,225,120', ln: '120,220,255', mo: '160,200,255', qk: '255,180,100', mn: '255,150,60' };
-  window.__cast = k => { hCast = { k, t: 0 }; };
-  const castTry = k => { if (!hCast || (CASTP[k] || 0) >= (CASTP[hCast.k] || 0) || hCast.t > (CASTD[hCast.k] || 18) * .7) hCast = { k, t: 0 }; };
+  window.__cast = (k, big) => { hCast = { k, t: 0, big: !!big }; };
+  const HIDK = { fire: 'meteor', bolt: 'thunder', axe: 'bloodaxe', holy: 'judge', ck: 'vortexdisc', mn: 'supernova', ln: 'dragoon', qk: 'cataclysm', vn: 'plague', mo: 'eclipse' };
+  const castTry = k => { if (!hCast || (CASTP[k] || 0) >= (CASTP[hCast.k] || 0) || hCast.t > (CASTD[hCast.k] || 18) * .7) hCast = { k, t: 0, big: lvOf(HIDK[k] || '') > 0 }; };
   const _updateCast = update;
   update = function (k) { const nb = bolts.length; _updateCast(k);
     if (state !== 'play') return;
@@ -2783,9 +2784,9 @@
     if (moving) { const ph = hWalk * .55; tN = -Math.sin(ph) * .62; tF = Math.sin(ph) * .62; kN = .15 + .95 * Math.max(0, Math.cos(ph)); kF = .15 + .95 * Math.max(0, -Math.cos(ph)); lean = -.13; bob = -Math.abs(Math.cos(ph)) * 16 + 8; aN = Math.sin(ph) * .5; aF = -Math.sin(ph) * .55; headA = .04 + Math.sin(ph * 2) * .02; capeA = .55 + Math.sin(ph * 2 + 1) * .1; }
     else { sqy = 1 + Math.sin(hT * .1) * .02; headA = Math.sin(hT * .1) * .025; aN = .15 + Math.sin(hT * .1) * .05; aF = -.1 - Math.sin(hT * .1) * .04; bob = -Math.sin(hT * .1) * 3; }
     if (sw >= 0) { const q = sw; let a2, l2; if (q < .3) { const w = q / .3, e = w * w * (3 - 2 * w); a2 = .15 + 2.2 * e; l2 = .12 * e; hand = .5 * e; } else if (q < .55) { const w = (q - .3) / .25, e = 1 - Math.pow(1 - w, 3); a2 = 2.35 - 3.6 * e; l2 = .12 - .4 * e; dx = 30 * e; hand = .5 - 1.1 * e; } else { const w = (q - .55) / .45, e = w * w * (3 - 2 * w); a2 = -1.25 + 1.4 * e; l2 = -.28 * (1 - e); dx = 30 * (1 - e); hand = -.6 * (1 - e); } aN = a2; lean += l2 * (moving ? .5 : 1); }
-    var cy2 = 0, cG = null, cArc = null, cTip = null, cFar = null;
+    var cy2 = 0, cG = null, cArc = null, cTip = null, cFar = null, cBig = null;
     if (hCast) { if (state === 'play') hCast.t++; const D = CASTD[hCast.k] || 18, q = hCast.t / D, sm = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }, k = hCast.k, col = CASTC[k] || '255,255,255';
-      if (q >= 1) hCast = null;
+      if (hCast.big && k !== 'win') cBig = [col, q]; if (q >= 1) hCast = null;
       else { const w1 = sm(q / .35), w2 = sm((q - .35) / .25), w3 = sm((q - .6) / .4), sl = (a0, a1) => { aN = a0 + (a1 - a0) * w2 + (0 - a1) * 0; if (q < .35) aN = aN0 + (a0 - aN0) * w1; if (q > .6) aN = a1 + (aN0 - a1) * w3; }, aN0 = aN;
         if (k === 'fire' || k === 'ck' || k === 'vn') { aF = q < .35 ? aF + (1.3 - aF) * w1 : q < .6 ? 1.3 - 2.9 * w2 : -1.6 + 1.5 * w3; lean += q < .35 ? .1 * w1 : q < .6 ? .1 - .32 * w2 : -.22 * (1 - w3); cFar = col; }
         else if (k === 'axe') { sl(2.5, -1.5); lean += q < .35 ? .22 * w1 : q < .6 ? .22 - .55 * w2 : -.33 * (1 - w3); hand = q < .6 ? .4 - .9 * w2 : -.5 * (1 - w3); dx += q > .35 ? 22 * (1 - w3) : 0; cArc = [2.5, aN, col]; }
@@ -2815,7 +2816,10 @@
       const glowAt = (p, col, r) => { const g = ctx.createRadialGradient(p[0], p[1], 4, p[0], p[1], r); g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.3, 'rgba(' + col + ',.75)'); g.addColorStop(1, 'rgba(' + col + ',0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 6.283); ctx.fill(); };
       if (cTip) { const sa = lean + aN + hand - .15 - .78, tip = [wN[0] - Math.sin(sa) * 330, wN[1] + Math.cos(sa) * 330]; glowAt(tip, cTip, 150 + Math.sin(hT * .8) * 20); ctx.strokeStyle = 'rgba(' + cTip + ',.8)'; ctx.lineWidth = 8; for (let i = 0; i < 3; i++) { const a = hT * .7 + i * 2.1; ctx.beginPath(); ctx.moveTo(tip[0], tip[1]); ctx.lineTo(tip[0] + Math.cos(a) * 60, tip[1] + Math.sin(a) * 60); ctx.lineTo(tip[0] + Math.cos(a + .5) * 130, tip[1] + Math.sin(a + .5) * 130); ctx.stroke(); } }
       if (cFar) glowAt(wF, cFar, 120);
-      ctx.restore(); } }
+      ctx.restore(); }
+    if (cBig) { const e = Math.sin(Math.min(1, cBig[1]) * Math.PI); ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(hx, hy - 80, 20, hx, hy - 80, 620); g.addColorStop(0, 'rgba(255,255,255,' + (.5 * e).toFixed(3) + ')'); g.addColorStop(.35, 'rgba(' + cBig[0] + ',' + (.55 * e).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + cBig[0] + ',0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hx, hy - 80, 620, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = 'rgba(' + cBig[0] + ',' + (.9 * (1 - cBig[1])).toFixed(3) + ')'; ctx.lineWidth = 22; ctx.beginPath(); ctx.ellipse(dx, 0, 160 + cBig[1] * 520, 50 + cBig[1] * 160, 0, 0, 6.283); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,' + (.9 * e).toFixed(3) + ')'; for (let i = 0; i < 8; i++) { const a = i * .785 + hT * .2, r = 240 + cBig[1] * 260; ctx.beginPath(); ctx.arc(hx + Math.cos(a) * r, hy - 80 + Math.sin(a) * r * .8, 14 * e + 3, 0, 6.283); ctx.fill(); } ctx.restore(); } }
   const _drawComicL = drawComic;
   drawComic = function () {
     if (gl && inRun()) { const play = state === 'play';
@@ -2867,7 +2871,7 @@
     for (const c of VK.c) { if (VK.t < c.d || c.y > 60) continue; ctx.save(); ctx.translate(cx + c.x, cy + c.y); ctx.scale(Math.max(.3, Math.abs(Math.cos(c.r))), 1); icn(c.k, 0, 0, c.k === 'gold' ? 22 : 20, fade); ctx.restore(); } };
 
   const _drawTownRig = drawTown;
-  drawTown = function () { if (RIG.torso.ok) { const cx = W / 2, fy = 474 + btnOff, g = 250 / 1000; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(cx, fy + 2, 62, 15, 0, 0, 6.283); ctx.fill(); ctx.translate(cx - 6, fy); ctx.scale(g, g); const hc = hCast; hCast = null; drawRigHero(false, -1, 0); hCast = hc; ctx.restore(); ctx.filter = 'none'; ctx.globalAlpha = 1; }
+  drawTown = function () { if (RIG.torso.ok) { const cx = W / 2, fy = 481 + btnOff, g = 196 / 1000; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(cx, fy + 2, 50, 12, 0, 0, 6.283); ctx.fill(); ctx.translate(cx - 6, fy); ctx.scale(g, g); const hc = hCast; hCast = null; drawRigHero(false, -1, 0); hCast = hc; ctx.restore(); ctx.filter = 'none'; ctx.globalAlpha = 1; }
     _drawTownRig(); };
   const _sfr2 = startFloorRun; startFloorRun = function (f, resumed) { _sfr2(f, resumed); if (updReady && !resumed && !trial && f !== startFloor) { writeRun(); updGo(); } };
   (function () {
