@@ -213,11 +213,11 @@
     rev: { e: '👼', n: '부활의 깃털', max: 3, d: l => '쓰러지면 ' + l + '번 부활', cost: l => 400 * Math.pow(3, l) },
   };
   let meta = { gold: 0, up: { atk: 0, hp: 0, spd: 0, mag: 0, card: 0, rev: 0 }, best: 0, cp: 1, gear: 0, hid: [], streak: 0, lastPow: 0, eq: { w: 0, a: 0, r: 0 }, bless: { w: 0, a: 0, r: 0 }, stone: 0, dia: 0, hammer: 0, idleT: 0, att: { day: '', n: 0 } };
-  try { const s = JSON.parse(localStorage.getItem('dh-save-staff3') || 'null'); if (s) meta = Object.assign(meta, s, { up: Object.assign(meta.up, s.up || {}) }); } catch (e) {}
+  try { const s = JSON.parse(localStorage.getItem('dh-save-staff4') || 'null'); if (s) meta = Object.assign(meta, s, { up: Object.assign(meta.up, s.up || {}) }); } catch (e) {}
   if (!Array.isArray(meta.hid)) meta.hid = [];
   meta.eq = Object.assign({ w: 0, a: 0, r: 0 }, meta.eq || {}); meta.bless = Object.assign({ w: 0, a: 0, r: 0 }, meta.bless || {}); meta.att = Object.assign({ day: '', n: 0 }, meta.att || {});
   ['stone', 'dia', 'hammer'].forEach(k => { meta[k] = meta[k] || 0; }); meta.item = Object.assign({ w: null, a: null, r: null }, meta.item || {}); if (!Array.isArray(meta.bag)) meta.bag = []; if (!meta.idleT) meta.idleT = Date.now();
-  if (!meta.s3) { meta.s3 = 1; meta.w30pop = 1; meta.dia += 100; try { localStorage.setItem('dh-save-staff3', JSON.stringify(meta)); } catch (e) {} }
+  if (!meta.s3) { meta.s3 = 1; meta.w30pop = 1; meta.dia += 100; try { localStorage.setItem('dh-save-staff4', JSON.stringify(meta)); } catch (e) {} }
   meta.cp = Math.max(meta.cp || 1, Math.min(100, meta.best || 1));
   const TITLES = [[20, '던전 신입사원'], [50, '던전 대리'], [70, '던전 과장'], [100, '던전 부장님'], [150, '심연의 탐험가'], [200, '심연의 지배자']];
   if (!Array.isArray(meta.titles)) meta.titles = [];
@@ -284,10 +284,10 @@
   const ATT = [10, 10, 15, 15, 20, 20, 60];
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
   let attPop = meta.att.day !== today();
-  function claimAtt() { meta.att.n = (meta.att.n % 7) + 1; meta.att.day = today(); const v = ATT[meta.att.n - 1] + 5 * vipLv() + (meta.monthUntil && Date.now() < meta.monthUntil ? 50 : 0); meta.dia += v; if (meta.att.n === 7) meta.stone += 10; saveMeta(); attPop = false; sfx.chest(); townPop = { txt: '📅 출석 ' + meta.att.n + '일째!', sub: '💎 +' + v + (meta.att.n === 7 ? '   🔷 +10' : ''), t0: t }; if (meta.w30pop) { meta.w30pop = 0; saveMeta(); later2(130, () => { townPop = { txt: '🚩 시즌 3 · 모두 1층부터!', sub: '같은 조건으로 새 출발 · 선물 💎100', t0: t }; }); } }
+  function claimAtt() { meta.att.n = (meta.att.n % 7) + 1; meta.att.day = today(); const v = ATT[meta.att.n - 1] + 5 * vipLv() + (meta.monthUntil && Date.now() < meta.monthUntil ? 50 : 0); meta.dia += v; if (meta.att.n === 7) meta.stone += 10; saveMeta(); attPop = false; sfx.chest(); townPop = { txt: '📅 출석 ' + meta.att.n + '일째!', sub: '💎 +' + v + (meta.att.n === 7 ? '   🔷 +10' : ''), t0: t }; if (meta.w30pop) { meta.w30pop = 0; saveMeta(); later2(130, () => { townPop = { txt: '🚩 시즌 4 · 모두 1층부터!', sub: '같은 조건으로 새 출발 · 선물 💎100', t0: t }; }); } }
   const later2 = (n, fn) => setTimeout(fn, n * 16);
   let townPop = null;
-  if (meta.w30pop && !attPop) { meta.w30pop = 0; townPop = { txt: '🚩 시즌 3 · 모두 1층부터!', sub: '같은 조건으로 새 출발 · 선물 💎100', t0: 0 }; }
+  if (meta.w30pop && !attPop) { meta.w30pop = 0; townPop = { txt: '🚩 시즌 4 · 모두 1층부터!', sub: '같은 조건으로 새 출발 · 선물 💎100', t0: 0 }; }
   if ((meta.payRv || 0) < 3) { const was = meta.payRv || 0; meta.payRv = 3; let take = 0, minG = 2, did = 0, spent = 0;
     if (was === 0 && (meta.paid || 0) > 0) { did = 1; const bt = meta.bought || {}, G = { starter: [300, 30, 3], month: [300, 0, 0], grow: [1500, 100, 10], abyss: [5000, 400, 30], d1: [60, 0, 0], d2: [330, 0, 0], d3: [1200, 0, 0], d4: [4000, 0, 0], d5: [9000, 0, 0] };
       let gd = 0, gs = 0, gh = 0; Object.keys(bt).forEach(k => { if (G[k]) { gd += G[k][0] * bt[k]; gs += G[k][1] * bt[k]; gh += G[k][2] * bt[k]; } });
@@ -305,7 +305,7 @@
     for (let g = 4; g >= minG && take > 0; g--) { for (const k of ['w', 'a', 'r']) if (take > 0 && meta.item[k] && meta.item[k].g === g) { meta.item[k] = null; take--; }
       for (let bi = meta.bag.length - 1; bi >= 0 && take > 0; bi--) if (meta.bag[bi] && meta.bag[bi].g === g) { meta.bag.splice(bi, 1); take--; } }
     if (did) { townPop = { txt: '🔒 시연 결제가 회수됐어요', sub: '결제로 얻은 다이아 · 장비 · 강화를 되돌렸어요', t0: 0 }; try { setTimeout(() => { try { autoEquip(); saveMeta(); } catch (e) {} }, 800); } catch (e) {} }
-    try { localStorage.setItem('dh-save-staff3', JSON.stringify(meta)); } catch (e) {} }
+    try { localStorage.setItem('dh-save-staff4', JSON.stringify(meta)); } catch (e) {} }
   const DSHOP = [
     { e: '🔷', n: '강화석 10개', d: '장비 강화 재료', p: 50, f: () => { meta.stone += 10; } },
     { e: '🔨', n: '축복의 망치', d: '다음 강화 100% 성공', p: 60, f: () => { meta.hammer++; } },
@@ -362,10 +362,10 @@
     drawPopups(330);
   }
   function power() { const u = meta.up, g = gearT(); return Math.round(100 * Math.pow(1.07, u.atk) * Math.pow(1.08, g) * Math.sqrt(Math.pow(1.06, u.hp) * Math.pow(1.06, g) * eqHMul() / (1 - eqDR())) * (1 + u.spd * .02) * eqWMul() * (1 + meta.eq.r * .008)); }
-  const saveMeta = () => { if (trial) return; try { localStorage.setItem('dh-save-staff3', JSON.stringify(meta)); } catch (e) {} };
-  let runSave = null; try { runSave = JSON.parse(localStorage.getItem('dh-run-staff3') || 'null'); } catch (e) {}
-  const writeRun = () => { if (trial) return; runSave = { floor, startFloor, skills, lv: P.lv, xp: P.xp, need: P.need, hp: P.hp, runGold, kills: P.kills, revive: P.revive }; try { localStorage.setItem('dh-run-staff3', JSON.stringify(runSave)); } catch (e) {} };
-  const clearRun = () => { runSave = null; try { localStorage.removeItem('dh-run-staff3'); } catch (e) {} };
+  const saveMeta = () => { if (trial) return; try { localStorage.setItem('dh-save-staff4', JSON.stringify(meta)); } catch (e) {} };
+  let runSave = null; try { runSave = JSON.parse(localStorage.getItem('dh-run-staff4') || 'null'); } catch (e) {}
+  const writeRun = () => { if (trial) return; runSave = { floor, startFloor, skills, lv: P.lv, xp: P.xp, need: P.need, hp: P.hp, runGold, kills: P.kills, revive: P.revive }; try { localStorage.setItem('dh-run-staff4', JSON.stringify(runSave)); } catch (e) {} };
+  const clearRun = () => { runSave = null; try { localStorage.removeItem('dh-run-staff4'); } catch (e) {} };
 
   // ===================== CARDS =====================
   const CARDS = {
@@ -2083,7 +2083,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116203423'; let updReady = null;
+  const BUILD = '1116203608'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2195,7 +2195,7 @@
 
   let trial = null, trialRun = null, trialUp = 0;
   function startTrial(f) { trial = JSON.stringify(meta); trialRun = runSave; runSave = null; { const na = Math.round(natAtk(f)) + 4, ne = Math.max(0, Math.round(3 + (f - 30) * .2)); let up = 0; if (meta.up.atk < na) { meta.up.atk = na; up = 1; } if (meta.up.hp < na - 2) { meta.up.hp = na - 2; up = 1; } ['w', 'a', 'r'].forEach(k => { if (meta.eq[k] < ne) { meta.eq[k] = ne; up = 1; } }); if (meta.up.card < 3) meta.up.card = 3; if (meta.up.spd < 6) meta.up.spd = 6; if ((meta.gear || 0) < gearAt(Math.max(0, f - 1))) meta.gear = gearAt(Math.max(0, f - 1)); trialUp = up; } startRun(f); banner = '🎯 ' + f + '층 체험!'; bannerSub = trialUp ? '이 층에 맞는 강화로 체험해요 · 기록은 저장 안 돼요' : '체험은 기록 · 골드가 저장 안 돼요'; bannerT = 170; }
-  function endTrial() { if (!trial) return; const m = JSON.parse(trial); trial = null; Object.keys(meta).forEach(k => delete meta[k]); Object.assign(meta, m); runSave = trialRun; trialRun = null; lastDeath = null; saveMeta(); try { if (runSave) localStorage.setItem('dh-run-staff3', JSON.stringify(runSave)); } catch (e) {} }
+  function endTrial() { if (!trial) return; const m = JSON.parse(trial); trial = null; Object.keys(meta).forEach(k => delete meta[k]); Object.assign(meta, m); runSave = trialRun; trialRun = null; lastDeath = null; saveMeta(); try { if (runSave) localStorage.setItem('dh-run-staff4', JSON.stringify(runSave)); } catch (e) {} }
   const _endRun = endRun;
   endRun = function (won) { const tr = !!trial; _endRun(won); if (tr) { const lb = meta.lastBuild; endTrial(); lastDeath = null; townPop = { txt: '🎯 체험 끝!', sub: '기록은 원래대로예요', t0: t }; } };
   function drawTrialSel() {
