@@ -406,6 +406,10 @@
     Object.assign(P, { inv: 90, xp: r.xp, lv: r.lv, need: r.need, kills: r.kills, revive: r.revive, guard: false, guardT: 0, maxHp: 100 });
     recalc(); P.hp = Math.min(P.maxHp, Math.max(1, r.hp));
     pendingLv = 0; state = 'play'; startFloorRun(r.floor, true);
+    if (r.floor > 1) { const need = meta.up.card + Math.round(Math.min(r.floor * 1.2, 4 + r.floor * .6));
+      const have = Object.keys(skills).reduce((s, k) => s + (CARDS[k] && !CARDS[k].hidden ? skills[k] : 0), 0);
+      let lack = need - have;
+      if (lack > 0) { if (lack > 8) { autoCards(lack - 8); lack = 8; recalc(); } pendingLv = lack; banner = '🎁 모자란 카드 ' + lack + '장을 돌려드려요'; bannerSub = '업데이트로 잃은 카드를 다시 골라요'; bannerT = 200; openLevelUp(); } }
   }
   let runBest0 = 0, lastRunGold = 0, streakUp = false;
   function autoCards(n) {
@@ -2056,7 +2060,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116173644'; let updReady = null;
+  const BUILD = '1116174029'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
