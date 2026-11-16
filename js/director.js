@@ -69,7 +69,7 @@ function once(k) { if (S.marks[k]) return false; S.marks[k] = true; return true;
 
 // ───────── 수하 한마디 ─────────
 // 정해진 한마디(인연 대화 등): 수하 얼굴 + 이름 + 말
-function heroLine(who, text, life = 3.2) { if (TRAILER) return; const h = L.heroes[who]; if (!h) return; S.bubble = { text, name: `${h.title} ${h.name}`, who, x: 250, y: 352 /* 23:59 위 단추(빠른 보상)와 100% 겹침 → 조금 아래 */, age: 0, life }; }
+function heroLine(who, text, life = 3.2) { if (TRAILER) return; const h = L.heroes[who]; if (!h) return; const nar = innerWidth < 500; S.bubble = { text, name: `${h.title} ${h.name}`, who, x: 250, y: nar ? 286 : 352 /* 23:59 위 단추(빠른 보상)와 100% 겹침 → 조금 아래 */ /* 11-16 14:53 폰: 싸움 한가운데(머리 높이)를 가렸음 → 위로 · 짧게 */, age: 0, life: nar ? Math.min(life, 2.6) : life }; }
 function bondTalk(id) {
   const b = L.bonds[id], x = JB.BONDS.find(k => k.id === id); if (!b || !x) return; UI.toast(L.bonds.title, b.name); Snd.chime(1175);
   b.talk.forEach((text, i) => { const who = x.talk[i]; setTimeout(() => { heroLine(who, text, 3); UI.feed(`${L.heroes[who].name}: ${text}`); }, 1800 + i * 3100); });
@@ -640,10 +640,14 @@ function viewUpdate(realDt) {
   S.army = S.army.filter(a => !a.gone); fallenUpdate(dt); eliteUpdate(dt);
   evoUpdate(dt); armyFight(dt);
   const front = Math.max(S.army.some(a => !a.fly && a.c !== 3) ? armyFront() : 0, HF.front()) + 90;   /* 11-16 순서 #9 관문⑨: 앞줄을 적 바로 앞(70)에 세우니 적과 몸이 섞임 24% → 90 */   /* 11-16 순서 #9: 앞줄(방패 · 칼 · 창)이 다 쓰러지면 맨 뒤 궁수가 아니라 가운데 영웅이 맞섬 */   /* A판: 적이 커서 조금 더 떨어져 섬 */   /* 적은 맨 앞 쫄따구 앞에서 맞섬(쫄따구가 없으면 수하 앞) */
+  /* 11-16 14:53 관문㉛: 적끼리 몸이 69% 포개졌음(먼 화면에선 95 폭 안에 6~10마리) → 살아 있는 적에게 3줄 × 칸 자리를 나눠 줌(앞 칸 = 방패 · 보병 · 대장, 뒤 칸 = 궁수 · 사제) — 줄마다 깊이가 달라 겹치지 않음 */
+  if (FAR()) { const BK = { archer: 2, priest: 3 }, Lf = S.foes.filter(f => !f.dead && !f.flee && !f.fly && !f.charge).sort((p, q) => (BK[p.kind] || 0) - (BK[q.kind] || 0) || (p.slot ?? 99) - (q.slot ?? 99)); Lf.forEach((f, j) => { f.slot = j; f.scol = Math.floor(j / 3); f.srow = [1, 0, 2][j % 3]; }); }
   for (const f of S.foes) {
     if (f.dead) continue;
     if (f.flee) { f.x += 300 * dt; if (f.x > 1500) f.dead = true; continue; }
-    const fx = FAR() ? Math.min(VX1 - (UK() < 1 ? 235 : 170), Math.max(front, (S.army.some(a => !a.fly && a.c !== 3) || !HF.list.length) ? foeLine() : 430) + (f.off || 0) * 0.3) : Math.min(VX1 - (VW.w < 700 ? 95 : 130), front + (f.off || 0) * (VW.w < 700 ? 0.35 : VX1 < 1100 ? 0.65 : 1));   /* 18:40 먼 화면: 적은 오른쪽 끝 부근에 섬 · 11-15 폰은 오른쪽 단추 줄(설정 · 채팅 · 길드) 밑에 몸이 깔려서 65 더 안쪽 */   /* A판 03:18: 큰 적이 화면 오른쪽 끝에 반쯤 잘려 섰음 → 끝에서 130 안쪽 */   /* 좁은 화면은 앞뒤 흩는 폭을 반으로(화면 끝에 몰려 서지 않게) */   /* 화면 오른쪽 끝 안에 멈춤(11-13 대표님 「상대는 보이지도 않네」: 좁은 화면에서 궁수가 화면 밖에 섰음) */ if (f.kind === 'flyer' && f.tx2) {} else if (f.x > fx) f.x -= f.sp * dt * (FAR() && f.x > fx + 110 ? 2.4 : 1); else if (f.x < fx - 8) { f.x += Math.min(fx - f.x, 170 * dt); f.kbT = Math.max(f.kbT || 0, 0.05); } else f.x = fx + Math.sin(t * 9 + f.ph) * 3;   /* 11-16 순서 #9: 앞줄이 다시 솟으면 영웅까지 들어왔던 적이 밀려 나감(전엔 한 프레임에 제자리로 순간이동) */   /* 18:57 먼 화면: 적이 걸어 들어오다 화면 끝(단추 밑)에서 바로 쓰러져 「상대가 안 보였음」 → 맞붙는 줄까지는 뛰어 들어옴 */
+    if (FAR() && f.srow != null && !f.fly) { const ty = GY0(GROUND + 40, 680, (f.srow + 0.5) / 3) + Math.sin(f.ph) * 6; if (Math.abs(f.y - ty) > 1) { f.y += Math.sign(ty - f.y) * Math.min(70 * dt, Math.abs(ty - f.y)); f.d = clamp((f.y - GROUND - 40) / (680 - GROUND - 40), 0, 1); } }
+    const cap = VX1 - (UK() < 1 ? (innerWidth < 500 ? 140 : 235) : 170), base = Math.max(front, (S.army.some(a => !a.fly && a.c !== 3) || !HF.list.length) ? foeLine() : 430);
+    const fx = FAR() ? (f.scol != null ? Math.min(cap + 20, base + f.scol * clamp((cap - base) / 2, 36, 95) + [24, 0, 48][f.srow] * clamp((cap - base) / 190, 0.4, 1))   /* 관문⑨: 적을 앞줄보다 왼쪽으로 당기면 우리 편과 섞였음(26%) → 앞줄 뒤에서 남은 폭만큼만 벌림 */ : Math.min(cap, base + (f.off || 0) * 0.3)) : Math.min(VX1 - (VW.w < 700 ? 95 : 130), front + (f.off || 0) * (VW.w < 700 ? 0.35 : VX1 < 1100 ? 0.65 : 1));   /* 18:40 먼 화면: 적은 오른쪽 끝 부근에 섬 · 11-15 폰은 오른쪽 단추 줄(설정 · 채팅 · 길드) 밑에 몸이 깔려서 65 더 안쪽 */   /* A판 03:18: 큰 적이 화면 오른쪽 끝에 반쯤 잘려 섰음 → 끝에서 130 안쪽 */   /* 좁은 화면은 앞뒤 흩는 폭을 반으로(화면 끝에 몰려 서지 않게) */   /* 화면 오른쪽 끝 안에 멈춤(11-13 대표님 「상대는 보이지도 않네」: 좁은 화면에서 궁수가 화면 밖에 섰음) */ if (f.kind === 'flyer' && f.tx2) {} else if (f.x > fx) f.x -= f.sp * dt * (FAR() && f.x > fx + 110 ? 2.4 : 1); else if (f.x < fx - 8) { f.x += Math.min(fx - f.x, 170 * dt); f.kbT = Math.max(f.kbT || 0, 0.05); } else f.x = fx + Math.sin(t * 9 + f.ph) * 3;   /* 11-16 순서 #9: 앞줄이 다시 솟으면 영웅까지 들어왔던 적이 밀려 나감(전엔 한 프레임에 제자리로 순간이동) */   /* 18:57 먼 화면: 적이 걸어 들어오다 화면 끝(단추 밑)에서 바로 쓰러져 「상대가 안 보였음」 → 맞붙는 줄까지는 뛰어 들어옴 */
     if (S.phase === 'battle' && !UI.awakening && !(st.frozen > 0)) foeAct(f, dt, front);
   }
   for (const b of S.fshots || []) { b.age += dt; if (b.age >= b.life && !b.done) { b.done = true; if (b.t && !b.t.gone) HF.skelHurt(b.t); } }

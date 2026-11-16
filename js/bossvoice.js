@@ -33,7 +33,7 @@ const BV = {
     c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); setTimeout(() => c.classList.remove('on'), 1600);
     S.shake = Math.max(S.shake, 14); S.flash = Math.max(S.flash || 0, 0.25); Snd.slam && Snd.slam(0.7); Snd.smp && Snd.smp('stare', 0.6, 0, 0.9);
     S.giant.rage = 1; S.raged = true;
-    setTimeout(() => this.bubble(this.line(1), 2.2), 900);
+    setTimeout(() => { if (st.boss) this.bubble(this.line(1), 2.2); }, 1600);   /* 11-16 15:4x 폰: 「2페이지」 카드(1.6초)와 분노 대사가 겹쳤음 → 카드가 사라진 뒤 */
     st.seen.ph2 = (st.seen.ph2 || 0) + 1;
   },
   down(stage) { const t = this.line(2, stage); if (t) this.bubble(t, 1.6); },   /* 판이 넘어간 뒤라 잡은 보스의 판으로 고름(다음 지역 대사가 나왔음) */

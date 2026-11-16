@@ -379,7 +379,7 @@
   html:not(.trailer) #modal .box{font-size:14.5px}
   /* 세로로 긴 화면: 전장이 남는 공간을 먹고, 목록은 내용만큼(넘치면 스크롤) */
   html:not(.trailer) #app.tall #stagewrap{flex:1 0 auto!important}
-  html:not(.trailer) #app.tall #panel{flex:0 1 auto!important;min-height:0;max-height:52%}   /* 11-14 18:10 대표님 「밑에 업글 부분이 잘 보여야」: 42% → 52%(목록 2줄 → 3줄 넘게) */   /* 게임 틀이 세로로 길면(PC 창 포함 · 틀 비율로 판단) 전장이 남는 공간을 먹음 */
+  html:not(.trailer) #app.tall #panel{flex:0 1 auto!important;min-height:0;max-height:46%}   /* 11-16 14:53 「폰에서도 답답한 건 싫은데」: 전장 43% → 약 50%(아래 목록은 강화 카드 한 줄 + 장비 줄이 보이는 만큼) */   /* 11-14 18:10 대표님 「밑에 업글 부분이 잘 보여야」: 42% → 52%(목록 2줄 → 3줄 넘게) */   /* 게임 틀이 세로로 길면(PC 창 포함 · 틀 비율로 판단) 전장이 남는 공간을 먹음 */
   @media (max-width:420px){html:not(.trailer) #hud .r1 .chip{font-size:12px;padding:.22em .32em!important}html:not(.trailer) #hud .r1 .chip img.ic{width:15px;height:15px}html:not(.trailer) #hud .pips{gap:2px}}
   @media (max-width:420px){html:not(.trailer) #hud{gap:.15em!important;padding:.3em .3em!important}html:not(.trailer) #hud .chip{padding:.12em .34em!important}html:not(.trailer) #hud .r1 .chip.vip{padding:.22em .4em .22em .26em!important}html:not(.trailer) #hud .r2 .chip{flex:0 1 auto!important;min-width:0}html:not(.trailer) #hud .sp{min-width:0}}   /* 11-15 360 폭(대표님 폰)에서 칩이 넘쳐 귀빈이 화면 밖(잘림점검) → 여백 줄이고 귀빈은 왕관 + 숫자만 */
   /* 11-14 18:00 대표님 폰(갤럭시 S26 울트라 · 클로드 앱 안 384×665) 기준 다듬기 — 「위에도 밑에도 보기 불편」
@@ -394,8 +394,8 @@
   @media (max-width:520px){ html:not(.trailer) #stagewrap:has(#reraise.on) #toast{left:48%!important;right:3.3em!important} html:not(.trailer) #reraise{top:2.3em!important;max-width:44%;white-space:normal;line-height:1.25} }
   /* ⑤ 「오늘의 임무 ㄹ」: 임무 이름 칸이 한 글자로 눌려 이상한 글자처럼 보이던 것 → 이름 칸 최소 폭, 막대는 좁은 폰에서 숨김 */
   @media (max-width:520px){ #goal .gt{min-width:5.5em} #goal .gb{display:none} #goal{gap:.35em} }
-  @media (max-width:520px){ html:not(.trailer) #app.fold:not(.tall) #stagewrap{aspect-ratio:840/640!important} }   /* 18:10 클로드 앱 안(384×665)은 tall이 아니라 목록이 2줄뿐이던 것 → 전장을 조금 낮춰 목록 3줄 넘게 */
-  @media (min-width:521px){ html:not(.trailer) #app{width:min(100%,calc(100vh * 0.62),560px)} }
+  @media (max-width:520px){ html:not(.trailer) #app.fold:not(.tall) #stagewrap{aspect-ratio:840/700!important} }   /* 14:53 폰 전장 43% → 키움(답답함) */   /* 18:10 클로드 앱 안(384×665)은 tall이 아니라 목록이 2줄뿐이던 것 → 전장을 조금 낮춰 목록 3줄 넘게 */
+  @media (min-width:521px){ html:not(.trailer) #app{width:min(100%,calc(100vh * 0.62),760px)} }   /* 11-16 14:46 대표님(PC) 「지배자 캐릭터도 작고 · 화면이 답답」: PC 세로 틀 폭 상한 560 → 760(같은 세로 비율 · 캐릭터 약 1.25배) */
   html:not(.trailer) #combo{top:.2em!important;right:auto!important;left:50%;transform:translateX(-50%);text-align:center!important;display:flex;align-items:baseline;gap:.3em} #combo b{font-size:22px!important;display:inline!important} #combo.hot b{font-size:25px!important} #combo small{font-size:10px!important}
   /* ④ 「새로 열림」 알림이 두세 개 쌓여 지배자 머리 · 군단을 덮던 것: 하늘 맨 위에 최신 하나만, 글자 작게 */
   @media (max-width:520px){ html:not(.trailer) #toast{top:2.3em!important;left:22%!important;right:3.2em!important;align-items:flex-end!important} html:not(.trailer) #toast .toast{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}   /* 11-15 눈 확인: 카메라를 내리자 가운데 알림이 지배자 얼굴을 덮음 → 오른쪽으로(지배자는 왼쪽) */ html:not(.trailer) #toast .toast:not(:last-child){display:none} html:not(.trailer) #toast .toast{font-size:11.5px!important;padding:.3em .6em!important;line-height:1.35} }
@@ -708,29 +708,31 @@
   /* 11-16 11:39 새 대결 등장(대표님 「보스 VS 너무 허접」) — 전장 전체를 덮고 2.6초 · 누르면 넘어감 */
   #vsfx{position:absolute;inset:0;z-index:90;display:none;overflow:hidden;pointer-events:auto;cursor:pointer}
   #vsfx.go{display:block;animation:vsOut 2.6s linear forwards}
-  #vsfx .vbg{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 55%,rgba(60,0,10,.55),rgba(4,0,8,.92));animation:vbg .25s ease-out both}
+  #vsfx .vbg{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 55%,rgba(60,0,10,.55),rgba(4,0,8,.94));animation:vbg .25s ease-out both}
+  #vsfx .vbg:after{content:'';position:absolute;inset:-20%;background:repeating-linear-gradient(115deg,rgba(255,255,255,0) 0 22px,rgba(255,120,80,.10) 22px 25px);animation:vlines .4s linear infinite}   /* 속도선 */
+  @keyframes vlines{from{transform:translateX(0)}to{transform:translateX(-56px)}}
   #vsfx .vbolt{position:absolute;inset:0;width:100%;height:100%;opacity:0;animation:vbolt .5s .08s both}
   #vsfx .vbolt polyline{fill:none;stroke:#ff6a4a;stroke-width:1.6;stroke-linejoin:miter;filter:drop-shadow(0 0 3px #ff2a1a) drop-shadow(0 0 8px #ff2a1a);vector-effect:non-scaling-stroke}
   #vsfx .vbolt polyline{stroke-width:7}#vsfx .vbolt .b2{stroke:#fff;stroke-width:2.5}
-  #vsfx .vl,#vsfx .vr{position:absolute;top:10%;bottom:12%;width:54%;overflow:visible}#vsfx .vl{z-index:2}
+  #vsfx .vl,#vsfx .vr{position:absolute;top:0;bottom:0;width:60%;overflow:visible}#vsfx .vl{z-index:2}   /* 14:46 대표님 「VS 아직 그대로 · 더 작아졌네」: 칸을 전장 위아래 끝까지 · 그림을 크게 */
   #vsfx .vl{left:-4%;background:linear-gradient(110deg,rgba(42,11,82,.95) 0%,rgba(91,35,168,.9) 70%,rgba(138,76,255,.0) 100%);clip-path:polygon(0 0,100% 0,82% 100%,0 100%);animation:vsL .4s .18s cubic-bezier(.2,.9,.3,1.15) both}
   #vsfx .vr{right:-4%;clip-path:none;animation:vbR 2.6s linear both}
   #vsfx .vr:before{content:'';position:absolute;inset:0;background:linear-gradient(290deg,rgba(58,6,6,.95) 0%,rgba(161,26,20,.9) 70%,rgba(255,74,42,0) 100%);clip-path:polygon(18% 0,100% 0,100% 100%,0 100%);animation:vsR .35s .3s cubic-bezier(.2,.9,.3,1.1) both}
-  #vsfx img{position:absolute;bottom:-2%;height:auto;width:auto;max-height:112%;max-width:88%;filter:drop-shadow(0 0 14px #000)}   /* PC 세로 창에서 보스 그림이 지배자를 덮었음 → 칸 안에 맞춤 */
+  #vsfx img{position:absolute;bottom:0;height:96%;width:auto;max-width:none;filter:drop-shadow(0 0 14px #000)}   /* PC 세로 창에서 보스 그림이 지배자를 덮었음 → 칸 안에 맞춤 */
   #vsfx .vl img{left:4%;transform:scaleX(-1);filter:drop-shadow(0 0 10px #a46bff) drop-shadow(0 0 2px #000)}
   #vsfx .vdrop{position:absolute;inset:0;animation:vdrop .32s .3s cubic-bezier(.55,0,.9,.5) both}
-  #vsfx .vr img{right:0;max-height:120%;max-width:96%;filter:drop-shadow(0 0 12px #ff3a1a) drop-shadow(0 0 2px #000)}
+  #vsfx .vr img{right:-6%;height:118%;filter:drop-shadow(0 0 12px #ff3a1a) drop-shadow(0 0 2px #000)}
   #vsfx .vcrack{position:absolute;right:6%;bottom:-2%;width:70%;height:22%;opacity:0;animation:vfade .2s .6s both}
   #vsfx .vcrack polyline{fill:none;stroke:#ffb35a;stroke-width:2.2;filter:drop-shadow(0 0 4px #ff4a1a)}
   #vsfx .vdust{position:absolute;right:0;bottom:-8%;width:100%;height:30%;background:radial-gradient(60% 50% at 60% 80%,rgba(200,150,120,.55),transparent 70%);opacity:0;animation:vdust .9s .6s ease-out both}
   #vsfx .vnm{position:absolute;bottom:4%;font:900 15px 'Noto Sans KR',sans-serif;color:#fff;letter-spacing:.02em;text-shadow:0 2px 4px #000,0 0 10px #000;padding:.25em .8em;border-radius:6px;background:linear-gradient(#2a0b52e0,#14062ae0);border:1.5px solid #c99bff;animation:vstamp .3s .45s cubic-bezier(.3,1.6,.5,1) both}
-  #vsfx .vl .vnm{left:10%}
-  #vsfx .vr .vnm.vb{right:8%;bottom:4%;font-size:19px;color:#ffe9c8;background:linear-gradient(#5a0a06f0,#2a0402f0);border:2px solid #ffb35a;box-shadow:0 0 14px #ff3a1a99;text-align:center;animation-delay:.8s}
+  #vsfx .vl .vnm{left:4%;top:5%;bottom:auto}
+  #vsfx > .vnm.vb{z-index:3;left:0;right:0;bottom:3%;border-radius:0;font-size:clamp(22px,6vw,34px);letter-spacing:.04em;color:#ffe9c8;background:linear-gradient(#5a0a06f0,#2a0402f0);border:2px solid #ffb35a;box-shadow:0 0 14px #ff3a1a99;text-align:center;animation-delay:.8s}
   #vsfx .vnm small{display:block;font-size:.6em;font-weight:700;color:#ffb8a0;letter-spacing:.08em}
-  #vsfx .vsx{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font:italic 900 74px 'Noto Sans KR',sans-serif;background:linear-gradient(180deg,#fffbe8 0%,#ffe08a 38%,#c98a2a 52%,#ffe8a8 70%,#8a5212 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:2.5px #3a1200;filter:drop-shadow(0 0 10px #ff8a2a) drop-shadow(0 5px 0 #3a1200);animation:vsX2 .42s .55s cubic-bezier(.2,1.4,.4,1) both}
+  #vsfx .vsx{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);font:italic 900 clamp(84px,22vw,150px) 'Noto Sans KR',sans-serif;background:linear-gradient(180deg,#fffbe8 0%,#ffe08a 38%,#c98a2a 52%,#ffe8a8 70%,#8a5212 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:2.5px #3a1200;filter:drop-shadow(0 0 10px #ff8a2a) drop-shadow(0 5px 0 #3a1200);animation:vsX2 .42s .55s cubic-bezier(.2,1.4,.4,1) both}
   #vsfx .vspark{position:absolute;left:50%;top:42%}
   #vsfx .vspark i{position:absolute;width:5px;height:16px;margin:-8px -2px;border-radius:3px;background:linear-gradient(#fff,#ffcc4a,#ff5a1a00);transform:rotate(var(--a)) translateY(0);opacity:0;animation:vspk var(--t) .62s ease-out both}
-  #vsfx .vline,#vsfx .vsx,#vsfx .vspark,#vsfx .vflash{z-index:3}
+  #vsfx .vline,#vsfx .vsx,#vsfx .vspark,#vsfx .vflash{z-index:4}
   #vsfx .vline{position:absolute;right:6%;top:6%;max-width:62%;font:900 15px 'Noto Sans KR',sans-serif;color:#fff1e0;background:#1a0606e6;border:1.5px solid #ff8a5a;border-radius:12px;padding:.45em .8em;box-shadow:0 0 12px #ff3a1a88;animation:vline .3s 1.15s cubic-bezier(.3,1.5,.5,1) both}
   #vsfx .vflash{position:absolute;inset:0;background:#fff;opacity:0;animation:vflash .35s .42s ease-out both;pointer-events:none}
   @keyframes vbg{from{opacity:0}to{opacity:1}}
@@ -854,6 +856,13 @@
   .mrow b{font-size:14px;color:#ffe9b0}.mrow .mrew{margin-top:.25em;font-size:13px;color:#fff;display:flex;gap:.6em;align-items:center}.mrow .mrew img{width:18px;height:18px;vertical-align:middle;margin-right:2px}   /* 11-15 우편함 */
   .stars{font-size:14px;letter-spacing:1px;color:#5a4a70;margin:.1em 0}.stars i{font-style:normal}.stars i.on{color:#ffd23a;text-shadow:0 0 6px #ff9a20}.stars .st7{color:#ff4b5a;text-shadow:0 0 8px #ff1030;font-size:15px}.stars small{color:#c9a7ff;font-size:11px;letter-spacing:0}.ds.perk{color:#e9c8ff;font-size:11.5px}   /* 11-15 별 올리기 · 초월 */
   html:not(.trailer) #skillbar.raise #raiseBtn{flex:0 1 auto;width:min(60%,240px);margin:0 auto;padding:.28em .9em!important;font-size:15px;line-height:1.15}html:not(.trailer) #skillbar.raise #raiseBtn small{font-size:.66em}   /* 11-16 11:28 대표님 「일으켜라 버튼 너무 큰 거 아니냐」: 줄 전체 폭 · 높이 60 → 가운데 작은 단추 */
+  /* 11-16 14:53 대표님 「폰게임 노리는 거라 · 폰에서도 답답한 건 싫은데」: 폰은 오른쪽 기둥을 2배속 + ≡ 둘만(나머지는 ≡ 누르면 펼침) */
+  html:not(.trailer) #tools .col.r.nar:not(.open) > button:not([data-x="speed"]):not(.more){display:none}
+  html:not(.trailer) #tools .col.r.nar.open{background:rgba(12,4,24,.82);border-radius:14px;padding:.3em .15em}
+  html:not(.trailer) #tools .col.r .more .mi{display:block;font:900 22px/1 sans-serif;color:#e8dcff;margin:.15em 0 .05em}
+  html:not(.trailer) #tools .col.r .more.dot:after{content:'';position:absolute;right:4px;top:4px;width:9px;height:9px;border-radius:50%;background:#ff3a3a;box-shadow:0 0 6px #ff3a3a}
+  html:not(.trailer) #tools .col.r .more{position:relative}
+  @media (max-width:520px){ html:not(.trailer) .slot img.ci{height:40px!important;margin-bottom:.05em!important} }   /* 14:53 전장을 키운 만큼 아래 강화 카드 그림을 줄여 값 단추가 잘리지 않게 */
   #raiseBtn.pop{animation:rbPop .22s cubic-bezier(.3,1.6,.5,1)}@keyframes rbPop{0%{transform:scale(.88) translateY(4px);filter:brightness(1.6)}60%{transform:scale(1.07)}100%{transform:scale(1)}}   /* 11-15 일으켜라 누름감 */
 </style>
 </head>
@@ -873,7 +882,7 @@
     <!-- 11-14 17:55 「그림 비교 ①②③④」 시험 단추 지움: ③ 예전 개선 + 영상 장면으로 정함(16:30). 시험할 땐 주소에 ?style=2d 처럼 -->
     <button id="reraise"></button>
     <div id="testbar"></div>
-    <div id="ver">판 11-16 14:40</div>
+    <div id="ver">판 11-16 16:04</div>
   </div>
   <div id="grip"><i></i></div>
   <div id="skillbar"><button id="raiseBtn"></button><div id="slots"></div><button id="cast"></button></div>
@@ -887,25 +896,25 @@
 </div>
 <div id="modal"><div class="box"></div></div>
 <script>window.BUILD = '1115102811';</script>   <!-- 11-14 18:12 대표님 「바뀐 새 버전 줘, 저장된 거 주지 말고 첫 시작」: 판마다 저장 이름이 달라 새 판은 늘 1-1부터 -->
-<script src="lang_ko.js?v=1794807604"></script>
-<script src="balance.js?v=1794807604"></script>
-<script src="logic.js?v=1794807604"></script>
-<script src="js/base.js?v=1794807604"></script>
-<script src="js/sound.js?v=1794807604"></script>
-<script src="js/art.js?v=1794807604"></script>
-<script src="js/draw.js?v=1794807604"></script>
-<script src="js/director.js?v=1794807604"></script>
-<script src="js/field.js?v=1794807604"></script>
-<script src="js/thrall.js?v=1794807604"></script>
-<script src="js/brag.js?v=1794807604"></script>
-<script src="js/bosscharge.js?v=1794807604"></script>
-<script src="js/reward.js?v=1794807604"></script>
-<script src="js/dex.js?v=1794807604"></script>
-<script src="js/foefx.js?v=1794807604"></script><script src="js/bossvoice.js?v=1794807604"></script>
-<script src="js/ui.js?v=1794807604"></script>
-<script src="js/extra.js?v=1794807604"></script>
-<script src="js/social.js?v=1794807604"></script>
-<script src="js/legal.js?v=1794807604"></script>
-<script src="js/main.js?v=1794807604"></script>
+<script src="lang_ko.js?v=1794812683"></script>
+<script src="balance.js?v=1794812683"></script>
+<script src="logic.js?v=1794812683"></script>
+<script src="js/base.js?v=1794812683"></script>
+<script src="js/sound.js?v=1794812683"></script>
+<script src="js/art.js?v=1794812683"></script>
+<script src="js/draw.js?v=1794812683"></script>
+<script src="js/director.js?v=1794812683"></script>
+<script src="js/field.js?v=1794812683"></script>
+<script src="js/thrall.js?v=1794812683"></script>
+<script src="js/brag.js?v=1794812683"></script>
+<script src="js/bosscharge.js?v=1794812683"></script>
+<script src="js/reward.js?v=1794812683"></script>
+<script src="js/dex.js?v=1794812683"></script>
+<script src="js/foefx.js?v=1794812683"></script><script src="js/bossvoice.js?v=1794812683"></script>
+<script src="js/ui.js?v=1794812683"></script>
+<script src="js/extra.js?v=1794812683"></script>
+<script src="js/social.js?v=1794812683"></script>
+<script src="js/legal.js?v=1794812683"></script>
+<script src="js/main.js?v=1794812683"></script>
 </body>
 </html>

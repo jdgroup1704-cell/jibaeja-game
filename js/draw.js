@@ -357,7 +357,7 @@ const BAKE = {};
 function baked(key, img, filt) {   /* 필터 입힌 줄그림을 한 번만 만들어 둠(같은 필터면 다시 씀) */
   if (!filt || filt === 'none') return img;
   const k = key + '|' + filt; if (BAKE[k]) return BAKE[k];
-  const rs = img.width > 2000 ? 0.6 : 1, c = document.createElement('canvas'); c.width = Math.round(img.width * rs); c.height = Math.round(img.height * rs); const g = c.getContext('2d');   /* 11-16 큰 줄그림은 0.6배로 구움(메모리 1/3 · 화면엔 어차피 작게 그려짐) — 적 빛깔 변종이 늘어 */
+  const rs = img.width > 2000 && /^(foev|sumv)/.test(key) ? 0.6 : 1, c = document.createElement('canvas'); c.width = Math.round(img.width * rs); c.height = Math.round(img.height * rs); const g = c.getContext('2d');   /* 11-16 큰 줄그림은 0.6배로 구움(메모리 1/3 · 화면엔 어차피 작게 그려짐) — 적 빛깔 변종이 늘어 */
   if (!('filter' in g)) return (BAKE[k] = img);   /* 필터를 못 쓰는 브라우저는 그림 그대로 */
   g.filter = filt; g.drawImage(img, 0, 0, c.width, c.height); return (BAKE[k] = c);
 }
@@ -711,7 +711,7 @@ function drawLordA(L) {   /* 01:58 그림체 A 지배자: 숨쉬기 · 영창 �
   const VF = vl >= 10 ? 'saturate(1.15) brightness(1.06) ' : '', VG = vl >= 5 ? 'rgba(255,215,110,' : 'rgba(200,140,255,';   /* 귀빈은 색을 돌리지 않고(빨간 옷 · 초록 왕관이 됐음 — 후반_1 사진) 금빛 테두리만 */
   if (L.shotT > 0) L.shotT = Math.max(0, L.shotT - 1 / 60);
   const sp = L.shotT > 0 ? 1 - L.shotT / 0.28 : 1, at = sp < 1 ? (sp < 0.3 ? -sp / 0.3 * 0.4 : sp < 0.45 ? -0.4 + 1.4 * (sp - 0.3) / 0.15 : (1 - (sp - 0.45) / 0.55)) : 0;   /* 09:58 기본 공격: 살짝 뒤로 젖혀 모았다(0.08초) → 앞으로 쿡 내밀며 지팡이 구슬에서 발사 → 천천히 돌아옴 */
-  const br = 1 + 0.016 * Math.sin(S.t * 2.2), r = L.raise || 0, pk = Math.max(L.poke > 0 ? Math.sin(Math.min(1, L.poke / 0.25) * Math.PI) : 0, at), h = 362 * (1 + 0.05 * r), w = h * im.width / im.height;   /* 11-16 11:35 주인공이 가장 크게 330 → 362 */
+  const br = 1 + 0.016 * Math.sin(S.t * 2.2), r = L.raise || 0, pk = Math.max(L.poke > 0 ? Math.sin(Math.min(1, L.poke / 0.25) * Math.PI) : 0, at), h = 400 * (1 + 0.05 * r), w = h * im.width / im.height;   /* 14:46 대표님 「지배자 캐릭터도 작고」 362 → 400 */   /* 11-16 11:35 주인공이 가장 크게 330 → 362 */
   const LW = window.LORDW_OK ? need('lordw_attack') : null;   /* 11-16 08:44 대표님 「지배자 뒤돌아 때리고」: 이 영상 2~5번째 장면에서 몸을 뒤로 돌림 · 지팡이 둘레 초록 얼룩 · 보라 불꽃이 칸 끝에서 잘림 → 안 씀(깨끗한 정지 그림을 앞으로 쿡 내지름) */ if (LW && L.shotT > 0.2 && !(L.wA > 0) && r < 0.05 && (LM.bN || 0) % 2 === 0) L.wA = 0.6;   /* 두 번에 한 번만 크게 내지름(작게 쿡 → 크게 쭉, 박자) — 0.85초마다 큰 번쩍이면 화면이 덮임 */ if (L.wA > 0) L.wA -= 1 / 60;
   if (LW && L.wA > 0) {   /* 영상 내지르기 0.6초: 모음 → 앞으로 쭉 내질러 보석 번쩍 → 돌아옴, 끝 2장은 정지 그림과 섞어 이음 */
     const fi = (1 - L.wA / 0.6) * 15, pf = ctx.filter; L.pkx = 0; ctx.save(); ctx.translate(10, 34);

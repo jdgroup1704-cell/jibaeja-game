@@ -1,0 +1,23 @@
+// node 가림재기.js 폴더 [폰|pc] → JSON: 3-10 싸움 12초 동안 전장 위에 떠 있는 단추 · 글자 상자가 전장을 가린 넓이(%) 평균 · 최대 + 우리 편 · 적 몸이 서로 포개진 짝 비율(화면 기준) (관문 ㉛ 11-16 14:53 대표님 「폰게임 노리는 거라 · 폰에서도 답답한 건 싫은데」)
+const { chromium } = require('/opt/npm-tools/node_modules/playwright');
+const http = require('http'), fs = require('fs'), path = require('path');
+const dir = process.argv[2], vp = process.argv[3] || '폰', PORT = 8231 + (vp === 'pc' ? 0 : 1);
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
+const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(PORT);
+(async () => { const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const pg = await (await b.newContext(vp === 'pc' ? { viewport: { width: 1920, height: 960 }, deviceScaleFactor: 1 } : { viewport: { width: 360, height: 640 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto(`http://localhost:${PORT}/index.html`); await pg.waitForTimeout(3000); await pg.evaluate(() => document.getElementById('opening')?.click()); await pg.waitForTimeout(1500);
+  await pg.evaluate(() => { st.stage = st.best = 29; st.wave = 0; st.daysPlayed = 14; st.souls = 5e6; st.up.summon = 12; for (const h of JB.HEROES.slice(0, 4)) st.heroes[h.id] = { lv: 2, wp: 1 }; JB.squadFit(st); st.squad = st.squad.map((_, i) => JB.HEROES[i] ? JB.HEROES[i].id : null); st.login = { n: 1, last: st.day }; S.loginShown = 1; for (const k in st.seen) st.seen[k] = st.seen[k] || 9; UI.closeModal(); JB.startWave(st); setInterval(() => { if (document.getElementById('modal').style.display === 'flex') UI.closeModal(); }, 100); });
+  await pg.waitForTimeout(3000);
+  const R = await pg.evaluate(async () => { const sw = document.getElementById('stagewrap').getBoundingClientRect(), A = sw.width * sw.height, cov = [], ovl = []; const cr = cv.getBoundingClientRect();
+    const toCss = (x, y) => { const T = __VT; return [cr.left + (x * T.k + T.tx) * cr.width / cv.width, cr.top + (y * T.k + T.ty) * cr.height / cv.height]; };
+    for (let i = 0; i < 24; i++) { await new Promise(r => setTimeout(r, 500));
+      /* 전장 위 DOM: stagewrap 안의 보이는 요소 중 전장 칸이 아닌 것(캔버스 제외) — 겹치는 넓이를 격자로 셈 */
+      const els = [...document.querySelectorAll('#stagewrap *')].filter(e => e !== cv && e.offsetParent && getComputedStyle(e).visibility !== 'hidden' && +getComputedStyle(e).opacity > 0.3 && e.children.length === 0 || (e.tagName === 'BUTTON' && e.offsetParent));
+      const G = 40, cell = new Uint8Array(G * G); for (const e of els) { const r = e.getBoundingClientRect(); if (r.width < 4 || r.height < 4 || r.width * r.height > A * 0.6) continue; for (let gx = 0; gx < G; gx++) for (let gy = 0; gy < G; gy++) { const x = sw.left + (gx + 0.5) * sw.width / G, y = sw.top + (gy + 0.5) * sw.height / G; if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) cell[gy * G + gx] = 1; } }
+      cov.push(cell.reduce((a, b) => a + b, 0) / (G * G) * 100);
+      /* 몸 상자(화면): 우리 편 · 영웅 · 적 — 발(x,y)에서 키 높이만큼 · 폭 = 키 0.4 */
+      const B = []; for (const a of S.army) if (!a.fly && a.rise >= 1) B.push([a.x, a.y, 128 * 1.0, 0]); for (const h of HF.list) B.push([h.x, h.y, 150, 0]); for (const f of S.foes) if (!f.dead && !f.flee) B.push([f.x, f.y, 170, 1]);
+      const R2 = B.map(([x, y, h, k]) => { const [l, t] = toCss(x - h * 0.2, y - h), [r, bo] = toCss(x + h * 0.2, y); return [l, t, r, bo, k]; }); let n = 0, o = 0; for (let p = 0; p < R2.length; p++) for (let q = p + 1; q < R2.length; q++) { const ty = R2[p][4] + R2[q][4]; if (ty !== +(window.__TY ?? 9) && window.__TY != null) continue; n++; const a = R2[p], c = R2[q], w = Math.min(a[2], c[2]) - Math.max(a[0], c[0]), hh = Math.min(a[3], c[3]) - Math.max(a[1], c[1]); if (w > 0 && hh > 0 && w * hh > 0.3 * Math.min((a[2] - a[0]) * (a[3] - a[1]), (c[2] - c[0]) * (c[3] - c[1]))) o++; } ovl.push(n ? o / n * 100 : 0); }
+    const av = a => Math.round(a.reduce((x, y) => x + y, 0) / a.length), mx = a => Math.round(Math.max(...a)); const ch = document.querySelector('canvas').getBoundingClientRect(), sc = innerHeight;
+    return { 전장높이비율: Math.round(sw.height / innerHeight * 100), 가림평균: av(cov), 가림최대: mx(cov), 몸포개짐평균: av(ovl), 몸포개짐최대: mx(ovl), 인원: S.army.length + HF.list.length + S.foes.filter(f => !f.dead).length }; });
+  console.log(JSON.stringify({ 화면: vp, ...R, 오류: errs.slice(0, 3) })); await b.close(); srv.close(); })();

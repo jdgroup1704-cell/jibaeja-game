@@ -17,6 +17,7 @@ const EX = {
     UI.openModal(`<h3>${L.ad.title}</h3><p class="muted">${L.ad.body}</p><button class="btn big gold" data-x="adOk">${L.ad.ok}</button>`);
   },
   act(x, arg) {
+    if (x === 'more') { this.moreOpen = !this.moreOpen; this.render(); return; }   /* 11-16 14:53 폰 오른쪽 단추 기둥(전장 12%를 가림) → 2배속 + 「≡」 하나로 접고, 누르면 펼침 */
     if (typeof BRAG !== 'undefined' && BRAG.act(x)) return;
     if (x === 'nmSave') { const cl = v => (v || '').replace(/[<>"'&]/g, '').trim().slice(0, 8); st.myName = cl(document.getElementById('nmMe')?.value); st.rival = cl(document.getElementById('nmRv')?.value); UI.toast(L.names.title, L.names.saved(st.myName, st.rival)); UI.closeModal(); UI.render(true); return; }
     if (typeof DEX !== 'undefined' && DEX.act(x, arg)) return;   /* 11-16 #14 도감 보상 받기 */   /* 11-16 #11 자랑 카드 */
@@ -113,7 +114,8 @@ const EX = {
       fw = `<img src="art/chest${lg.full ? 3 : lg.h >= 4 ? 2 : lg.h >= 1 ? 1 : 0}.webp" alt=""><i class="fb"><i style="width:${lp}%"></i></i>${lg.h >= 1 ? `<b>${lg.full ? L.lchest.full : L.lchest.tap}</b>` : ''}`,
       sL = `<button data-x="lchest" class="lch${lg.full ? ' full' : lg.h >= 1 ? ' ready' : ''}">${IC('chest' + (lg.full ? 3 : lg.h >= 4 ? 2 : lg.h >= 1 ? 1 : 0))}${L.lchest.btn}<i class="lbar"><i style="width:${lp}%"></i></i></button>` + (JB.unlocked(st, 'grave') ? `<button data-x="quick">${IC('b_quick')}${L.quick.btn}${st.quickUsed < JB.C.QUICK_FREE ? ' •' : ''}</button>` : '');   /* 23:45 상점은 위 띠(귀빈 옆)로 — 왼쪽 줄에 전리품 · 빠른 보상 · 상점 셋이면 큰 판 표시와 겹침 */
     { const fc0 = $('fchest'); if (fc0) fc0.remove(); }   /* 03:15 대표님 「상자 좀 없애 다른 곳으로」: 전장 바닥 → 왼쪽 위 단추(빠른 보상 위) */
-    const tw = `<div class="col l">${sL}</div><div class="col r">${sR}</div>`; if ($('tools').dataset.w !== tw) { $('tools').dataset.w = tw; $('tools').innerHTML = tw; }   /* 11-14: 전장 좌우 가장자리 아이콘 기둥(왼쪽 보상·상점, 오른쪽 배속·설정). 같으면 안 건드림(누르는 중 사라짐 방지) */
+    const NAR = innerWidth < 500, dotR = /class="[^"]*(ready|dot)/.test(sR.split('</button>').slice(1).join('</button>')), sR2 = NAR ? sR.replace('</button>', '</button>' + `<button data-x="more" class="more${this.moreOpen ? ' on' : ''}${dotR ? ' dot' : ''}"><b class="mi">${this.moreOpen ? '✕' : '≡'}</b>${this.moreOpen ? L.ui.close || '닫기' : L.ui.more || '메뉴'}</button>`) : sR;
+    const tw = `<div class="col l">${sL}</div><div class="col r${NAR ? ' nar' : ''}${this.moreOpen ? ' open' : ''}">${sR2}</div>`; if ($('tools').dataset.w !== tw) { $('tools').dataset.w = tw; $('tools').innerHTML = tw; }   /* 11-14: 전장 좌우 가장자리 아이콘 기둥(왼쪽 보상·상점, 오른쪽 배속·설정). 같으면 안 건드림(누르는 중 사라짐 방지) */
     const m = Math.round(JB.C.MORALE_MAX * (st.morale || 0) * 100);
     if (m > 0) ($('hud').querySelector('.r2') || $('hud')).insertAdjacentHTML('beforeend', `<span class="chip mor" title="${L.moraleTip}">${L.morale(m)}</span>`);   /* 위 띠 둘째 줄(자원 옆)에 — 셋째 줄이 생기지 않게 */
   },
@@ -151,7 +153,7 @@ const EX = {
   const open = JB.autoUpOpen(st);
   if (!open) return u0() + (st.best >= 10 ? `<p class="muted">${L.autoUp.name}: ${L.autoUp.lock}</p>` : '');   // 잠겼을 땐 맨 위가 아니라 맨 아래 한 줄, 10판 전엔 숨김
   const tr = st.train || { lv: 0, t0: Date.now() }, need = JB.trainNeed(tr.lv), left = JB.trainLeft(st, Date.now()), trow = `<div class="row ur train"><img class="uic" src="art/i_army.webp" alt=""><div class="grow"><div class="nm">${L.train.name} <span class="lvb">${L.lv(tr.lv)}</span></div><div class="ds">${L.train.eff(Math.round(tr.lv * JB.C.TRAIN.atk * 100), Math.round(tr.lv * JB.C.TRAIN.soul * 100))}</div><div class="bar2"><i style="width:${(1 - left / need) * 100}%"></i></div><div class="ds mini">${L.train.next(L.time(Math.ceil(left / 1000)))}</div></div></div>`;
-  const html = u0().replace('<div class="bulk">', `<div class="bulk"><button class="auto${st.autoUp ? ' on' : ''}" data-act="autoUp" title="${L.autoUp.desc}"><img src="art/u_auto.webp" alt="">${L.autoUp.short(st.autoUp)}</button>`); const bi = html.indexOf('<div class="bulk">'), be = bi < 0 ? 0 : html.indexOf('</div>', bi) + 6; return html.slice(0, be) + trow + html.slice(be);   /* 수련 칸은 ×1/×10 줄 아래(위 임무 막대에 가리지 않게) */   /* 11-14 자동 강화를 한 줄 차지하던 칸 → ×1/×10/최대 옆 작은 단추(임무 막대에 반쯤 가려지던 문제) */
+  const html = u0().replace('<div class="bulk">', `<div class="bulk"><button class="auto${st.autoUp ? ' on' : ''}" data-act="autoUp" title="${L.autoUp.desc}"><img src="art/u_auto.webp" alt="">${L.autoUp.short(st.autoUp)}</button>`); const bi = html.indexOf('<div class="bulk">'), be = bi < 0 ? 0 : html.indexOf('</div>', bi) + 6; { const gi = html.search(/<div class="(gear|gbox|eq)/); if (gi > be) return html.slice(0, gi) + trow + html.slice(gi); } return html.slice(0, be) + trow + html.slice(be);   /* 11-16 15:2x 수련 칸이 강화 카드 위에 있어 폰에서 값 단추가 잘렸음 → 강화 카드 아래(장비 위)로 */   /* 수련 칸은 ×1/×10 줄 아래(위 임무 막대에 가리지 않게) */   /* 11-14 자동 강화를 한 줄 차지하던 칸 → ×1/×10/최대 옆 작은 단추(임무 막대에 반쯤 가려지던 문제) */
 }; }
 { const a0 = UI.act.bind(UI); UI.act = (a, arg) => { if (a === 'autoUp') { st.autoUp = !st.autoUp; UI.render(true); return; } if (a === 'evoAd') { EX.act('evoAd'); return; } a0(a, arg); }; }
 
