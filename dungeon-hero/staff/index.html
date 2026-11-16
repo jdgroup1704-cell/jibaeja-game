@@ -450,7 +450,7 @@
     recalc(); P.hp = P.maxHp;
     pendingLv = meta.up.card + Math.round(Math.max((sf - 1) * .6, Math.min(sf * 1.2, 4 + sf * .6) * (sf > 1 ? 1 : 0)));
     let fromBuild = 0;
-    if (meta.lastBuild) { const bud0 = Math.max(pendingLv, Object.keys(meta.lastBuild).reduce((s, k) => s + (CARDS[k] && !CARDS[k].hidden ? meta.lastBuild[k] : 0), 0)); let bud = bud0; const order = Object.keys(meta.lastBuild).filter(k => CARDS[k] && !CARDS[k].hidden).sort((a, b) => meta.lastBuild[b] - meta.lastBuild[a] || (CARDS[b].weapon ? 1 : 0) - (CARDS[a].weapon ? 1 : 0));
+    if (meta.lastBuild && !meta.buildNew) { const bud0 = Math.max(pendingLv, Object.keys(meta.lastBuild).reduce((s, k) => s + (CARDS[k] && !CARDS[k].hidden ? meta.lastBuild[k] : 0), 0)); let bud = bud0; const order = Object.keys(meta.lastBuild).filter(k => CARDS[k] && !CARDS[k].hidden).sort((a, b) => meta.lastBuild[b] - meta.lastBuild[a] || (CARDS[b].weapon ? 1 : 0) - (CARDS[a].weapon ? 1 : 0));
       for (const k of order) { while (bud > 0 && lvOf(k) < Math.min(meta.lastBuild[k], CARDS[k].max)) { skills[k] = lvOf(k) + 1; bud--; } }
       HIDDEN.forEach(h => { if (meta.lastBuild[h]) skills[h] = 1; });
       let extra = 0; if (bud > 0) { extra = Math.min(8, bud); if (bud > extra) autoCards(bud - extra); } fromBuild = bud0; pendingLv = extra; recalc(); P.hp = P.maxHp;
@@ -1986,7 +1986,7 @@
     txt(floor + '층', W / 2 + 30, 24, 22, '#ffd27a', FT);
     txt('💰 ' + runGold.toLocaleString(), W / 2 + 30, 50, 15, '#ffd34d');
     txt('⚔ ' + P.kills, W - 40, 74, 13, '#c8a888');
-    let ix = 60; Object.keys(skills).forEach(k => { if (!lvOf(k)) return; txt(CARDS[k].e, ix, 76, 15, '#fff', FB, 'center', 'rgba(0,0,0,0)'); txt(lvOf(k), ix + 10, 82, 10, '#ffc864'); ix += 26; });
+    { let ii = 0; Object.keys(skills).forEach(k => { if (!lvOf(k) || !CARDS[k]) return; const ix = 60 + (ii % 12) * 26, iy = 76 + Math.floor(ii / 12) * 21; txt(CARDS[k].e, ix, iy, 15, '#fff', FB, 'center', 'rgba(0,0,0,0)'); txt(lvOf(k), ix + 10, iy + 6, 10, '#ffc864'); ii++; }); }
     if (boss && !boss.dead) { const bw = W - 40; txt((boss.final ? '최종 보스 ' + boss.final + '/3 · ' : '') + boss.def.n, W / 2, R.y0 + 10, 15, '#ffb0a0', FT); ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(20, R.y0 + 20, bw, 8); ctx.fillStyle = boss.phase2 ? '#ff3b3b' : '#e8702c'; ctx.fillRect(20, R.y0 + 20, bw * Math.max(0, boss.hp / boss.maxHp), 8); }
     if (boss && !boss.dead) { const bw = W - 40; ctx.fillStyle = '#000'; [1, 2].forEach(i => ctx.fillRect(20 + bw * i / 3 - 2, R.y0 + 16, 4, 16)); if (boss.stun > 0) txt('그로기! 지금 공격!', W / 2, R.y0 + 42, 14, '#fff38a', FB); }
     else if (!cleared && floor % 5) txt('남은 적 ' + (spawnLeft + enemies.length), W / 2, R.y0 + 14, 13, '#c8a888');
@@ -2008,7 +2008,7 @@
     if (state === 'dshop') { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawDShop(); ctx.restore(); return; }
     if (state === 'town' && attPop) { drawTown(); buttons = []; drawAtt(); return; }
     if (state !== 'town' || !chatPop) chatHide();
-    if (state === 'town') { drawTown(); if (chatPop) { buttons = []; drawChat(); return; } if (mailPop) { buttons = []; drawMail(); return; } if (rankPop) { buttons = []; drawRank(); return; } if (acctPop) { buttons = []; drawAcct(); return; } if (offerPop) { buttons = []; drawOffer(); return; } drawPopups(TOWN2 ? 122 : 320); return; }
+    if (state === 'town') { drawTown(); if (floorPop) { buttons = []; drawFloorPick(); return; } if (chatPop) { buttons = []; drawChat(); return; } if (mailPop) { buttons = []; drawMail(); return; } if (rankPop) { buttons = []; drawRank(); return; } if (acctPop) { buttons = []; drawAcct(); return; } if (offerPop) { buttons = []; drawOffer(); return; } drawPopups(TOWN2 ? 122 : 320); return; }
     ctx.save();
     if (gl) overlayFX();
     drawComic();
@@ -2038,6 +2038,7 @@
     ctx.fillStyle = `rgba(5,3,8,${Math.min(.85, overT / 40)})`; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
     if (overT < 25) return;
     const win = state === 'victory';
+    ctx.fillStyle = 'rgba(10,6,12,.94)'; rrect(22, 150, W - 44, 290, 20); ctx.fill(); ctx.strokeStyle = win ? 'rgba(255,210,120,.55)' : 'rgba(255,110,90,.45)'; ctx.lineWidth = 2; ctx.stroke();
     txt(win ? (floor >= 200 ? '심연 정복!' : '100층 정복!') : '쓰러졌다…', W / 2, 200, 48, win ? '#ffd27a' : '#ff6a5a', FT);
     if (win) txt('최종 보스까지 쓰러뜨린 전설의 영웅!', W / 2, 250, 18, '#fff');
     if (win && floor < 200) txt('🌌 심연 101~200층이 열렸어요 · 장비 강화 +50까지!', W / 2, 274, 15, '#d8a8ff');
@@ -2048,18 +2049,18 @@
     if (false) txt('🔥 포기하지 않는 용기 Lv ' + meta.streak + '! 다음 도전 공격·체력 +' + meta.streak * 8 + '%', W / 2, 424, 14, '#ff9a5a');
     else if (!win && meta.best > runBest0) txt('🎉 새 기록! 최고 ' + meta.best + '층', W / 2, 424, 16, '#ffd34d');
     if (overT > 50 && !win && lastDeath && !lastDeath.used && !trial) { const rc = Math.max(10, REVIVE_BASE - 6 * vipLv()), can = meta.dia >= rc; button(can ? '💎 ' + rc + ' · 이 자리에서 부활' + (boss && !boss.dead && boss.maxHp ? ' · 보스 체력 ' + Math.max(1, Math.ceil(boss.hp / boss.maxHp * 100)) + '% 그대로' : ' · 남은 적 그대로') : '💎 ' + rc + ' 부활 · 다이아 충전하기', 30, 688, W - 60, 50, can ? diaRevive : () => openShop('over'), true, false); }
-    if (overT > 50 && !win && !trial && (meta.streak || 0) >= 3) txt('💡 ' + (meta.streak) + '번째 도전… 상점의 성장 패키지로 벽을 넘을 수 있어요', W / 2, 752, 12, '#ffd34d');
+    if (overT > 50 && !win && !trial) button(meta.buildNew ? '🎲 다음 판 스킬: 새로 찍기  (누르면 바뀜)' : '🔁 다음 판 스킬: 지난 스킬 그대로  (누르면 바뀜)', 50, 746, W - 100, 34, buildToggle, false);
     if (overT > 50) {
       const n = affordable().length;
       if (n) {
         ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(W / 2, 479, 170, '255,200,80', .2 + .1 * Math.sin(t * .12)); ctx.restore();
         button('🛠️ 모은 골드로 강해지기! (' + n + '개)', 40, 450, W - 80, 58, () => { state = 'shop'; }, true);
         if (win) button('⚒️ 대장간', 120, 580, W - 240, 42, () => { state = 'forge'; }, false);
-        if (!win) button('🔁 그냥 다시 도전 (' + (meta.cp || 1) + '층부터)', 70, 520, W - 140, 46, () => startRun(meta.cp || 1), false);
+        if (!win) button('🔁 그냥 다시 도전 (' + (meta.cp || 1) + '층부터)', 70, 520, W - 140, 46, () => retryGo(meta.cp || 1), false);
         button('🏰 마을로', 120, win ? 520 : 578, W - 240, 42, () => { state = 'town'; }, false);
         txt('💡 강화하면 공격력·체력이 영원히 올라요!', W / 2, 650, 15, '#ffd34d');
       } else {
-        if (!win) button('🔁 다시 도전 (' + (meta.cp || 1) + '층부터)', 50, 450, W - 100, 58, () => startRun(meta.cp || 1), true);
+        if (!win) button('🔁 다시 도전 (' + (meta.cp || 1) + '층부터)', 50, 450, W - 100, 58, () => retryGo(meta.cp || 1), true);
         button('🛠️ 강화 상점', 90, win ? 450 : 520, W - 180, 48, () => { state = 'shop'; }, false);
         button('🏰 마을로', 120, win ? 510 : 580, W - 240, 44, () => { state = 'town'; }, false);
         if (!win && (meta.cp || 1) % 5 === 0 && meta.cp > 5) button('💰 골드 모으며 ' + (meta.cp - 4) + '층부터', 90, 634, W - 180, 40, () => startRun(meta.cp - 4), false);
@@ -2089,7 +2090,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1117004024'; let updReady = null;
+  const BUILD = '1117005504'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2348,6 +2349,8 @@
   drawHUD = function () { if (gl) for (const f of fx) if (f.k === 'slash') { const [cx, cy] = project(P.x, P.y, .9), q = 1 - f.life / f.max, wi = meta.item && meta.item.w, wg = wi ? wi.g : 0, col = wg >= 1 ? IG[wg][1] : '#e8f4ff', R0 = 44 + wg * 5 + Math.min(50, meta.eq.w) * .4, dir = f.alt ? 1 : -1, a0 = f.a - dir * 1.25 + dir * q * 1.3, a1 = a0 + dir * 1.25;
       ctx.save(); ctx.translate(cx, cy); ctx.scale(1, .62); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
       for (let j = 0; j < (wg >= 3 ? 3 : 2); j++) { ctx.globalAlpha = (1 - q) * (j ? .55 : .9); ctx.strokeStyle = j === 0 ? '#ffffff' : col; ctx.lineWidth = j === 0 ? 3 : 11 * (1 - q * .5) + j * 4; ctx.beginPath(); ctx.arc(0, 0, R0 + j * 7 + q * 10, Math.min(a0, a1), Math.max(a0, a1)); ctx.stroke(); }
+      if (wg >= 3) { ctx.globalAlpha = (1 - q) * .4; ctx.strokeStyle = col; ctx.lineWidth = 6 * (1 - q * .6); ctx.beginPath(); ctx.arc(0, 0, R0 + 30 + q * 30, Math.min(a0, a1) - .2, Math.max(a0, a1) + .2); ctx.stroke(); }
+      if (wg >= 4) { ctx.globalAlpha = (1 - q) * .95; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; for (let j = 0; j < 4; j++) { const aa = Math.min(a0, a1) + (j + .5) / 4 * 1.25, r1 = R0 - 6, r2 = R0 + 46 + 12 * Math.sin(f.life * 3 + j * 2.1); ctx.beginPath(); ctx.moveTo(Math.cos(aa) * r1, Math.sin(aa) * r1); ctx.lineTo(Math.cos(aa + .08) * (r1 + r2) / 2, Math.sin(aa + .08) * (r1 + r2) / 2); ctx.lineTo(Math.cos(aa - .05) * r2, Math.sin(aa - .05) * r2); ctx.stroke(); } }
       ctx.restore(); ctx.globalAlpha = 1; }
     _drawHUDsl(); };
   const _drawHUDme = drawHUD;
@@ -2571,7 +2574,7 @@
   // ===================== 새 스킬 (무기 7 · 보조 5 · 히든 7) =====================
   Object.assign(CARDS, {
     chakram: { e: '🥏', n: '차크람', max: 5, w: 1, weapon: 1, d: l => l === 1 ? '적 사이를 튕겨 다니는 원반을 던져요' : '튕김 +1 · 피해 UP' },
-    mine: { e: '💣', n: '폭탄', max: 5, w: 1, weapon: 1, d: l => l === 1 ? '발밑에 폭탄을 놓아요 · 적이 밟으면 쾅!' : '폭발 범위·피해 UP' },
+    mine: { e: '💣', n: '폭탄', max: 5, w: 1, weapon: 1, d: l => l === 1 ? '가까운 적에게 폭탄을 던져요 · 떨어지면 쾅!' : '폭발 범위·피해 UP' },
     lance: { e: '🔱', n: '관통 창', max: 5, w: 1, weapon: 1, d: l => l === 1 ? '일직선의 적을 전부 꿰뚫어요' : '피해 UP · 더 굵게' },
     spirit: { e: '🧚', n: '수호 정령', max: 5, w: 1, weapon: 1, d: l => l === 1 ? '정령이 따라다니며 적을 쏴요' : l % 2 ? '정령 +1' : '정령 피해 UP · 더 자주' },
     quake: { e: '🌋', n: '대지 강타', max: 5, w: 1, weapon: 1, d: l => l === 1 ? '주변 땅을 울려 적을 밀어내요' : '범위·피해 UP' },
@@ -2608,7 +2611,7 @@
     let L;
     if ((L = lvOf('regen'))) { nsReg += k; if (nsReg >= 300) { nsReg = 0; if (P.hp < P.maxHp) { const v = Math.max(1, Math.round(P.maxHp * .005 * L)); P.hp = Math.min(P.maxHp, P.hp + v); nums.push({ x: P.x, y: P.y - 30, v: '+' + v, life: 40, heal: 1 }); } } }
     if ((L = lvOf('chakram')) && cd('ck', Math.max(60, 130 - L * 12))) { const tg = nearest(P, 380); if (tg) { const vd = lvOf('vortexdisc'), n = 1 + (vd ? 2 : 0), used0 = new Set(); for (let i = 0; i < n; i++) { const g = i ? (nearest(P, 380, used0) || tg) : tg; used0.add(g); NS.push({ k: 'ck', x: P.x, y: P.y, tg: g, hops: 2 + L + (vd ? 4 : 0), dmg: (12 + L * 6) * (vd ? 1.5 : 1), used: new Set(), life: 260, a: 0, vd }); } try { sfx.axe(); } catch (e) {} } else NT.ck = 10; }
-    if ((L = lvOf('mine')) && cd('mn', Math.max(80, 170 - L * 16))) { if (nearest(P, 420)) { const sn = lvOf('supernova'); NS.push({ k: 'mn', x: P.x, y: P.y, t: 70, arm: 12, r: 55 + L * 6, dmg: (26 + L * 12) * (sn ? 1.6 : 1), sn, life: 999 }); } else NT.mn = 15; }
+    if ((L = lvOf('mine')) && cd('mn', Math.max(80, 170 - L * 16))) { const tgM = nearest(P, 420); if (tgM) { const sn = lvOf('supernova'), txM = clamp(tgM.x + (P.x - tgM.x) * .1, R.x0 + 16, R.x1 - 16), tyM = clamp(tgM.y + (P.y - tgM.y) * .1, R.y0 + 16, R.y1 - 16); NS.push({ k: 'mn', x: P.x, y: P.y, x0: P.x, y0: P.y, tx: txM, ty: tyM, fl: 24, flM: 24, t: 70, arm: 12, r: 55 + L * 6, dmg: (26 + L * 12) * (sn ? 1.6 : 1), sn, life: 999 }); } else NT.mn = 15; }
     if ((L = lvOf('lance')) && cd('ln', Math.max(75, 160 - L * 15))) { const tg = nearest(P, 420); if (tg) { const a0 = Math.atan2(tg.y - P.y, tg.x - P.x), dg = lvOf('dragoon'), w = 14 + L * 3; (dg ? [a0 - .28, a0, a0 + .28] : [a0]).forEach(a => { const c = Math.cos(a), s = Math.sin(a); for (const e of targets()) { const dx = e.x - P.x, dy = e.y - P.y, al = dx * c + dy * s, pp = Math.abs(-dx * s + dy * c); if (al > 0 && al < 520 && pp < w + e.r) damage(e, (26 + L * 11) * (dg ? 1.6 : 1), { kb: 2 }); } NS.push({ k: 'ln', x: P.x, y: P.y, a, len: 520, w, life: 12, max: 12, dg }); }); try { sfx.zap(); } catch (e) {} } else NT.ln = 10; }
     if ((L = lvOf('spirit'))) { nsA += .045 * k; const lg = lvOf('legion'), n = 1 + Math.floor(L / 2) + (lg ? 3 : 0), per = Math.max(34, 62 - L * 5) / (lg ? 2 : 1); while (nsSp.length < n) nsSp.push({ t: 20 + nsSp.length * 9 });
       for (let i = 0; i < n; i++) { const sp = nsSp[i], a = nsA + i / n * 6.283; sp.x = P.x + Math.cos(a) * 44; sp.y = P.y + Math.sin(a) * 30 - 6; sp.t -= hk; if (sp.t <= 0) { const tg = nearest(sp, 300); if (tg) { sp.t = per; NS.push({ k: 'sb', x: sp.x, y: sp.y, tg, dmg: 8 + L * 3, life: 90, lg }); } else sp.t = 8; } } } else if (nsSp.length) nsSp = [];
@@ -2617,7 +2620,7 @@
     if ((L = lvOf('moon')) && cd('mo', Math.max(60, 140 - L * 13))) { const tg = nearest(P, 400); if (tg) { const a = Math.atan2(tg.y - P.y, tg.x - P.x), ec = lvOf('eclipse'), LL = L; (ec ? [a, a + Math.PI] : [a]).forEach(d => { for (let j = 0; j < (LL >= 3 ? 2 : 1); j++) later(j * 9, () => NS.push({ k: 'mo', x: P.x, y: P.y, vx: Math.cos(d) * 5.2, vy: Math.sin(d) * 5.2, a: d, r: (24 + LL * 3) * (ec ? 1.3 : 1), dmg: (15 + LL * 7) * (ec ? 1.6 : 1), hit: new Set(), life: 70, ec })); }); try { sfx.shoot(); } catch (e) {} } else NT.mo = 10; }
     for (const o of NS) { o.life -= k;
       if (o.k === 'ck') { o.a += .5 * k; if (!o.tg || o.tg.hp <= 0) { o.tg = nearest(o, 240, o.used); if (!o.tg) { o.life = 0; continue; } } const dx = o.tg.x - o.x, dy = o.tg.y - o.y, d = Math.hypot(dx, dy) || 1; o.x += dx / d * 9 * k; o.y += dy / d * 9 * k; if (d < o.tg.r + 14) { damage(o.tg, o.dmg, { kb: 2 }); burstFx(o.x, o.y, 5, o.vd ? '#c8a0ff' : '#9fe8ff'); o.used.add(o.tg); o.hops--; o.tg = o.hops > 0 ? nearest(o, 240, o.used) : null; if (!o.tg) { if (o.hops > 0 && o.used.size > 1) { o.used = new Set([...o.used].slice(-1)); o.tg = nearest(o, 240, o.used); } if (!o.tg) o.life = 0; } } }
-      else if (o.k === 'mn') { o.t -= k; o.arm -= k; let go = o.t <= 0; if (!go && o.arm <= 0) for (const e of targets()) if (Math.hypot(e.x - o.x, e.y - o.y) < 22 + e.r) { go = true; break; } if (go) { o.life = 0; const x = o.x, y = o.y, r = o.r, dm = o.dmg; nsBoom(x, y, r, dm); if (o.sn) for (let i = 0; i < 3; i++) later(8 + i * 6, () => nsBoom(x + rnd(-75, 75), y + rnd(-75, 75), r * .7, dm * .5, '255,120,200')); } }
+      else if (o.k === 'mn') { if (o.fl > 0) { o.fl -= k; const q = 1 - Math.max(0, o.fl) / o.flM; o.x = o.x0 + (o.tx - o.x0) * q; o.y = o.y0 + (o.ty - o.y0) * q; if (o.fl > 0) continue; o.t = 0; } o.t -= k; o.arm -= k; let go = o.t <= 0; if (!go && o.arm <= 0) for (const e of targets()) if (Math.hypot(e.x - o.x, e.y - o.y) < 22 + e.r) { go = true; break; } if (go) { o.life = 0; const x = o.x, y = o.y, r = o.r, dm = o.dmg; nsBoom(x, y, r, dm); if (o.sn) for (let i = 0; i < 3; i++) later(8 + i * 6, () => nsBoom(x + rnd(-75, 75), y + rnd(-75, 75), r * .7, dm * .5, '255,120,200')); } }
       else if (o.k === 'sb') { if (!o.tg || o.tg.hp <= 0) { o.life = 0; continue; } const dx = o.tg.x - o.x, dy = o.tg.y - o.y, d = Math.hypot(dx, dy) || 1; o.x += dx / d * 7.5 * k; o.y += dy / d * 7.5 * k; if (d < o.tg.r + 9) { damage(o.tg, o.dmg, { noKb: 1 }); burstFx(o.x, o.y, 3, o.lg ? '#ffe9a0' : '#a8ffd8'); o.life = 0; } }
       else if (o.k === 'vn') { if (o.pl) { if (!o.tg || o.tg.hp <= 0) o.tg = nearest(o, 260); if (o.tg) { const dx = o.tg.x - o.x, dy = o.tg.y - o.y, d = Math.hypot(dx, dy) || 1; if (d > 6) { o.x += dx / d * 1.3 * k; o.y += dy / d * 1.3 * k; } } } o.tk -= k; if (o.tk <= 0) { o.tk = 20; for (const e of targets()) if (Math.hypot(e.x - o.x, e.y - o.y) < o.r + e.r) damage(e, o.dmg, { noKb: 1 }); } }
       else if (o.k === 'mo') { o.x += o.vx * k; o.y += o.vy * k; if (o.x < R.x0 - 30 || o.x > R.x1 + 30 || o.y < R.y0 - 30 || o.y > R.y1 + 30) o.life = 0; for (const e of targets()) { if (o.hit.has(e)) continue; if (Math.hypot(e.x - o.x, e.y - o.y) < o.r + e.r) { o.hit.add(e); damage(e, o.dmg, { kb: 2 }); } } } }
@@ -2629,7 +2632,9 @@
       for (const o of NS) {
         if (o.k === 'vn') { const [cx, cy, rx, ry] = gr(o.x, o.y, o.r), al = Math.min(1, o.life / 30, (o.max - o.life) / 14); const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, rx); g.addColorStop(0, (o.pl ? 'rgba(190,90,230,' : 'rgba(110,220,90,') + (.42 * al).toFixed(3) + ')'); g.addColorStop(1, (o.pl ? 'rgba(120,40,160,0)' : 'rgba(50,140,40,0)')); ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.fill();
           ctx.fillStyle = (o.pl ? 'rgba(230,170,255,' : 'rgba(190,255,150,') + (.7 * al).toFixed(2) + ')'; for (let i = 0; i < 6; i++) { const a = i * 1.05 + t * .03, q = ((t * .02 + i * .37) % 1); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rx * .6, cy + Math.sin(a) * ry * .6 - q * 22, 3.2 * (1 - q), 0, 6.283); ctx.fill(); } }
-        else if (o.k === 'mn') { const [cx, cy] = project(o.x, o.y, .3), pu = .6 + .4 * Math.sin(t * (o.t < 25 ? .9 : .35)); ctx.fillStyle = 'rgba(30,24,30,.95)'; ctx.beginPath(); ctx.arc(cx, cy, 9, 0, 6.283); ctx.fill(); ctx.fillStyle = 'rgba(255,' + (o.sn ? '110,200' : '90,50') + ',' + pu.toFixed(2) + ')'; ctx.beginPath(); ctx.arc(cx, cy, 4.5, 0, 6.283); ctx.fill(); ctx.strokeStyle = 'rgba(255,170,90,' + (.25 + .3 * pu).toFixed(2) + ')'; ctx.lineWidth = 2; const [gx, gy, rx, ry] = gr(o.x, o.y, o.r); ctx.setLineDash([6, 7]); ctx.beginPath(); ctx.ellipse(gx, gy, rx, ry, 0, 0, 6.283); ctx.stroke(); ctx.setLineDash([]); }
+        else if (o.k === 'mn') { const fly = o.fl > 0, zq = fly ? Math.sin((1 - o.fl / o.flM) * Math.PI) : 0, [cx, cy] = project(o.x, o.y, .3 + zq * 2.8), pu = fly ? 1 : .6 + .4 * Math.sin(t * (o.t < 25 ? .9 : .35));
+          if (fly) { const [sx2, sy2] = project(o.x, o.y, .02); ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(sx2, sy2, 8, 4, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = 'rgba(255,220,120,.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx + 5, cy - 8); ctx.lineTo(cx + 9 + 3 * Math.sin(t * .9), cy - 15); ctx.stroke(); }
+          ctx.fillStyle = 'rgba(30,24,30,.95)'; ctx.beginPath(); ctx.arc(cx, cy, 10, 0, 6.283); ctx.fill(); ctx.fillStyle = 'rgba(255,' + (o.sn ? '110,200' : '90,50') + ',' + pu.toFixed(2) + ')'; ctx.beginPath(); ctx.arc(cx, cy, 4.5, 0, 6.283); ctx.fill(); ctx.strokeStyle = 'rgba(255,170,90,' + (.25 + .3 * pu).toFixed(2) + ')'; ctx.lineWidth = 2; const [gx, gy, rx, ry] = gr(o.fl > 0 ? o.tx : o.x, o.fl > 0 ? o.ty : o.y, o.r); ctx.setLineDash([6, 7]); ctx.beginPath(); ctx.ellipse(gx, gy, rx, ry, 0, 0, 6.283); ctx.stroke(); ctx.setLineDash([]); }
         else if (o.k === 'bm') { const [cx, cy, rx, ry] = gr(o.x, o.y, o.r), q = 1 - o.life / o.max; ctx.fillStyle = 'rgba(255,' + Math.round(230 - q * 120) + ',' + Math.round(140 - q * 110) + ',' + (.55 * (1 - q)).toFixed(3) + ')'; ctx.beginPath(); ctx.ellipse(cx, cy, rx * (.4 + q * .7), ry * (.4 + q * .7), 0, 0, 6.283); ctx.fill(); ctx.fillStyle = 'rgba(255,250,220,' + (.8 * (1 - q) * (1 - q)).toFixed(3) + ')'; ctx.beginPath(); ctx.ellipse(cx, cy - 10 * q, rx * .35, ry * .5 + 26 * q, 0, 0, 6.283); ctx.fill(); }
         else if (o.k === 'qk') { const [cx, cy, rx, ry] = gr(o.x, o.y, o.r), q = 1 - o.life / o.max; ctx.strokeStyle = 'rgba(255,200,120,' + (.85 * (1 - q)).toFixed(3) + ')'; ctx.lineWidth = 7 * (1 - q) + 1; ctx.beginPath(); ctx.ellipse(cx, cy, rx * q, ry * q, 0, 0, 6.283); ctx.stroke(); ctx.strokeStyle = 'rgba(120,70,30,' + (.7 * (1 - q)).toFixed(3) + ')'; ctx.lineWidth = 3; for (let i = 0; i < 8; i++) { const a = i * .785 + .3; ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * rx * .15, cy + Math.sin(a) * ry * .15); ctx.lineTo(cx + Math.cos(a + .12) * rx * q * .6, cy + Math.sin(a + .12) * ry * q * .6); ctx.lineTo(cx + Math.cos(a - .08) * rx * q, cy + Math.sin(a - .08) * ry * q); ctx.stroke(); } }
         else if (o.k === 'ln') { const [x1, y1] = project(o.x, o.y, .9), [x2, y2] = project(o.x + Math.cos(o.a) * o.len, o.y + Math.sin(o.a) * o.len, .9), q = o.life / o.max; ctx.strokeStyle = (o.dg ? 'rgba(255,120,60,' : 'rgba(120,220,255,') + (.5 * q).toFixed(3) + ')'; ctx.lineWidth = o.w * 1.1 * q + 2; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.strokeStyle = 'rgba(255,255,255,' + (.95 * q).toFixed(3) + ')'; ctx.lineWidth = Math.max(1.5, o.w * .3 * q); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
@@ -2684,7 +2689,9 @@
         if (g >= 4) { ctx.globalAlpha = .55; ctx.fillStyle = col; for (let i = 0; i < 6; i++) { const a = t * .04 + i * 1.047, q = (t * .02 + i * .17) % 1; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rx * 1.2, cy + Math.sin(a) * ry * 1.2 - q * 30, 2.6 * (1 - q), 0, 6.283); ctx.fill(); } } }
       const ns = Math.min(6, Math.floor(enh / 15)); if (ns > 0) { ctx.fillStyle = '#ffe9a0'; for (let i = 0; i < ns; i++) { const q = (t * .012 + i / ns) % 1, a = i * 2.4 + t * .01; ctx.globalAlpha = .8 * (1 - q); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rx * .8, cy - 6 - q * 46, 1.6 + (1 - q), 0, 6.283); ctx.fill(); } }
       ctx.restore(); ctx.globalAlpha = 1;
-      if (eqShowT > 0 && state === 'play' && its.length) { const [, hy] = project(P.x, P.y, 3.4), al = Math.min(1, eqShowT / 40), wi = meta.item.w; ctx.globalAlpha = al; if (wi) txt('⚔️ [' + IG[wi.g][0] + '] ' + INAME.w[wi.g] + ' +' + meta.eq.w, cx, hy - 26, 12, IG[wi.g][1]); txt('🛡️+' + meta.eq.a + '  💍+' + meta.eq.r, cx, hy - 11, 11, '#e8d8c0'); ctx.globalAlpha = 1; } }
+      if (eqShowT > 0 && state === 'play') { const [, hy] = project(P.x, P.y, 3.4), al = Math.min(1, eqShowT / 40), wi = meta.item && meta.item.w, sk67 = curSkin(), gn67 = GEARN[Math.min(GMAX, gearT() + [0, 1, 2, 3, 5, 99][vipLv()])]; ctx.globalAlpha = al;
+        if (sk67) txt('👑 ' + (SKINS.find(s => s[0] === sk67) || ['', ''])[1], cx, hy - (wi ? 68 : 52), 12.5, '#ffd34d', FT); else txt('🛡️ ' + gn67.n, cx, hy - (wi ? 68 : 52), 12.5, gn67.c, FT);
+        if (wi) txt('⚔️ [' + IG[wi.g][0] + '] ' + INAME.w[wi.g] + (meta.eq.w ? ' +' + meta.eq.w : ''), cx, hy - 52, 11.5, IG[wi.g][1]); ctx.globalAlpha = 1; } }
     _drawComicEq(); };
 
   // ===================== 맵 아이템: 물약 · 자석 · 폭탄 · 보호막 =====================
@@ -3054,7 +3061,7 @@
   }
 
   // ---------- 새 소식(업데이트 내역) ----------
-  const NEWS = [["11월 17일 새벽 업데이트 4", ["💬 채팅이 생겼어요: 출발 버튼 아래 한 줄을 누르면 열려요", "📬 우편함이 생겼어요: 점검 보상 · 선물이 여기로 와요 (마을 오른쪽 맨 위)"]], ["11월 17일 새벽 업데이트 3", ["🏆 순위가 생겼어요: 최고 층 · 전투력 (마을 왼쪽 🏆)", "순위 창에서 ✏️ 이름을 바꿀 수 있어요", "첫 구매 특가 창에 황금 기사가 나와요"]], ["11월 17일 새벽 업데이트 2", ["☁️ 기록이 서버에 자동으로 저장돼요", "마을 오른쪽 ☁️ 계정 → 「구글로 이어하기」를 하면 폰을 바꿔도 이어져요 (처음 한 번 💎50)"]], ["11월 17일 새벽 업데이트", ["🚩 시즌 5: 모두 1층부터 새로 시작해요 (선물 💎100)", "용사가 조금 커졌어요 · 「층 체험」은 없앴어요", "아바타에 무료 · 유료 · 체험 딱지가 붙어요", "아바타 체험이 끝나면 🎁 첫 구매 특가(24시간)가 떠요 · 결제는 아직 준비 중", "마을에 📰 소식 · 📅 출석 버튼과 한 줄 팁이 생겼어요"]], ["11월 16일 자정 업데이트", ["첫 화면이 바뀌었어요: 맨 위 재화 한 줄, 큰 출발 버튼, 아래 메뉴 5칸", "👑 아바타 체험: 3층을 넘으면 「황금 기사」를 3판 입어 볼 수 있어요", "일반 몬스터가 조금 커졌어요"]], ["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]]];
+  const NEWS = [["11월 17일 새벽 업데이트 5", ["💣 폭탄을 이제 적에게 던져요", "🗺️ 마을에서 깬 층을 골라 갈 수 있어요", "🔁 지난 스킬 그대로 / 🎲 새로 찍기를 고를 수 있어요 (쓰러진 화면 · 출발 버튼 옆)", "전설 · 신화 무기는 휘두를 때 더 화려해요", "층이 시작될 때 머리 위에 내 단계와 무기 이름이 떠요", "스킬 아이콘이 많아도 안 잘려요 · 쓰러진 화면 글자 겹침 고침"]], ["11월 17일 새벽 업데이트 4", ["💬 채팅이 생겼어요: 출발 버튼 아래 한 줄을 누르면 열려요", "📬 우편함이 생겼어요: 점검 보상 · 선물이 여기로 와요 (마을 오른쪽 맨 위)"]], ["11월 17일 새벽 업데이트 3", ["🏆 순위가 생겼어요: 최고 층 · 전투력 (마을 왼쪽 🏆)", "순위 창에서 ✏️ 이름을 바꿀 수 있어요", "첫 구매 특가 창에 황금 기사가 나와요"]], ["11월 17일 새벽 업데이트 2", ["☁️ 기록이 서버에 자동으로 저장돼요", "마을 오른쪽 ☁️ 계정 → 「구글로 이어하기」를 하면 폰을 바꿔도 이어져요"]], ["11월 17일 새벽 업데이트", ["🚩 시즌 5: 모두 1층부터 새로 시작해요 (선물 💎100)", "용사가 조금 커졌어요 · 「층 체험」은 없앴어요", "아바타에 무료 · 유료 · 체험 딱지가 붙어요", "아바타 체험이 끝나면 🎁 첫 구매 특가(24시간)가 떠요 · 결제는 아직 준비 중", "마을에 📰 소식 · 📅 출석 버튼과 한 줄 팁이 생겼어요"]], ["11월 16일 자정 업데이트", ["첫 화면이 바뀌었어요: 맨 위 재화 한 줄, 큰 출발 버튼, 아래 메뉴 5칸", "👑 아바타 체험: 3층을 넘으면 「황금 기사」를 3판 입어 볼 수 있어요", "일반 몬스터가 조금 커졌어요"]], ["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]]];
   function drawNews() { let y = 166;
     NEWS.forEach((n, ni) => { ctx.fillStyle = ni ? 'rgba(30,26,40,.9)' : 'rgba(50,40,16,.95)'; const hh = 30 + n[1].length * 21 + 8; rrect(16, y, W - 32, hh, 12); ctx.fill(); ctx.strokeStyle = ni ? 'rgba(255,255,255,.15)' : '#ffc864'; ctx.lineWidth = 2; ctx.stroke();
       tfit((ni ? '' : '🆕 ') + n[0], 28, y + 18, 15, ni ? '#c8a888' : '#ffd27a', W - 56, FT); n[1].forEach((l, i) => tfit('· ' + l, 30, y + 42 + i * 21, 12.5, '#e8d8c0', W - 60)); y += hh + 8; });
@@ -3177,7 +3184,7 @@
       y = 216; const nw = meta.newsSeen !== NEWS[0][0];
       if (fbOK()) { const mn = mailNew(); ibtn('📬', '우편', W - 70, y, () => { mailPop = true; if (fbState === 'off' || fbState === 'err') fbInit(); mailLoad(true); }, mn > 0, mn > 0 ? '' + mn : ''); y += 62; }
       else { ibtn('📰', '소식', W - 70, y, () => { meta.newsSeen = NEWS[0][0]; saveMeta(); openHelp(3, 'town'); }, nw, nw ? 'N' : ''); y += 62; }
-      if (fbOK()) { const lk = fbLinked(), hot = !lk && fbState === 'on' && (meta.best || 0) >= 5; ibtn('☁️', lk ? '연결됨' : '계정', W - 70, y, () => { acctPop = true; if (fbState === 'off' || fbState === 'err') fbInit(); }, hot, hot ? '💎' : ''); y += 62; }
+      if (fbOK()) { const lk = fbLinked(), hot = !lk && fbState === 'on' && (meta.best || 0) >= 5; ibtn('☁️', lk ? '연결됨' : '계정', W - 70, y, () => { acctPop = true; if (fbState === 'off' || fbState === 'err') fbInit(); }, hot, ''); y += 62; }
       if (!isApp && meta.instDone && !instEvt) { ibtn('✅', '설치됨', W - 70, y, () => { townPop = { txt: '✅ 앱이 설치돼 있어요', sub: '홈 화면 「던전 히어로」 아이콘으로 여세요', t0: t }; }, false); y += 62; }
       else if (!isApp && (!meta.pwaGift || instEvt || IS_AND)) { ibtn('📲', '앱 설치', W - 70, y, smartInstall, !meta.pwaGift, meta.pwaGift ? '' : '🎁'); y += 62; }
       if (FS_OK && !isApp) { ibtn('📱', fsOn() ? '화면 줄이기' : '꽉 찬 화면', W - 70, y, fsToggle, false); y += 62; }
@@ -3192,10 +3199,10 @@
     const cp = meta.cp || 1; let y = 552;
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(W / 2, y + 30, 190, '255,170,60', .14 + .08 * Math.sin(t * .1)); ctx.restore();
     if (runSave) { button('▶ 이어하기 (' + runSave.floor + '층 · Lv ' + runSave.lv + ')', 40, y, W - 80, 60, resumeRun, true); }
-    else if (cp > 1) { button('🚩 ' + cp + '층부터 도전!', 40, y, W - 80, 60, () => startRun(cp), true); }
-    else { button('⚔️ 모험 시작 (1층부터)', 40, y, W - 80, 60, () => startRun(1), true); }
+    else { const bt = meta.lastBuild ? 68 : 0; if (cp > 1) button('🚩 ' + cp + '층부터 도전!', 40, y, W - 80 - bt, 60, () => startRun(cp), true); else button('⚔️ 모험 시작 (1층부터)', 40, y, W - 80 - bt, 60, () => startRun(1), true);
+      if (bt) { button('', W - 40 - 60, y, 60, 60, buildToggle, false); txt(meta.buildNew ? '🎲' : '🔁', W - 70, y + 23, 24, '#fff', FB, 'center', 'rgba(0,0,0,0)'); txt(meta.buildNew ? '새 스킬' : '지난 스킬', W - 70, y + 46, 10.5, '#ffe0b0', FB); } }
     y += 68;
-    { const opts = []; if (runSave && cp > 1) opts.push(['🚩 ' + cp + '층부터', () => startRun(cp)]); if (cp > 10) { const ff = Math.floor((cp - 6) / 5) * 5 + 1; opts.push(['💰 골드 모으며 ' + ff + '층부터', () => startRun(ff)]); } if (cp > 1) opts.push(['1층부터', () => startRun(1)]);
+    { const opts = []; if (runSave && cp > 1) opts.push(['🚩 ' + cp + '층부터', () => startRun(cp)]); if (cp > 5) opts.push(['🗺️ 층 고르기', () => { floorPop = true; floorPg = 99; }]); if (cp > 1) opts.push(['1층부터', () => startRun(1)]);
       const n = opts.length, gap = 8, bw = n ? (W - 80 - gap * (n - 1)) / n : 0; opts.forEach((o, i) => button(o[0], 40 + i * (bw + gap), y, bw, 34, o[1], false));
       if (!n) txt(meta.best <= 1 ? '화면을 끌면 움직여요 · 공격은 자동이에요' : '쓰러져도 마지막으로 간 층부터 다시 시작해요', W / 2, y + 17, 13, '#c8a888'); }
     if (fbOK()) { const m = chatMsgs[0], nw3 = m && m.ms > chatSeen && !(fbUser && m.uid === fbUser.uid); button('', 44, 662, W - 88, 30, chatOpen, false); if (nw3) { ctx.fillStyle = '#ff3b3b'; ctx.beginPath(); ctx.arc(W - 50, 666, 5, 0, 6.283); ctx.fill(); }
@@ -3255,7 +3262,7 @@
   }
 
   // ===================== 빌드 64: 서버 저장 + 구글 로그인 =====================
-  const FB_CFG = {"apiKey": "AIzaSyAhMP7rb-v03_k63U3SwILkWYaRQJ1A1Jk", "authDomain": "dungeon-hero-jd.firebaseapp.com", "projectId": "dungeon-hero-jd", "storageBucket": "dungeon-hero-jd.firebasestorage.app", "messagingSenderId": "917108683360", "appId": "1:917108683360:web:0ec3033c33a522a30e8905"}, FB_BASE = 'https://www.gstatic.com/firebasejs/13.3.0/', FB_SEASON = 'dh-save-staff5', LINK_DIA = 50;
+  const FB_CFG = {"apiKey": "AIzaSyAhMP7rb-v03_k63U3SwILkWYaRQJ1A1Jk", "authDomain": "dungeon-hero-jd.firebaseapp.com", "projectId": "dungeon-hero-jd", "storageBucket": "dungeon-hero-jd.firebasestorage.app", "messagingSenderId": "917108683360", "appId": "1:917108683360:web:0ec3033c33a522a30e8905"}, FB_BASE = 'https://www.gstatic.com/firebasejs/13.3.0/', FB_SEASON = 'dh-save-staff5', LINK_DIA = 0;
   let fb = null, fbUser = null, fbState = 'off', fbErr = '', fbDirty = false, fbLastUp = 0, fbReady = false, fbHold = false, fbCloud = null, fbAsk = null, fbBusy = false, fbChk = 0, acctPop = false, acctMsg = '', acctMsgT = -999;
   const fbOK = () => { try { return (location.protocol === 'https:' || !!window.__FBUI) && !window.__NO3D; } catch (e) { return false; } };
   const fbLinked = () => !!(fbUser && !fbUser.isAnonymous);
@@ -3291,7 +3298,7 @@
     if (fbLinked()) { acctSay('이미 구글 계정에 연결돼 있어요'); return; }
     const { U, auth } = fb, prov = new U.GoogleAuthProvider(); try { prov.setCustomParameters({ prompt: 'select_account' }); } catch (e) {}
     try { await U.linkWithPopup(fbUser, prov); fbUser = auth.currentUser;
-      if (!meta.linkGift) { meta.linkGift = 1; meta.dia += LINK_DIA; saveMeta(); try { sfx.chest(); } catch (e) {} acctSay('✅ 구글 계정에 연결됐어요 · 선물 💎' + LINK_DIA); } else acctSay('✅ 구글 계정에 연결됐어요');
+      acctSay('✅ 구글 계정에 연결됐어요 · 폰을 바꿔도 이어져요');
       fbDirty = true; fbUpload(true); }
     catch (e) { const c = (e && e.code) || '';
       if (c === 'auth/credential-already-in-use') { try { const cred = U.GoogleAuthProvider.credentialFromError(e); await U.signInWithCredential(auth, cred); acctSay('✅ 구글 계정으로 로그인했어요'); } catch (e2) { acctSay('로그인하지 못했어요 (' + ((e2 && e2.code) || '') + ')'); } }
@@ -3320,7 +3327,7 @@
       button('📱 이 폰 기록으로 계속 (서버 기록을 덮어써요)', X + 30, Y + 336, CW - 60, 38, fbKeepLocal, false);
     } else {
       tfit(fbLinked() ? '폰을 바꾸거나 앱을 지워도 구글 로그인만 하면 이어져요' : '구글로 이어 두면 폰을 바꿔도 기록이 이어져요', W / 2, Y + 204, 13.5, '#c8d8ea', CW - 40, FB, 'center');
-      if (!fbLinked()) { button('🔗 구글로 이어하기' + (meta.linkGift ? '' : '  (선물 💎' + LINK_DIA + ')'), X + 30, Y + 228, CW - 60, 56, fbGoogle, true, fbState !== 'on');
+      if (!fbLinked()) { button('🔗 구글로 이어하기', X + 30, Y + 228, CW - 60, 56, fbGoogle, true, fbState !== 'on');
         tfit('새 폰에서는 여기서 같은 구글 계정으로 로그인하면 돼요', W / 2, Y + 304, 12.5, '#8fa4bc', CW - 40, FB, 'center'); }
       else button('지금 서버에 저장', X + 60, Y + 232, CW - 120, 46, () => { fbDirty = true; fbUpload(true); acctSay('서버에 저장했어요'); }, false, !fbReady || fbHold);
     }
@@ -3446,7 +3453,39 @@
     if (t - mailNoteT < 200) tfit(mailNote, W / 2, Y + CH - 76, 14, '#ffe14d', CW - 40, FB, 'center');
     button('닫기', X + 110, Y + CH - 54, CW - 220, 40, () => { mailPop = false; }, false);
   }
-  window.__dh = { set fbReadyTest(v) { fbReady = v; }, set chatPop(v) { if (v) chatPop = true; else chatClose(); }, set chatTest(v) { chatMsgs = v; chatLast = v.length ? v[0].ms : 0; chatNext = Date.now() + 9e9; }, set mailPop(v) { mailPop = v; }, set mailTest(v) { mails = v; mailNext = Date.now() + 9e9; }, get chatInfo() { return { n: chatMsgs.length, err: chatErr, busy: chatBusy, mails: mails.length, mailNew: mailNew() }; }, chatLoad, mailLoad, set rankPop(v) { rankPop = v; }, set rankTest(v) { rankData[0] = v; rankData[1] = v; rankT[0] = rankT[1] = Date.now(); }, rankLoad, get rankInfo() { return { n0: rankData[0] ? rankData[0].length : -1, n1: rankData[1] ? rankData[1].length : -1, err: rankErr, busy: rankBusy, key: rankKey, season: RK_SEASON }; }, get fbInfo() { return { state: fbState, ready: fbReady, hold: fbHold, linked: fbLinked(), anon: !!(fbUser && fbUser.isAnonymous), lastUp: fbLastUp, err: fbErr, dirty: fbDirty, cloudBest: fbCloud ? fbCloud.best : null }; }, fbUpload, set acctPop(v) { acctPop = v; }, get acctPop() { return acctPop; }, set fbAskTest(v) { fbAsk = v; fbHold = !!v; }, set fbStateTest(v) { fbState = v; }, set offerPop(v) { offerPop = v; }, get offerPop() { return offerPop; }, get offerOn() { return offerOn(); }, skinNext, get skinNow() { return curSkin(); }, set TOWN2(v) { TOWN2 = v; }, smartInstall, chromeUrl, get IS_CHROME() { return IS_CHROME; }, fsToggle, get fsOn() { return fsOn(); }, get FS_OK() { return FS_OK; }, set HSZ(v) { HSZ = v; }, get HSZ() { return HSZ; }, get tasksN() { return tasks.length; }, openHelp, IPCT, eqBase, saveCode, loadCode, giveAppGift, get isApp() { return isApp; }, set isApp(v) { isApp = v; }, get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive: () => diaRevive(), get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
+
+  // ===================== 빌드 67: 스킬 고르기 · 마을 들르기 · 층 고르기 · 타격 멈춤 · 등급 효과 · 보스 처치 알림 =====================
+  function buildToggle() { meta.buildNew = meta.buildNew ? 0 : 1; saveMeta(); try { sfx.pick(); } catch (e) {} if (state === 'town') townPop = meta.buildNew ? { txt: '🎲 새로 찍기', sub: '다음 판은 스킬을 처음부터 골라요', t0: t } : { txt: '🔁 지난 스킬 그대로', sub: '지난 판에 찍은 스킬로 바로 시작해요', t0: t }; }
+  const townEvents = () => !trial && ((!meta.skinTried && (meta.best || 0) >= 3 && !!RIGS[TRY_SKIN]) || !!meta.skinEnd || (fbOK() && fbReady && mailNew() > 0) || !!attPop);
+  function retryGo(cp) { if (townEvents()) { state = 'town'; joy = null; if (!attPop) townPop = { txt: '🎁 마을에 받을 것이 있어요', sub: '받고 나서 큰 버튼으로 바로 이어가요', t0: t }; } else startRun(cp); }
+  let floorPop = false, floorPg = 0;
+  function drawFloorPick() {
+    ctx.fillStyle = 'rgba(5,3,8,.88)'; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
+    const X = 18, Y = 120, CW = W - 36, CH = 540, cp = meta.cp || 1, list = []; for (let f = 1; f <= cp; f += 5) list.push(f); if (list[list.length - 1] !== cp) list.push(cp);
+    ctx.fillStyle = '#231a12'; rrect(X, Y, CW, CH, 22); ctx.fill(); ctx.strokeStyle = '#ffc864'; ctx.lineWidth = 3; ctx.stroke();
+    txt('🗺️ 층 고르기', W / 2, Y + 36, 30, '#ffd27a', FT);
+    tfit('깬 곳까지 고를 수 있어요 · 낮은 층은 쉽지만 골드와 장비가 적어요', W / 2, Y + 70, 12.5, '#c8b8a0', CW - 30, FB, 'center');
+    const PER = 16, pages = Math.max(1, Math.ceil(list.length / PER)); floorPg = Math.max(0, Math.min(pages - 1, floorPg));
+    const bw = (CW - 40 - 30) / 4;
+    for (let i = 0; i < PER; i++) { const f = list[floorPg * PER + i]; if (!f) break; const x = X + 20 + (i % 4) * (bw + 10), y = Y + 92 + Math.floor(i / 4) * 78;
+      button(f + '층', x, y, bw, 52, () => { floorPop = false; startRun(f); }, f === cp); txt(f === cp ? '내 최고' : f % 10 === 1 && f > 1 ? '' : '', x + bw / 2, y + 64, 10.5, '#ffd34d', FB); }
+    if (pages > 1) { button('◀', X + 40, Y + CH - 112, 54, 40, () => { floorPg--; }, false, floorPg <= 0); txt((floorPg + 1) + ' / ' + pages, W / 2, Y + CH - 92, 15, '#ffe0b0', FB); button('▶', X + CW - 94, Y + CH - 112, 54, 40, () => { floorPg++; }, false, floorPg >= pages - 1); }
+    button('닫기', X + 110, Y + CH - 56, CW - 220, 42, () => { floorPop = false; }, false);
+  }
+  // 타격 멈춤 + 등급 불꽃 + 보스 처치 알림
+  let hsT = 0, hsLast = -99;
+  { const _damage67 = damage; damage = function (e, base, opts) { const h0 = e ? e.hp : 0, r = _damage67(e, base, opts);
+      if (e && h0 > 0 && e.hp <= 0 && state === 'play') { if (e === boss || e.elite) { hsT = Math.max(hsT, 5); hsLast = t; } else if (e.maxHp && h0 > e.maxHp * .5 && t - hsLast > 30) { hsT = Math.max(hsT, 2); hsLast = t; } } return r; }; }
+  function bossAnnounce() { try { if (!fb || !fbUser || !fbReady || trial) return; if (floor % 10 !== 0 || floor <= (runBest0 || 0)) return; const { S, db } = fb; S.addDoc(S.collection(db, 'chat'), { uid: fbUser.uid, name: myNick(), text: '🏆 ' + floor + '층 보스를 쓰러뜨렸어요!', ts: S.serverTimestamp() }).catch(() => {}); } catch (e) {} }
+  { const _update67 = update; update = function (k) {
+      if (hsT > 0 && state === 'play' && !paused) { hsT -= 1; return; }
+      _update67(k); if (state !== 'play') return;
+      for (const f of fx) if (f.k === 'slash' && !f._sp) { f._sp = 1; const wg = meta.item && meta.item.w ? meta.item.w.g : 0;
+        if (wg >= 3) { const col = wg >= 4 ? '#ff7ad8' : '#ffd86a', n = wg >= 4 ? 9 : 6; for (let i = 0; i < n; i++) { const a = f.a + rnd(-.9, .9), d = rnd(30, 56), s = rnd(1.5, 4); fx.push({ k: 'p', x: P.x + Math.cos(a) * d, y: P.y + Math.sin(a) * d, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rnd(12, 24), max: 24, c: i % 3 ? col : '#ffffff', s: rnd(2, 4) }); } } }
+      if (boss && boss.dead && !boss._ann) { boss._ann = 1; bossAnnounce(); }
+      // 아바타 체험은 싸우는 도중에 시작(3층을 넘긴 순간 그 자리에서 변신)
+      if (!trial && !meta.skinTried && (meta.best || 0) >= 3 && floor >= 4 && RIGS[TRY_SKIN] && !(boss && !boss.dead)) { meta.skinTried = 1; meta.skinTry = { id: TRY_SKIN, n: TRY_RUNS }; saveMeta(); try { sfx.fanfare(); } catch (e) {} flash = .7; flashC = '255,211,77'; shake = Math.max(shake, 6); burstFx(P.x, P.y, 26, '#ffd86a'); fx.push({ k: 'ring', x: P.x, y: P.y, r: 90, life: 26, c: '255,215,90' }); banner = '👑 황금 기사 체험!'; bannerSub = '이번 판 포함 ' + TRY_RUNS + '판 동안 입어 볼 수 있어요'; bannerT = 170; eqShowT = 220; } }; }
+  window.__dh = { set floorPop(v) { floorPop = v; }, get townEvents() { return townEvents(); }, buildToggle, get NS() { return NS; }, set fbReadyTest(v) { fbReady = v; }, set chatPop(v) { if (v) chatPop = true; else chatClose(); }, set chatTest(v) { chatMsgs = v; chatLast = v.length ? v[0].ms : 0; chatNext = Date.now() + 9e9; }, set mailPop(v) { mailPop = v; }, set mailTest(v) { mails = v; mailNext = Date.now() + 9e9; }, get chatInfo() { return { n: chatMsgs.length, err: chatErr, busy: chatBusy, mails: mails.length, mailNew: mailNew() }; }, chatLoad, mailLoad, set rankPop(v) { rankPop = v; }, set rankTest(v) { rankData[0] = v; rankData[1] = v; rankT[0] = rankT[1] = Date.now(); }, rankLoad, get rankInfo() { return { n0: rankData[0] ? rankData[0].length : -1, n1: rankData[1] ? rankData[1].length : -1, err: rankErr, busy: rankBusy, key: rankKey, season: RK_SEASON }; }, get fbInfo() { return { state: fbState, ready: fbReady, hold: fbHold, linked: fbLinked(), anon: !!(fbUser && fbUser.isAnonymous), lastUp: fbLastUp, err: fbErr, dirty: fbDirty, cloudBest: fbCloud ? fbCloud.best : null }; }, fbUpload, set acctPop(v) { acctPop = v; }, get acctPop() { return acctPop; }, set fbAskTest(v) { fbAsk = v; fbHold = !!v; }, set fbStateTest(v) { fbState = v; }, set offerPop(v) { offerPop = v; }, get offerPop() { return offerPop; }, get offerOn() { return offerOn(); }, skinNext, get skinNow() { return curSkin(); }, set TOWN2(v) { TOWN2 = v; }, smartInstall, chromeUrl, get IS_CHROME() { return IS_CHROME; }, fsToggle, get fsOn() { return fsOn(); }, get FS_OK() { return FS_OK; }, set HSZ(v) { HSZ = v; }, get HSZ() { return HSZ; }, get tasksN() { return tasks.length; }, openHelp, IPCT, eqBase, saveCode, loadCode, giveAppGift, get isApp() { return isApp; }, set isApp(v) { isApp = v; }, get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive: () => diaRevive(), get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
 })();
 </script>
 </body>
