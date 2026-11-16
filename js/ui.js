@@ -31,7 +31,7 @@ const UI = {
         say('+1', fx, fy - 90, { size: 24, col: '#e8d4ff', glow: '#8a3cff', life: 0.6, vy: -70 }); if (last) say(L.raiseDone || '군단이 깨어났다!', W / 2, 230, { size: 40, col: '#f0e4ff', glow: '#8a3cff', life: 1.4, vy: 0, stamp: true, screen: true });
         rb.classList.remove('pop'); void rb.offsetWidth; rb.classList.add('pop'); this.render(); };
       rb.addEventListener('pointerdown', tap); rb.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); }); }
-    $('modal').addEventListener('click', e => { if (e.target.id === 'modal' || e.target.dataset.close) return this.closeModal(); const b = e.target.closest('[data-act]'); if (b && !b.disabled && /^(gear|lskin)/.test(b.dataset.act)) { Snd.init(); this.act(b.dataset.act, b.dataset.arg); } });   /* 장비 정보 창 안의 강화 단추 */
+    $('modal').addEventListener('click', e => { if (e.target.id === 'modal' || e.target.dataset.close) return this.closeModal(); const b = e.target.closest('[data-act]'); if (b && !b.disabled && /^(pull1|pull10)$/.test(b.dataset.act)) { Snd.init(); Snd.smp('click', 0.5); this.closeModal(); this.pull(b.dataset.act === 'pull10' ? 10 : 1); this.render(true); return; }   /* 11-16 ④ 결과 창에서 바로 한 번 더 */ if (b && b.dataset.act === 'shopGo') { Snd.init(); this.closeModal(); if (typeof EX !== 'undefined') EX.shopOpen(); return; } if (b && !b.disabled && /^(gear|lskin)/.test(b.dataset.act)) { Snd.init(); this.act(b.dataset.act, b.dataset.arg); } });   /* 장비 정보 창 안의 강화 단추 */
     if (TEST) {   // 시험판 전용: 며칠 뒤에 열리는 것(침공 지도 5일째 · 마법 연구 6일째)과 35판 지하 묘지를 바로 볼 수 있게
       $('testbar').innerHTML = `<button data-t="fold" class="fold">${L.test.fold}</button><span class="tb"><button data-t="gems">${L.test.gems}</button><button data-t="bones">${L.test.bones}</button><button data-t="stone">${L.weapon.test}</button><button data-t="day">${L.test.day}</button><button data-t="best">${L.test.best}</button><button data-t="perf">${L.test.perf}</button><button data-t="reset">${L.test.reset}</button></span>`;
       $('testbar').addEventListener('click', e => { const t = e.target.dataset.t; if (t === 'fold') { $('testbar').classList.toggle('open'); return; } if (t === 'gems') st.gems += 500; if (t === 'stone') st.wpStone = (st.wpStone || 0) + 3; if (t === 'bones') st.bones += 200;
@@ -217,6 +217,16 @@ const UI = {
   },
   summonFx(top, best, done) {
     let el = $('summonfx'); if (!el) { el = document.createElement('div'); el.id = 'summonfx'; document.body.appendChild(el); }
+    /* 11-16 ④ 「뽑기 결제 매력」: 바로 결과가 나오던 것 → 먼저 봉인된 영혼 구슬이 떨며 색이 한 단계씩 올라감(푸름 → 보라 → 금빛, 실제 나온 등급까지만 · 가짜로 올렸다 내리지 않음) · 금이 갈 때마다 쩍 소리 · 누르면 바로 넘어감 */
+    const steps = ['#4aa8ff', '#b56cff', '#ffcc33'].slice(0, Math.max(1, top)), TT = 520 + (steps.length - 1) * 620;
+    el.style.setProperty('--c', steps[0]); el.className = 'on tease';
+    el.innerHTML = `<div class="sf-bg"></div><div class="sf-orb"><i></i><b class="ck1"></b><b class="ck2"></b></div><div class="sf-hint">${L.ui.sfHint || '봉인을 푸는 중…'}</div><div class="sf-tap">${L.ui.sfSkip || '눌러서 바로 보기'}</div>`;
+    Snd.smp('summon', 0.6, 0, 0.8); let skip = false; const tm = [];
+    steps.forEach((c, i) => { if (!i) return; tm.push(setTimeout(() => { if (skip) return; el.style.setProperty('--c', c); el.classList.add('up' + i); Snd.stamp && Snd.stamp(0.5 + i * 0.25); Snd.chime && Snd.chime(i >= 2 ? 1568 : 1175);   /* 관문⑰: 'up' 소리를 쓰면 별 연출 띵 계단이 섞였음 → 종소리로 */ S.flash = 0.25 * i; try { navigator.vibrate && navigator.vibrate(30 * i); } catch (e) {} const hn = el.querySelector('.sf-hint'); if (hn) hn.textContent = i >= 2 ? (L.ui.sfHint3 || '최고 등급의 기운!') : (L.ui.sfHint2 || '강한 기운이 느껴진다…'); }, 520 + (i - 1) * 620)); });
+    const go = () => { if (skip) return; skip = true; tm.forEach(clearTimeout); el.onclick = null; this.summonReveal(el, top, best, done); };
+    el.onclick = go; tm.push(setTimeout(go, TT + 380)); window.__tease = (window.__tease || []).concat([{ top, steps: steps.length }]);   /* 관문이 읽음 */
+  },
+  summonReveal(el, top, best, done) {
     const h = JB.heroById(best.id), col = ['#d9dcf0', '#4aa8ff', '#b56cff', '#ffcc33'][top];
     el.style.setProperty('--c', col); el.className = 'on rk' + top;
     el.innerHTML = `<div class="sf-bg"></div><div class="sf-rays"></div><div class="sf-circle"></div><div class="sf-pillar"></div>${top >= 2 ? `<img class="sf-hero" src="art/${need('heroA_' + best.id) ? 'heroA_' : need('heroF_' + best.id) ? 'heroF_' : 'hero_'}${best.id}.webp" alt=""><div class="sf-name"><small>${top >= 3 ? L.ui.sfTop : L.rarity[h.rarity]}</small><b>${L.heroes[best.id].name}</b></div>` : ''}<div class="sf-tap">${L.ui.sfTap}</div>`;
@@ -241,7 +251,9 @@ const UI = {
     /* 20:02 모집 결과: 글자가 한 자씩 줄바꿈(「새 영 웅!」) · 등급 차이가 안 보임 → 카드가 차례로 뒤집혀 나타나고, 등급 색 테두리 · 높은 등급은 빛, NEW 딱지 */
     const RO = { N: 0, R: 1, SR: 2, SSR: 3 };
     const html = `<h3>${L.hero.title}</h3><div class="res">${res.map((r, i) => { const h = JB.heroById(r.id), n = L.heroes[r.id], rk = RO[h.rarity] ?? 0; return `<div class="rc rk${rk}" style="animation-delay:${i * 0.09 + (rk >= 2 ? 0.25 : 0)}s">${r.isNew ? `<i class="nw">${L.ui.newTag}</i>` : ''}<img class="pf big" src="art/hero_${r.id}.webp" alt=""><b class="r${h.rarity}">${L.rarity[h.rarity]}</b><span class="hn">${n.name}</span><span class="lv">${r.isNew ? '' : r.shard ? L.star.shards(st.heroes[r.id].shards || 0, JB.C.STAR.trShards) : L.star.st(r.star || r.lv)}</span></div>`; }).join('')}</div>`;
-    this.openModal(html);
+    const left = JB.C.PITY - st.pity, can10 = st.gems >= JB.C.GACHA10_COST, can1 = st.gems >= JB.C.GACHA_COST;   /* 11-16 ④ 결과 창에 「최고 등급까지 남은 번」 막대 + 바로 한 번 더 · 모자라면 상점 길 */
+    const foot = `<div class="pity"><div class="pt">${L.ui.pityLeft ? L.ui.pityLeft(left) : `최고 등급 확정까지 <b>${left}</b>번`}</div><div class="pb"><i style="width:${Math.round(st.pity / JB.C.PITY * 100)}%"></i></div></div><div class="again">${can10 ? `<button class="btn big gold" data-act="pull10">${L.hero.contract10}<br><small>${L.gems} ${JB.C.GACHA10_COST}</small></button>` : can1 ? `<button class="btn big" data-act="pull1">${L.hero.contract1}<br><small>${L.gems} ${JB.C.GACHA_COST}</small></button>` : ''}${!can10 ? `<button class="btn big shopgo" data-act="shopGo">${L.ui.getGems || '마정석 얻기'}<br><small>${L.ui.getGemsSub || '첫 구매 2배'}</small></button>` : ''}</div>`;
+    this.openModal(html + foot);
     const fresh = res.find(r => r.isNew); if (fresh) { heroSay('join', fresh.id); const h = JB.heroById(fresh.id); if (h.rarity === 'SSR' || h.rarity === 'SR') { S.flash = 0.4; Snd.stamp(); if (h.rarity === 'SSR') { Snd.smp('ssr', 1); Snd.smp('v_' + fresh.id, 1, 1.4); } } }   /* 05:15 최고 등급 영웅은 첫 만남 목소리(드리미나 AI 오디오) */
   },
   altarOdds() {
