@@ -2083,7 +2083,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116184908'; let updReady = null;
+  const BUILD = '1116185129'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2629,6 +2629,32 @@
       for (const sp of nsSp) { if (sp.x === undefined) continue; const [cx, cy] = project(sp.x, sp.y, 1.6 + Math.sin(t * .08 + sp.x) * .15), lg = lvOf('legion'); ctx.fillStyle = lg ? 'rgba(255,225,130,.3)' : 'rgba(140,255,210,.3)'; ctx.beginPath(); ctx.arc(cx, cy, 11, 0, 6.283); ctx.fill(); ctx.fillStyle = lg ? '#fff3c0' : '#e8fff6'; ctx.beginPath(); ctx.arc(cx, cy, 4.5, 0, 6.283); ctx.fill(); ctx.strokeStyle = lg ? 'rgba(255,230,150,.8)' : 'rgba(170,255,225,.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx - 6, cy - 2, 6, 3, -.5 + Math.sin(t * .5) * .3, 0, 6.283); ctx.ellipse(cx + 6, cy - 2, 6, 3, .5 - Math.sin(t * .5) * .3, 0, 6.283); ctx.stroke(); }
       ctx.restore(); }
     _drawComicNS(); };
+
+  // ===================== 기존 스킬 연출 보강 + 보스는 화면 안에서 공격 =====================
+  let fxPrevFire = [], fxHs = [];
+  const _damageFx = damage;
+  damage = function (e, base, opts) { const h0 = e ? e.hp : 0, r = _damageFx(e, base, opts); if (e && e.hp < h0 && fxHs.length < 26) fxHs.push({ x: e.x + rnd(-6, 6), y: e.y + rnd(-6, 6), l: 7, a: Math.random() * 3.14, big: e.maxHp ? (h0 - e.hp) / e.maxHp > .2 : 0 }); return r; };
+  const _updateFx = update;
+  update = function (k) { _updateFx(k);
+    if (state !== 'play') return;
+    for (const s of shots) { const tr = s._tr || (s._tr = []); tr.push(s.x, s.y); if (tr.length > 14) tr.splice(0, 2); }
+    for (const p of fxPrevFire) if (shots.indexOf(p) < 0 && p.x > R.x0 - 10 && p.x < R.x1 + 10 && p.y > R.y0 - 10 && p.y < R.y1 + 10) NS.push({ k: 'bm', x: p.x, y: p.y, r: (45 + lvOf('fire') * 9) * (p.met ? 1.5 : 1), life: 14, max: 14 });
+    fxPrevFire = shots.filter(s => s.k === 'fire');
+    for (const h of fxHs) h.l -= k; if (fxHs.length) fxHs = fxHs.filter(h => h.l > 0);
+    const b = boss; if (b && !b.dead && b.st === 'idle' && !b.chg && !(b.hld > 0) && !(b.stun > 0)) { const dy = P.y - b.y, dx = P.x - b.x, d = Math.hypot(dx, dy); if (Math.abs(dy) > 350 || d > 430) { b.x += dx / d * 2.6 * k; b.y += dy / d * 2.6 * k; b.patT = Math.max(b.patT, 22); } } };
+  const _drawComicFx = drawComic;
+  drawComic = function () {
+    if (gl && (state === 'play' || state === 'levelup')) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      for (const s of shots) { const tr = s._tr; if (!tr || tr.length < 4) continue; const col = s.k === 'fire' ? (s.met ? '255,120,60' : '255,170,70') : s.k === 'axe' ? (s.ba ? '255,80,90' : '230,230,255') : s.star ? '255,220,110' : '190,230,255', w = s.k === 'fire' ? (s.met ? 16 : 10) : s.k === 'axe' ? 9 : s.star ? 6 : 4, n = tr.length / 2;
+        for (let i = 1; i < n; i++) { const [x1, y1] = project(tr[i * 2 - 2], tr[i * 2 - 1], .8), [x2, y2] = project(tr[i * 2], tr[i * 2 + 1], .8), q = i / n; ctx.strokeStyle = 'rgba(' + col + ',' + (.5 * q * q).toFixed(3) + ')'; ctx.lineWidth = w * q + 1; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+        if (s.k === 'fire') { const [fx1, fy1] = project(s.x, s.y, .8), g = ctx.createRadialGradient(fx1, fy1, 1, fx1, fy1, s.met ? 30 : 20); g.addColorStop(0, 'rgba(255,240,190,.75)'); g.addColorStop(1, 'rgba(255,120,40,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(fx1, fy1, s.met ? 30 : 20, 0, 6.283); ctx.fill(); } }
+      for (const bo of bolts) { const [x1, y1] = project(bo.x1, bo.y1, 1), [x2, y2] = project(bo.x2, bo.y2, 1), q = Math.max(0, Math.min(1, bo.life / 10)), col = bo.th ? '255,220,120' : '150,200,255'; ctx.strokeStyle = 'rgba(' + col + ',' + (.35 * q).toFixed(3) + ')'; ctx.lineWidth = bo.th ? 14 : 9; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); const g = ctx.createRadialGradient(x2, y2, 1, x2, y2, 22); g.addColorStop(0, 'rgba(255,255,255,' + (.8 * q).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + col + ',0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x2, y2, 22, 0, 6.283); ctx.fill(); }
+      if (lvOf('orbit')) { const n = orbN(), OR = orbR(), st = lvOf('storm'); for (let i = 0; i < n; i++) { const a = P.orbA + i / n * 6.283; let px = 0, py = 0; for (let j = 0; j <= 6; j++) { const aa = a - (6 - j) * (st ? .2 : .15), [x, y] = project(P.x + Math.cos(aa) * OR, P.y + Math.sin(aa) * OR, .9); if (j) { const q = j / 6; ctx.strokeStyle = (st ? 'rgba(200,170,255,' : 'rgba(210,235,255,') + (.45 * q * q).toFixed(3) + ')'; ctx.lineWidth = 2 + 7 * q; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke(); } px = x; py = y; } } }
+      if (lvOf('aura')) { const ar = auraRad(), ph = (t % 44) / 44, [cx, cy] = project(P.x, P.y, 0), [ex] = project(P.x + ar, P.y, 0), [, ey] = project(P.x, P.y + ar, 0), rx = Math.abs(ex - cx), ry = Math.abs(ey - cy), fr = lvOf('frost'); ctx.strokeStyle = (fr ? 'rgba(170,230,255,' : 'rgba(150,215,255,') + (.5 * (1 - ph)).toFixed(3) + ')'; ctx.lineWidth = 2 + 4 * (1 - ph); ctx.beginPath(); ctx.ellipse(cx, cy, rx * (.55 + .45 * ph), ry * (.55 + .45 * ph), 0, 0, 6.283); ctx.stroke();
+        ctx.fillStyle = 'rgba(230,248,255,.75)'; for (let i = 0; i < (fr ? 9 : 6); i++) { const a = i * (6.283 / (fr ? 9 : 6)) + t * .02, rr = .75 + .2 * Math.sin(t * .05 + i); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rx * rr, cy + Math.sin(a) * ry * rr - 6 - 4 * Math.sin(t * .08 + i * 2), 1.8, 0, 6.283); ctx.fill(); } }
+      for (const h of fxHs) { const [cx, cy] = project(h.x, h.y, 1), q = h.l / 7, L = (h.big ? 20 : 12) * (1.2 - q); ctx.strokeStyle = 'rgba(255,245,200,' + (.9 * q).toFixed(3) + ')'; ctx.lineWidth = h.big ? 3 : 2; ctx.beginPath(); for (let i = 0; i < 4; i++) { const a = h.a + i * .785; ctx.moveTo(cx - Math.cos(a) * L, cy - Math.sin(a) * L * .7); ctx.lineTo(cx + Math.cos(a) * L, cy + Math.sin(a) * L * .7); } ctx.stroke(); }
+      ctx.restore(); }
+    _drawComicFx(); };
   const _sfr2 = startFloorRun; startFloorRun = function (f, resumed) { _sfr2(f, resumed); if (updReady && !resumed && !trial && f !== startFloor) { writeRun(); updGo(); } };
   (function () {
     let flag = null; try { flag = localStorage.getItem('dh-upd'); localStorage.removeItem('dh-upd'); } catch (e) {}
