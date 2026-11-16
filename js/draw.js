@@ -34,7 +34,7 @@ function draw() {
   for (const h of HF.list) list.push(['h', h.y + 400, h]);   /* 00:35 영웅(모르데 y540)이 병사 뒤에 그려져 묻힘 → 영웅은 늘 병사 · 적 위에 */
   list.sort((p, q) => p[1] - q[1]);
   for (const [k, , o] of list) k === 'a' ? drawSkel(o) : k === 'h' ? HF.draw(o) : k === 'c' ? drawCorpse(o) : k === 'd' ? drawFallen(o) : drawFoe(o);
-  if (typeof TH !== 'undefined') TH.draw(); if (typeof BC !== 'undefined') BC.tick();   /* 11-16 망자 거인은 군단 · 적 위에(앞으로 솟아 내려찍음) */
+  if (typeof TH !== 'undefined') TH.draw(); if (typeof BC !== 'undefined') BC.tick(); if (typeof BV !== 'undefined') BV.tick(1 / 60);   /* 11-16 망자 거인은 군단 · 적 위에(앞으로 솟아 내려찍음) */
   for (const f of S.foes) HF.drawFoeBar(f);   /* 적 체력 막대는 맨 위에 */
   HF.drawArmyBars();
   drawArmyFx(); HF.drawFx(); LM.draw();
@@ -633,7 +633,7 @@ function drawBanners() {
 function drawLordTag() {   /* 주인공 이름표: 지배자 머리 위 금빛 패 */
   if (TRAILER || S.phase === 'cast' || st.best >= 15) return; const x = 222 + LDX() + 8, y = 614;   /* 11-16 15판부터 지배자 이름표 숨김(화면 난리) */   /* 19:22 머리 위 패가 왼쪽 위 「빠른 보상 · 상점」과 겹침 → 영웅처럼 발밑 이름표 */   /* 세로 화면: 위 아이콘에 가려서 지배자 오른쪽 어깨 옆으로 */
   const vl = JB.vipLv(st), ttl = vl >= 12 ? L.vip.title12 : vl >= 10 ? L.vip.title10 : '', tc = vl >= 4 ? '#ffd76a' : vl >= 1 ? '#e4ecf8' : '#c9a96a';   /* 11-14 귀빈 이름표: 0 낡은 금 · 1 은빛 · 4 금빛 · 10 칭호 · 11 빛나는 금 · 12 천년의 군주 */
-  const fz = Math.round(13 * Math.min(WK(), 2.2)); ctx.save(); ctx.font = `900 ${fz}px ${SERIF}`; const t = '♛ ' + (ttl || L.ui.lordTag), w = ctx.measureText(t).width + fz * 1.1;
+  const fz = Math.round(13 * Math.min(WK(), 2.2)); ctx.save(); ctx.font = `900 ${fz}px ${SERIF}`; const t = '♛ ' + (ttl || (st.myName || L.ui.lordTag)), w = ctx.measureText(t).width + fz * 1.1;
   if (vl >= 11) { ctx.shadowColor = '#ffcf5a'; ctx.shadowBlur = 16 + 8 * Math.sin(S.t * 3); }
   ctx.fillStyle = vl >= 10 ? 'rgba(40,20,4,.9)' : 'rgba(20,8,34,.85)'; ctx.strokeStyle = tc; ctx.lineWidth = vl >= 10 ? 3.5 : 2.5; ctx.beginPath(); ctx.roundRect(x - w / 2, y - fz * 0.75, w, fz * 1.5, fz * 0.75); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
   ctx.fillStyle = tc; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y + 1); ctx.restore();

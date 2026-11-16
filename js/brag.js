@@ -7,7 +7,7 @@ const BRAG = {
     const bg = g.createLinearGradient(0, 0, 0, H2); bg.addColorStop(0, '#1a0830'); bg.addColorStop(1, '#07010f'); g.fillStyle = bg; g.fillRect(0, 0, W2, H2);
     this.scene(g, 0, 150, W2, 640);
     const T = L.brag, gold = '#ffd76a', vio = '#c9a2ff';
-    g.textAlign = 'center'; g.fillStyle = gold; g.font = '900 64px sans-serif'; g.shadowColor = '#8a3cff'; g.shadowBlur = 24; g.fillText(T.brand, W2 / 2, 100); g.shadowBlur = 0;
+    g.textAlign = 'center'; g.fillStyle = gold; g.font = '900 64px sans-serif'; g.shadowColor = '#8a3cff'; g.shadowBlur = 24; g.fillText(T.brand, W2 / 2, 100); if (st.myName) { g.shadowBlur = 0; g.font = '800 34px sans-serif'; g.fillStyle = '#e9dcff'; g.fillText('지배자 ' + st.myName, W2 / 2, 142); } g.shadowBlur = 0;
     const army = JB.armySize ? JB.armySize(st) : 0, dps = JB.dps(st), stg = typeof SN === 'function' ? SN(st.best || st.stage) : (st.best || st.stage);
     const rows = [[T.power, fmt(dps)], [T.army, fmt(army)], [T.stage, String(stg)], [T.thrall, String(st.thralls || 0)]];
     let y = 860; g.font = '700 40px sans-serif';

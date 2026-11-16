@@ -18,6 +18,7 @@ const EX = {
   },
   act(x, arg) {
     if (typeof BRAG !== 'undefined' && BRAG.act(x)) return;
+    if (x === 'nmSave') { const cl = v => (v || '').replace(/[<>"'&]/g, '').trim().slice(0, 8); st.myName = cl(document.getElementById('nmMe')?.value); st.rival = cl(document.getElementById('nmRv')?.value); UI.toast(L.names.title, L.names.saved(st.myName, st.rival)); UI.closeModal(); UI.render(true); return; }
     if (typeof DEX !== 'undefined' && DEX.act(x, arg)) return;   /* 11-16 #14 도감 보상 받기 */   /* 11-16 #11 자랑 카드 */
     if (typeof SO !== 'undefined' && SO.act(x, arg)) return;   /* 04:05 채팅 · 길드 */
     if (x === 'adOk') { UI.closeModal(); const f = this.adThen; this.adThen = null; if (f) f(); }
@@ -96,7 +97,8 @@ const EX = {
     if (st.settings.vib === undefined) st.settings.vib = true;   /* 진동은 처음엔 켬 */
     const row = k => `<div class="row"><div class="grow">${L.settings[k]}</div><button class="btn" data-x="set" data-arg="${k}">${st.settings[k] ? L.settings.on : L.settings.off}</button></div>`;
     const auto = JB.unlocked(st, 'autoCast') ? `<div class="row"><div class="grow">${L.spell.auto}</div><button class="btn" data-x="autoCastSet">${st.autoCast ? L.settings.on : L.settings.off}</button></div>` : `<div class="row"><div class="grow muted">${L.spell.auto}: ${L.autoCastLock(st.casts || 0)}</div></div>`;   /* 대마법 자동은 설정에도(각성 탭은 25판에 열려서) */
-    UI.openModal(`<h3>${L.settings.title}</h3>${auto}${row('sound')}${row('bgm')}${row('shortCast')}${row('calm')}${row('vib')}<div class="row"><div class="grow">☾ ${L.saver.btn} <span class="muted mini">${L.saver.title}</span></div><button class="btn" data-x="saverGo">${L.saver.btn}</button></div><h4 style="margin:.6em 0 .2em">정보</h4><div class="lgrow">${LEGAL.rows().map(([k, t]) => `<button class="btn" data-x="legal" data-arg="${k}">${t}</button>`).join('')}</div><div class="row"><div class="grow muted">${L.settings.wipeD}</div><button class="btn" data-x="wipeAsk">${L.settings.wipe}</button></div>`);   /* 그림체 시안(애니풍)은 대표님 「원래 그림체」로 빼 둠 */
+    const nm = `<div class="row nmrow"><div class="grow">${L.names.title}<small class="muted" style="display:block">${L.names.hint}</small></div></div><div class="row nmrow" style="gap:6px"><input id="nmMe" maxlength="8" placeholder="${L.names.me}" value="${(st.myName || '').replace(/"/g, '')}"><input id="nmRv" maxlength="8" placeholder="${L.names.rival}" value="${(st.rival || '').replace(/"/g, '')}"><button class="btn gold" data-x="nmSave">${L.names.save}</button></div>`;   /* 11-16 이름 넣기(던전 히어로 「마왕 김진동」처럼 아는 사람이 나오게) */
+    UI.openModal(`<h3>${L.settings.title}</h3>${nm}${auto}${row('sound')}${row('bgm')}${row('shortCast')}${row('calm')}${row('vib')}<div class="row"><div class="grow">☾ ${L.saver.btn} <span class="muted mini">${L.saver.title}</span></div><button class="btn" data-x="saverGo">${L.saver.btn}</button></div><h4 style="margin:.6em 0 .2em">정보</h4><div class="lgrow">${LEGAL.rows().map(([k, t]) => `<button class="btn" data-x="legal" data-arg="${k}">${t}</button>`).join('')}</div><div class="row"><div class="grow muted">${L.settings.wipeD}</div><button class="btn" data-x="wipeAsk">${L.settings.wipe}</button></div>`);   /* 그림체 시안(애니풍)은 대표님 「원래 그림체」로 빼 둠 */
   },
   applySettings() {
     const s = st.settings; if (!Snd.master) return;

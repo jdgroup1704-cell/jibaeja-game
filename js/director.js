@@ -367,7 +367,7 @@ function onEvents(ev) {
     if (e.e === 'autoCast') startCast(true);
     if (e.e === 'gear') { const gc = ['#cfcfcf', '#5be37a', '#4aa8ff', '#b56cff', '#ffcc33', '#ff4b4b'][e.it.g], fx = Math.min(VX1 - 220, (armyFront ? armyFront() : 600) + 120); burst(fx, 600, 14 + e.it.g * 6, { col: [gc, '#ffffff'], vmin: 60, vmax: 260 + e.it.g * 40, up: 260, lmax: 0.9 }); if (e.it.g >= 3) { S.flash = Math.max(S.flash || 0, 0.12); Snd.slam && Snd.slam(0.25); } if (typeof UI !== 'undefined' && !AUTO) UI.gearGot([e]); }   /* 22:50 장비가 떨어짐: 등급 색 빛 터짐 + 알림 */
     if (e.e === 'bossDown' && !AUTO && !TRAILER && !st.seen.firstOffer && (st.best || 0) >= 10 && !(JB.shopOf(st).bought.first)) { st.seen.firstOffer = 1; const tryOffer = () => { if (typeof TH !== 'undefined' && TH.rise) return setTimeout(tryOffer, 700); if (document.getElementById('modal').style.display !== 'flex' && UI.offerFirst) UI.offerFirst(); }; setTimeout(tryOffer, 4200); }   /* 11-16 영상_약점거인 59초: 특가 창이 망자 거인 일어나는 장면을 덮음 → 거인이 다 일어난 뒤에 */   /* 03:50 첫 지역의 주인을 잡은 직후 첫 결제 특가 한 번(AFK 저니는 14분쯤 첫 제안) */
-    if (e.e === 'bossDown' && S.phase === 'fight') { S.downEv = e; giantDown(false); if (st.stage % 10 === 0 || (st.boss && st.boss.lord)) setTimeout(() => say(L.conquer(L.regions[regionOf(st.stage)]), W / 2, H * 0.24, { size: 54, col: '#ffe9a8', glow: '#ff9a2a', life: 2.4, vy: 0, stamp: true, screen: true }), 1600); }   /* x-10 지역의 주인을 잡으면 「정복」 */
+    if (e.e === 'bossDown' && S.phase === 'fight') { if (typeof BV !== 'undefined' && !TRAILER) BV.down(e.stage); S.downEv = e; giantDown(false); if (st.stage % 10 === 0 || (st.boss && st.boss.lord)) setTimeout(() => say(L.conquer(L.regions[regionOf(st.stage)]), W / 2, H * 0.24, { size: 54, col: '#ffe9a8', glow: '#ff9a2a', life: 2.4, vy: 0, stamp: true, screen: true }), 1600); }   /* x-10 지역의 주인을 잡으면 「정복」 */
     if (e.e === 'retreat') retreatFx();
     if (e.e === 'pushed') pushedFx();
     if (e.e === 'firstHero') { heroSay('join', e.id); Snd.smp('summon', 0.7); UI.toast(L.unlock.title, L.unlock.hero); if (!AUTO && !st.seen.curTip) setTimeout(() => { if (document.getElementById('modal').style.display !== 'flex' && !document.querySelector('#vsfx.go')) UI.curOpen('gems'); }, 3500); }   /* 03:25 첫 영웅(마정석이 처음 생김) 때 재화 안내 한 번 */
@@ -379,6 +379,7 @@ function onEvents(ev) {
   }
 }
 function bossArrive(lord) {
+  S.ph2 = 0; if (typeof BV !== 'undefined' && !TRAILER) BV.arrive();   /* 11-16 보스 등장 대사 */
   if ((AUTO || st.settings.autoSquad) && JB.bossTraits(st.stage).length) { const bs = JB.bestSquad(st); st.squad = st.squad.map((_, i) => bs[i] || null); }   /* 봇 · 「추천 진형 자동」을 켠 사람은 보스 앞에서 추천 진형으로 */
   S.phase = 'arrive'; S.foes.forEach(f => f.flee = true); Snd.voiceCd && Snd.voiceCd('v_boss', 90, 0.6);   /* 04:40 보스 등장 「감히 여기까지 오다니!」(드리미나 AI 오디오), 90초에 한 번 */
   Object.assign(S.giant, { x: 1500, alpha: 1, dead: false, slam: 0, raise: 0, charge: 0, wind: 0, windFn: null, on: true, t0: S.t });
@@ -535,7 +536,7 @@ const BOSS_SP = [
 ];
 function bossSpecial() {
   punch(0.06, 0, [40, 30, 40]);
-  const g = S.giant, sp = BOSS_SP[regionOf(st.stage)] || BOSS_SP[0], nm = L.boss.sp[sp.k];
+  S.spN = (S.spN || 0) + 1; const g = S.giant, sp = (st.boss && st.boss.ph2 && S.spN % 2 === 0 ? BOSS_SP[(regionOf(st.stage) + 3) % 8] : BOSS_SP[regionOf(st.stage)]) || BOSS_SP[0], nm = L.boss.sp[sp.k];   /* 11-16 2페이지: 두 번째 기술이 번갈아 섞임 */
   say(nm, W / 2, 285, { size: 40, col: sp.col, glow: sp.glow, life: 1.6, vy: 0, stamp: true, screen: true }); S.shake = Math.max(S.shake, 8); g.raise = 1;
   const pick = () => armyMid(), hurtH = n => { for (const h of HF.list) HF.hurt(h, n, true); };
   if (sp.k === 'quake') { (S.cracks = S.cracks || []).push({ x0: g.x - 160, x1: 260, y: 596, t: 0 }); setTimeout(() => { fellArmy(5, null, ['#a89070', '#6a5a48']); hurtH(2); S.shake = Math.max(S.shake, 14); }, 450); }

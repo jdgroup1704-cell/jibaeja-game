@@ -91,7 +91,7 @@ const UI = {
   },
   vsCustom(img, name, sub, then) {   /* 05:05 던전 · 길드 보스 도전도 결과 창만 뜨던 것 → 대결 띠 1.6초 뒤 결과(대표님 「현질하면 확실한 효과 · 몰입」) */
     this.closeModal(); let el = $('vsfx'); if (!el) { el = document.createElement('div'); el.id = 'vsfx'; $('stagewrap').appendChild(el); }
-    el.innerHTML = `<div class="vl"><img src="art/lordA.webp" alt=""><span>${L.vs.me}</span></div><div class="vr"><img src="art/${img}.webp" alt=""><span>${name}</span></div><b class="vsx">${L.vs.x}</b><div class="vsw">${sub || ''}</div>`;
+    el.innerHTML = `<div class="vl"><img src="art/lordA.webp" alt=""><span>${st.myName ? '지배자 ' + st.myName : L.vs.me}</span></div><div class="vr"><img src="art/${img}.webp" alt=""><span>${name}</span></div><b class="vsx">${L.vs.x}</b><div class="vsw">${sub || ''}</div>`;
     el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); clearTimeout(this.vsT); this.vsT = setTimeout(() => { el.classList.remove('go'); then && then(); }, 1650);
     Snd.slam && setTimeout(() => Snd.slam(0.5), 330);
   },
@@ -99,7 +99,7 @@ const UI = {
     if (UI.awakening || document.getElementById('modal').style.display === 'flex') return false;
     let el = $('vsfx'); if (!el) { el = document.createElement('div'); el.id = 'vsfx'; $('stagewrap').appendChild(el); }
     const nm = L.boss.name(L.regions[regionOf(st.stage)], lord), lk = 'lordA';   /* 01:55 그림체 A 지배자(오른쪽을 봄 = 보스와 마주 봄) */
-    el.innerHTML = `<div class="vl"><img src="art/${lk}.webp" alt=""><span>${L.vs.me}</span></div><div class="vr"><img src="art/bossV.webp" alt=""><span>${nm}</span></div><b class="vsx">${L.vs.x}</b><div class="vsw">${lord ? L.boss.lord : L.boss.arrive}</div>`;
+    el.innerHTML = `<div class="vl"><img src="art/${lk}.webp" alt=""><span>${st.myName ? '지배자 ' + st.myName : L.vs.me}</span></div><div class="vr"><img src="art/bossV.webp" alt=""><span>${nm}</span></div><b class="vsx">${L.vs.x}</b><div class="vsw">${lord ? L.boss.lord : L.boss.arrive}</div>`;
     el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); clearTimeout(this.vsT); this.vsT = setTimeout(() => el.classList.remove('go'), 1750);
     Snd.slam && setTimeout(() => Snd.slam(0.5), 330); return true;
   },
