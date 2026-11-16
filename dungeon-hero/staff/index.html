@@ -2083,7 +2083,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116185129'; let updReady = null;
+  const BUILD = '1116185640'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2655,6 +2655,27 @@
       for (const h of fxHs) { const [cx, cy] = project(h.x, h.y, 1), q = h.l / 7, L = (h.big ? 20 : 12) * (1.2 - q); ctx.strokeStyle = 'rgba(255,245,200,' + (.9 * q).toFixed(3) + ')'; ctx.lineWidth = h.big ? 3 : 2; ctx.beginPath(); for (let i = 0; i < 4; i++) { const a = h.a + i * .785; ctx.moveTo(cx - Math.cos(a) * L, cy - Math.sin(a) * L * .7); ctx.lineTo(cx + Math.cos(a) * L, cy + Math.sin(a) * L * .7); } ctx.stroke(); }
       ctx.restore(); }
     _drawComicFx(); };
+
+  // ===================== 몬스터 겹침 방지 + 장비가 보이게 =====================
+  let eqShowT = 0, eqShowF = -1;
+  const _updateSep = update;
+  update = function (k) { _updateSep(k);
+    if (state !== 'play') return;
+    if (eqShowF !== floor) { eqShowF = floor; eqShowT = 200; } if (eqShowT > 0) eqShowT -= k;
+    const n = enemies.length; if (n > 1 && n < 70) for (let i = 0; i < n; i++) { const a = enemies[i]; if (a.hp <= 0 || a.dead) continue; for (let j = i + 1; j < n; j++) { const b = enemies[j]; if (b.hp <= 0 || b.dead) continue; const dx = b.x - a.x, dy = b.y - a.y, need = (a.r + b.r) * .85; if (Math.abs(dx) > need || Math.abs(dy) > need) continue; const d = Math.hypot(dx, dy) || .01; if (d < need) { const p = (need - d) / d * .22, ma = a.elite || a.caster ? .3 : 1, mb = b.elite || b.caster ? .3 : 1; a.x -= dx * p * ma; a.y -= dy * p * ma; b.x += dx * p * mb; b.y += dy * p * mb; } } }
+    for (const e of enemies) { if (e.x < R.x0 + e.r) e.x = R.x0 + e.r; else if (e.x > R.x1 - e.r) e.x = R.x1 - e.r; if (e.y < R.y0 + e.r) e.y = R.y0 + e.r; else if (e.y > R.y1 - e.r) e.y = R.y1 - e.r; } };
+  const _drawComicEq = drawComic;
+  drawComic = function () {
+    if (gl && (state === 'play' || state === 'levelup') && meta.item) { const its = ['w', 'a', 'r'].map(s => meta.item[s]).filter(Boolean), g = its.reduce((m, it) => Math.max(m, it.g), -1), enh = meta.eq.w + meta.eq.a + meta.eq.r;
+      const [cx, cy] = project(P.x, P.y, 0), [ex] = project(P.x + 26, P.y, 0), [, ey] = project(P.x, P.y + 26, 0), rx = Math.abs(ex - cx), ry = Math.abs(ey - cy);
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      if (g >= 2) { const col = IG[g][1], pu = .55 + .25 * Math.sin(t * .1); ctx.strokeStyle = col; ctx.globalAlpha = pu * (g >= 3 ? .9 : .6); ctx.lineWidth = g >= 3 ? 3.5 : 2.5; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.stroke();
+        if (g >= 3) { ctx.globalAlpha = pu * .5; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(cx, cy, rx * 1.35, ry * 1.35, 0, t * .03, t * .03 + 4.2); ctx.stroke(); }
+        if (g >= 4) { ctx.globalAlpha = .55; ctx.fillStyle = col; for (let i = 0; i < 6; i++) { const a = t * .04 + i * 1.047, q = (t * .02 + i * .17) % 1; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rx * 1.2, cy + Math.sin(a) * ry * 1.2 - q * 30, 2.6 * (1 - q), 0, 6.283); ctx.fill(); } } }
+      const ns = Math.min(6, Math.floor(enh / 15)); if (ns > 0) { ctx.fillStyle = '#ffe9a0'; for (let i = 0; i < ns; i++) { const q = (t * .012 + i / ns) % 1, a = i * 2.4 + t * .01; ctx.globalAlpha = .8 * (1 - q); ctx.beginPath(); ctx.arc(cx + Math.cos(a) * rx * .8, cy - 6 - q * 46, 1.6 + (1 - q), 0, 6.283); ctx.fill(); } }
+      ctx.restore(); ctx.globalAlpha = 1;
+      if (eqShowT > 0 && state === 'play' && its.length) { const [, hy] = project(P.x, P.y, 3.4), al = Math.min(1, eqShowT / 40), wi = meta.item.w; ctx.globalAlpha = al; if (wi) txt('⚔️ [' + IG[wi.g][0] + '] ' + INAME.w[wi.g] + ' +' + meta.eq.w, cx, hy - 26, 12, IG[wi.g][1]); txt('🛡️+' + meta.eq.a + '  💍+' + meta.eq.r, cx, hy - 11, 11, '#e8d8c0'); ctx.globalAlpha = 1; } }
+    _drawComicEq(); };
   const _sfr2 = startFloorRun; startFloorRun = function (f, resumed) { _sfr2(f, resumed); if (updReady && !resumed && !trial && f !== startFloor) { writeRun(); updGo(); } };
   (function () {
     let flag = null; try { flag = localStorage.getItem('dh-upd'); localStorage.removeItem('dh-upd'); } catch (e) {}
