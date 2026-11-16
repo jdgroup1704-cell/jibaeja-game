@@ -476,6 +476,7 @@
   html:not(.trailer) #stagewrap > #guide{top:auto!important;bottom:62px!important;background:linear-gradient(#1c0d30ee,#0b0514ee)!important;border:1px solid #c9a15a!important;box-shadow:0 0 12px rgba(150,90,255,.35);border-radius:12px!important;color:#fff3d6!important;white-space:nowrap;font-size:11.5px!important;padding:.2em .8em!important;bottom:58px!important}   /* 10:32 영상: 두 줄 말풍선이 큰 소환수 발 · 몸을 가림 → 한 줄 · 작게(6초 뒤 흐려짐은 그대로) */
   /* ⑮ 19:38 영웅 기술 컷인: 왼쪽에서 얼굴 그림 + 기술 이름 띠가 쓱 들어왔다 나감(0.9초) */
   #cutin{position:absolute;left:0;top:30%;width:78%;height:64px;pointer-events:none;z-index:7;display:none}
+  @media (max-width:520px){ html:not(.trailer) #cutin{top:auto!important;bottom:22%!important;width:66%!important;height:52px!important} html:not(.trailer) #cutin img{height:52px!important;width:52px!important} html:not(.trailer) #cutin .ci-t{left:64px!important} }   /* 11-17 ② 싸움터 글자 정리: 폰에서 영웅 기술 컷인이 보스 체력 막대 · 보스 몸을 덮음(눈 확인 boss.jpg) → 아래쪽(일으켜라 단추 위)으로 · 조금 작게 */
   #cutin.go{display:block;animation:ciIn .95s cubic-bezier(.2,.9,.3,1) forwards}
   #cutin .ci-bg{position:absolute;inset:8px 0 8px 0;background:linear-gradient(90deg,rgba(10,2,20,.92) 0%,color-mix(in srgb,var(--c) 45%,#12051e) 55%,rgba(10,2,20,0) 100%);border-top:2px solid var(--c);border-bottom:2px solid var(--c);transform:skewX(-14deg);transform-origin:left}
   #cutin img{position:absolute;left:6px;bottom:0;height:64px;width:64px;object-fit:cover;object-position:top;border-radius:50%;border:2px solid var(--c);box-shadow:0 0 12px var(--c);background:#12051e}
@@ -933,7 +934,7 @@
     <!-- 11-14 17:55 「그림 비교 ①②③④」 시험 단추 지움: ③ 예전 개선 + 영상 장면으로 정함(16:30). 시험할 땐 주소에 ?style=2d 처럼 -->
     <button id="reraise"></button>
     <div id="testbar"></div>
-    <div id="ver">판 11-17 03:26</div>
+    <div id="ver">판 11-17 04:22</div>
   </div>
   <div id="grip"><i></i></div>
   <div id="skillbar"><button id="raiseBtn"></button><div id="slots"></div><button id="cast"></button></div>
@@ -947,25 +948,25 @@
 </div>
 <div id="modal"><div class="box"></div></div>
 <script>window.BUILD = '1115102811';</script>   <!-- 11-14 18:12 대표님 「바뀐 새 버전 줘, 저장된 거 주지 말고 첫 시작」: 판마다 저장 이름이 달라 새 판은 늘 1-1부터 -->
-<script src="lang_ko.js?v=1117032607"></script>
-<script src="balance.js?v=1117032607"></script>
-<script src="logic.js?v=1117032607"></script>
-<script src="js/base.js?v=1117032607"></script>
-<script src="js/sound.js?v=1117032607"></script>
-<script src="js/art.js?v=1117032607"></script>
-<script src="js/draw.js?v=1117032607"></script>
-<script src="js/director.js?v=1117032607"></script>
-<script src="js/field.js?v=1117032607"></script>
-<script src="js/thrall.js?v=1117032607"></script>
-<script src="js/brag.js?v=1117032607"></script>
-<script src="js/bosscharge.js?v=1117032607"></script>
-<script src="js/reward.js?v=1117032607"></script>
-<script src="js/dex.js?v=1117032607"></script>
-<script src="js/minion.js?v=1117032607"></script><script src="js/foefx.js?v=1117032607"></script><script src="js/spellfx.js?v=1117032607"></script><script src="js/tap.js?v=1117032607"></script><script src="js/bossvoice.js?v=1117032607"></script>
-<script src="js/ui.js?v=1117032607"></script>
-<script src="js/extra.js?v=1117032607"></script>
-<script src="js/social.js?v=1117032607"></script>
-<script src="js/legal.js?v=1117032607"></script>
-<script src="js/main.js?v=1117032607"></script><script src="js/mobile.js?v=1117032607"></script><script src="js/demo.js?v=1117032607"></script>
+<script src="lang_ko.js?v=1117042244"></script>
+<script src="balance.js?v=1117042244"></script>
+<script src="logic.js?v=1117042244"></script>
+<script src="js/base.js?v=1117042244"></script>
+<script src="js/sound.js?v=1117042244"></script>
+<script src="js/art.js?v=1117042244"></script>
+<script src="js/draw.js?v=1117042244"></script>
+<script src="js/director.js?v=1117042244"></script>
+<script src="js/field.js?v=1117042244"></script>
+<script src="js/thrall.js?v=1117042244"></script>
+<script src="js/brag.js?v=1117042244"></script>
+<script src="js/bosscharge.js?v=1117042244"></script>
+<script src="js/reward.js?v=1117042244"></script>
+<script src="js/dex.js?v=1117042244"></script>
+<script src="js/minion.js?v=1117042244"></script><script src="js/foefx.js?v=1117042244"></script><script src="js/spellfx.js?v=1117042244"></script><script src="js/tap.js?v=1117042244"></script><script src="js/bossvoice.js?v=1117042244"></script>
+<script src="js/ui.js?v=1117042244"></script>
+<script src="js/extra.js?v=1117042244"></script>
+<script src="js/social.js?v=1117042244"></script>
+<script src="js/legal.js?v=1117042244"></script>
+<script src="js/main.js?v=1117042244"></script><script src="js/mobile.js?v=1117042244"></script><script src="js/demo.js?v=1117042244"></script>
 </body>
 </html>

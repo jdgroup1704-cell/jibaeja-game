@@ -22,8 +22,9 @@ const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComp
   await pg.screenshot({ path: `/tmp/시범/${String(k++).padStart(2, '0')}.png` });
   r.시범저장있음 = await pg.evaluate(() => !!localStorage.getItem('jibaeja_demo_b1115102811'));
   // ③ 끝내기 → 원래 기록 그대로
-  await Promise.all([pg.waitForNavigation({ timeout: 8000 }).catch(() => {}), pg.evaluate(() => document.querySelector('#demobar .dbx').click())]); await pg.waitForTimeout(2500);
+  await pg.evaluate(() => document.querySelector('#demobar .dbx').click()); await pg.waitForTimeout(600); r.결과카드 = await pg.evaluate(() => !!document.getElementById('demoEnd')); await pg.screenshot({ path: `/tmp/시범/${String(k++).padStart(2, '0')}.png` });
+  await Promise.all([pg.waitForNavigation({ timeout: 8000 }).catch(() => {}), pg.evaluate(() => document.getElementById('demoEnd').click())]); await pg.waitForTimeout(2500); r.끝낸뒤주소 = await pg.evaluate(() => location.search + location.hash);
   const after = await pg.evaluate(() => localStorage.getItem('jibaeja_b1115102811')); const ab = JSON.parse(after || '{}'), bb = JSON.parse(before || '{}');
   r.원래기록_판 = ab.stage; r.원래기록_마정석 = ab.gems; r.원래기록같음 = ab.stage === bb.stage && ab.gems === bb.gems && ab.up && JSON.stringify(ab.up) === JSON.stringify(bb.up); r.끝낸뒤띠없음 = await pg.evaluate(() => !document.querySelector('#demobar'));
-  execSync(`ffmpeg -y -loglevel error -framerate 1 -i /tmp/시범/%02d.png -vf "scale=360:-1,tile=9x1" -frames:v 1 -q:v 4 /home/claude/rec/시범_${name}.jpg`);
+  execSync(`ffmpeg -y -loglevel error -framerate 1 -i /tmp/시범/%02d.png -vf "scale=360:-1,tile=10x1" -frames:v 1 -q:v 4 /home/claude/rec/시범_${name}.jpg`);
   console.log(JSON.stringify({ ...r, 오류: errs.slice(0, 3) })); await b.close(); srv.close(); })();

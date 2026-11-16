@@ -14,12 +14,13 @@ const DEMOUI = (() => {
   el.addEventListener('click', e => { e.stopPropagation(); const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.sp) { window.DEMO_SP = +b.dataset.sp; }
     else if (b.classList.contains('dbday')) { const real = st.day; JB.newDay(st, -1 - (st.daysPlayed || 0)); st.day = real; st.lastSeen = Date.now() - 8 * 3600e3; try { offlineCheck(); } catch (er) {} BOT.say('day'); }   /* 날짜만 넘김 + 밤사이 8시간 자리 비움 보상 */
-    else if (b.classList.contains('dbx')) { try { save(); } catch (er) {} location.href = location.pathname; }   /* 시범 끝: 대표님 기록(원래 저장)으로 */
+    else if (b.classList.contains('dbx')) { if (!el.dataset.sum) { el.dataset.sum = 1; window.DEMO_SP = 0.0001; UI.openModal(`<h3>🤖 ${L.demo.sumT}</h3><p>${L.demo.stat(Math.floor(BOT.t / 60) + '분', L.stage ? L.stage(st.best) : st.best, st.awakens || 0, typeof fmt === 'function' ? fmt(JB.armySize(st)) : JB.armySize(st), st.daysPlayed || 0)}</p><p class="muted">${L.demo.sumD}</p><button class="btn gold" id="demoEnd" style="width:100%">${L.demo.exit}</button>`); const e2 = document.getElementById('demoEnd'); if (e2) e2.onclick = () => DEMOUI.leave(); return; } DEMOUI.leave(); }   /* 끝낼 때 로봇이 한 결과 카드 한 번 */
     paint(); });
   const paint = () => { el.querySelectorAll('[data-sp]').forEach(b => b.classList.toggle('on', +b.dataset.sp === window.DEMO_SP));
     const gm = Math.floor(BOT.t / 60), gs = Math.floor(BOT.t % 60);
     el.querySelector('.db2').textContent = L.demo.stat(`${gm}분 ${gs}초`, L.stage ? L.stage(st.stage) : st.stage, st.awakens || 0, (typeof fmt === 'function' ? fmt(JB.armySize(st)) : JB.armySize(st)), st.daysPlayed || 0);
     el.querySelector('.db3').innerHTML = log.map((x, i) => `<span class="${i ? '' : 'new'}">${x.t}${x.n > 1 ? ' ×' + x.n : ''}</span>`).join(' · ') || L.demo.wait; };
   setInterval(paint, 400); paint();
-  return { log, el };
+  const leave = () => { try { save(); } catch (er) {} try { history.replaceState(null, '', location.pathname); } catch (er) {} location.hash = ''; location.reload(); };   /* 시범 끝: 대표님 기록(원래 저장)으로 */
+  return { log, el, leave };
 })();

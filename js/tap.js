@@ -31,5 +31,5 @@ const TAP = {
     ctx.restore(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; this.L = this.L.filter(e => e.t < e.life); },
 };
 cv.addEventListener('pointerdown', ev => { const p = TAP.world(ev); if (p) TAP.fire(p); });
-setInterval(() => { try { if (!st.seen.tapHint && st.stage >= 2 && TAP.ok() && !AUTO && !TRAILER) { st.seen.tapHint = 1; say(L.tapHint || '싸움터를 누르면 지배자가 직접 쏴요!', W / 2, H * 0.3, { size: 34, col: '#f3e8ff', glow: '#8a3cff', life: 2.6, vy: 0, stamp: true, screen: true }); } } catch (e) {} }, 3000);   /* 처음 한 번 알려 줌 */
+setInterval(() => { try { if (!st.seen.tapHint && st.stage >= 2 && TAP.ok() && !AUTO && !TRAILER && S.phase === 'battle' && !S.texts.some(t => t.screen && t.age < t.life) && !document.querySelector('#toast .toast')) {   /* 11-17 눈 확인: 싸움 한가운데 큰 글자 · 알림과 겹쳤음 → 조용할 때 아래쪽에 */ st.seen.tapHint = 1; say(L.tapHint || '싸움터를 누르면 지배자가 직접 쏴요!', W / 2, H * 0.6, { size: 30, col: '#f3e8ff', glow: '#8a3cff', life: 2.6, vy: 0, stamp: true, screen: true }); } } catch (e) {} }, 3000);   /* 처음 한 번 알려 줌 */
 window.__tap = TAP;   /* 관문이 읽음 */
