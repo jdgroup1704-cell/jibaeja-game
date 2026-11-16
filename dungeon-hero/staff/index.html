@@ -11,7 +11,7 @@
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%;overflow:hidden;background:#07060a}
   body{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
-  canvas{display:block;width:100vw;height:100vh;outline:none;position:fixed;left:0;top:0}
+  canvas{display:block;width:100vw;height:100vh;height:100dvh;outline:none;position:fixed;left:0;top:0}
   #g3{z-index:0}
   #c{z-index:1}
   #pause{position:fixed;top:10px;right:56px;width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,210,140,.4);font-size:15px;background:rgba(20,14,8,.6);color:#fff;z-index:5;cursor:pointer}
@@ -1671,6 +1671,7 @@
     if (runSave) { button('▶ 이어하기 (' + runSave.floor + '층 · Lv ' + runSave.lv + ')', 40, y, W - 80, 54, resumeRun, true); y += 60; }
     if (cp > 1) { button('🚩 ' + cp + '층부터 도전!', 50, y, W - 100, runSave ? 44 : 54, () => startRun(cp), !runSave); y += runSave ? 50 : 60; if (cp > 10) { const ff = Math.floor((cp - 6) / 5) * 5 + 1; button('💰 골드 모으며 ' + ff + '층부터', 60, y, (W - 130) / 2 + 20, 34, () => startRun(ff), false); button('1층부터', 90 + (W - 130) / 2, y, (W - 130) / 2 - 20, 34, () => startRun(1), false); } else button('1층부터', 150, y, W - 300, 34, () => startRun(1), false); y += 42; }
     else { button('⚔️ 모험 시작 (1층부터)', 50, y, W - 100, runSave ? 44 : 54, () => startRun(1), !runSave); y += runSave ? 50 : 60; }
+    y = instBanner(y);
     { const n = affordable().length; if (n) { const bx = 70, bw = W - 140; ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(W / 2, y + 23, 150, '255,200,80', .18 + .1 * Math.sin(t * .12)); ctx.restore();
       button('🛠️ 강화하기 · ' + n + '개 가능!', bx, y, bw, 46, () => { state = 'shop'; }, true); circle(bx + bw - 4, y + 4, 13, '#ff3b3b'); txt(n, bx + bw - 4, y + 5, 15, '#fff', FB);
       txt('👉', bx - 22 + Math.sin(t * .15) * 6, y + 24, 26, '#fff', FB, 'center', 'rgba(0,0,0,0)'); }
@@ -2073,8 +2074,9 @@
     scale = Math.min(innerWidth / W, innerHeight / H);
     ox = (innerWidth - W * scale) / 2; oy = (innerHeight - H * scale) / 2;
     cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
+    try { for (const c of [cv, g3c]) { c.style.width = innerWidth + 'px'; c.style.height = innerHeight + 'px'; } } catch (e) {}
   }
-  addEventListener('resize', layout); layout();
+  addEventListener('resize', layout); layout(); try { if (window.visualViewport) visualViewport.addEventListener('resize', layout); } catch (e) {} setTimeout(layout, 300); setTimeout(layout, 1500);
   let last = performance.now();
   let qual = 1, slowT = 0, fastT = 0, errCount = 0;
   function frame(now) { const k = Math.min(2.5, (now - last) / 16.667); last = now;
@@ -2085,7 +2087,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116225658'; let updReady = null;
+  const BUILD = '1116231304'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -3050,7 +3052,7 @@
   }
 
   // ---------- 새 소식(업데이트 내역) ----------
-  const NEWS = [["11월 16일 밤 업데이트", ["❓ 도움말이 생겼어요: 골드 · 강화석 · 장비 · 다이아가 뭔지", "장비 뽑기 확률표 · 강화 확률표를 볼 수 있어요", "💎 부활이 바뀌었어요: 쓰러진 그 자리에서, 보스 체력 그대로", "📲 폰에 설치하면 [전설] 무기 + 💎100 선물", "우리 용사가 조금 커졌어요 (장비 · 변신이 더 잘 보이게)"]]];
+  const NEWS = [["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]], ["11월 16일 밤 업데이트", ["❓ 도움말이 생겼어요: 골드 · 강화석 · 장비 · 다이아가 뭔지", "장비 뽑기 확률표 · 강화 확률표를 볼 수 있어요", "💎 부활이 바뀌었어요: 쓰러진 그 자리에서, 보스 체력 그대로", "📲 폰에 설치하면 [전설] 무기 + 💎100 선물", "우리 용사가 조금 커졌어요 (장비 · 변신이 더 잘 보이게)"]]];
   function drawNews() { let y = 166;
     NEWS.forEach((n, ni) => { ctx.fillStyle = ni ? 'rgba(30,26,40,.9)' : 'rgba(50,40,16,.95)'; const hh = 30 + n[1].length * 21 + 8; rrect(16, y, W - 32, hh, 12); ctx.fill(); ctx.strokeStyle = ni ? 'rgba(255,255,255,.15)' : '#ffc864'; ctx.lineWidth = 2; ctx.stroke();
       tfit((ni ? '' : '🆕 ') + n[0], 28, y + 18, 15, ni ? '#c8a888' : '#ffd27a', W - 56, FT); n[1].forEach((l, i) => tfit('· ' + l, 30, y + 42 + i * 21, 12.5, '#e8d8c0', W - 60)); y += hh + 8; });
@@ -3058,7 +3060,8 @@
   // ---------- 폰에 설치 · 설치 선물 · 기록 옮기기 ----------
   const UA = navigator.userAgent || '', IS_KAKAO = /KAKAOTALK/i.test(UA), IS_IOS = /iPhone|iPad|iPod/i.test(UA), IS_AND = /Android/i.test(UA), IS_SAMSUNG = /SamsungBrowser/i.test(UA);
   const IN_APP = IS_KAKAO || /NAVER\(inapp|Instagram|FBAN|FBAV|Line\//i.test(UA);
-  let isApp = false; try { isApp = /[?&]app=1/.test(location.search) || localStorage.getItem('dh-app') === '1' || navigator.standalone === true || (top === window && (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches)); if (isApp) localStorage.setItem('dh-app', '1'); } catch (e) {}
+  let freshSess = true; try { freshSess = !sessionStorage.getItem('dh-sess'); sessionStorage.setItem('dh-sess', '1'); } catch (e) {}
+  let isApp = false; try { isApp = (freshSess && /[?&]app=1/.test(location.search)) || localStorage.getItem('dh-app') === '1' || navigator.standalone === true || (top === window && (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches)); if (isApp) localStorage.setItem('dh-app', '1'); } catch (e) {}
   let instEvt = null, instMsg = '', instMsgT = 0; addEventListener('beforeinstallprompt', e => { e.preventDefault(); instEvt = e; }); addEventListener('appinstalled', () => { instEvt = null; instSay('설치됐어요! 홈 화면의 「던전 히어로」로 들어오면 선물을 받아요'); });
   const instSay = m => { instMsg = m; instMsgT = t; };
   const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''), b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
@@ -3077,16 +3080,20 @@
   const GIFT_DIA = 100;
   function giveAppGift() { if (meta.pwaGift || trial) return; meta.pwaGift = 1; const it = mkItem(0, 'w'); it.g = 3; const ks = Object.keys(IOPT).sort(() => Math.random() - .5).slice(0, 3); it.o = ks.map(k => [k, Math.round((IOPT[k][1] + Math.random() * (IOPT[k][2] - IOPT[k][1])) * (1 + 3 * .12) * 1000) / 1000]);
     addItem(it); meta.dia += GIFT_DIA; saveMeta(); try { sfx.fanfare(); } catch (e) {} flash = .5; flashC = '255,211,77'; townPop = { txt: '📲 설치 선물!', sub: '[전설] ' + INAME.w[3] + ' + 💎' + GIFT_DIA + ' → 🎒 가방', t0: t }; }
-  function drawInstall() { let y = 160; const box = (h, c) => { ctx.fillStyle = 'rgba(30,26,40,.92)'; rrect(16, y, W - 32, h, 12); ctx.fill(); ctx.strokeStyle = c || 'rgba(255,255,255,.15)'; ctx.lineWidth = 2; ctx.stroke(); };
+  function instBanner(y) { if (isApp || meta.pwaGift || trial) return y; ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(W / 2, y + 23, 170, '120,220,255', .16 + .1 * Math.sin(t * .12)); ctx.restore(); button('📲 폰에 설치하면 선물! [전설] 무기 + 💎' + GIFT_DIA, 40, y, W - 80, 46, () => openHelp(4, 'town'), true); return y + 54; }
+  let instMark = false;
+  function drawInstall() { let y = 160; if (!instMark) { instMark = true; try { if (!isApp && !/[?&]app=1/.test(location.search) && /^https?:/.test(location.protocol)) history.replaceState(null, '', location.pathname + '?app=1'); } catch (e) {} } const box = (h, c) => { ctx.fillStyle = 'rgba(30,26,40,.92)'; rrect(16, y, W - 32, h, 12); ctx.fill(); ctx.strokeStyle = c || 'rgba(255,255,255,.15)'; ctx.lineWidth = 2; ctx.stroke(); };
     box(84, '#ffc864'); txt('🎁', 50, y + 42, 34, '#fff', FB, 'center', 'rgba(0,0,0,0)'); tfit('설치 선물: [전설] ' + INAME.w[3] + ' + 💎' + GIFT_DIA, 84, y + 24, 16, '#ffd34d', W - 112, FT);
     tfit(meta.pwaGift ? '✔ 이미 받았어요' : '홈 화면에 설치하고 그 아이콘으로 들어오면 바로 줘요', 84, y + 48, 12.5, meta.pwaGift ? '#7aff9a' : '#e8d8c0', W - 112); tfit('설치하면: 주소창 없이 꽉 찬 화면 · 아이콘 한 번으로 실행', 84, y + 67, 12, '#9fe0ff', W - 112); y += 94;
     if (isApp) { box(70, '#7aff9a'); tfit('✅ 설치한 앱으로 실행 중이에요', W / 2, y + 24, 17, '#7aff9a', W - 60, FT, 'center'); tfit(meta.pwaGift ? '선물은 🎒 가방에 들어 있어요' : '마을로 돌아가면 선물이 들어와요', W / 2, y + 50, 13, '#e8d8c0', W - 60, FB, 'center'); y += 80; }
     else if (IN_APP) { box(150, '#ff9a6a'); tfit(IS_KAKAO ? '⚠ 지금은 카카오톡 안에서 열려 있어요' : '⚠ 지금은 앱 안 브라우저로 열려 있어요', W / 2, y + 22, 16, '#ffb070', W - 60, FT, 'center'); tfit('여기서는 설치가 안 돼요 · 크롬(기본 브라우저)으로 옮겨 주세요', W / 2, y + 46, 12.5, '#e8d8c0', W - 60, FB, 'center');
       tfit('아래 버튼을 누르면 지금 기록(층 · 장비 · 다이아)도 같이 옮겨져요', W / 2, y + 66, 12.5, '#9fe0ff', W - 60, FB, 'center'); button('🌐 기록 그대로 브라우저에서 열기', 40, y + 86, W - 80, 50, openOutside, true); y += 160; }
     else if (instEvt) { box(120, '#7ad8ff'); tfit('이 폰은 버튼 한 번으로 설치할 수 있어요', W / 2, y + 24, 15, '#bff4ff', W - 60, FT, 'center'); button('📲 지금 설치하기', 60, y + 46, W - 120, 56, () => { try { instEvt.prompt(); } catch (e) {} }, true); y += 130; }
-    else { const steps = IS_IOS ? ['① 사파리 아래쪽 가운데 「공유」(네모에 화살표) 누르기', '② 목록을 내려 「홈 화면에 추가」 누르기', '③ 오른쪽 위 「추가」 → 홈 화면의 「던전 히어로」로 실행'] : IS_SAMSUNG ? ['① 아래 오른쪽 「≡」(줄 세 개) 누르기', '② 「현재 페이지 추가」 → 「홈 화면」 누르기', '③ 「추가」 → 홈 화면의 「던전 히어로」로 실행'] : IS_AND ? ['① 크롬 오른쪽 위 「⋮」(점 세 개) 누르기', '② 「홈 화면에 추가」 또는 「앱 설치」 누르기', '③ 「설치」 → 홈 화면의 「던전 히어로」로 실행'] : ['① 휴대폰에서 이 주소를 크롬 · 사파리로 열어 주세요', '② 메뉴에서 「홈 화면에 추가」를 누르면 설치돼요', '③ PC는 주소창 오른쪽 설치 아이콘(모니터 모양)'];
+    else { const steps = IS_IOS ? ['① 사파리 아래쪽 가운데 「공유」(네모에 화살표) 누르기', '② 목록을 내려 「홈 화면에 추가」 누르기', '③ 오른쪽 위 「추가」 → 홈 화면의 「던전 히어로」로 실행'] : IS_SAMSUNG ? ['① 왼쪽 위에 X가 있는 창이면: 오른쪽 위 「⋮」 → 「홈 화면에 추가」', '② 삼성 브라우저면: 오른쪽 아래 「≡」 → 「현재 페이지 추가」 → 「홈 화면」', '③ 홈 화면에 생긴 「던전 히어로」 아이콘으로 들어오면 선물!'] : IS_AND ? ['① 오른쪽 위 「⋮」(점 세 개) 누르기', '② 「홈 화면에 추가」 또는 「앱 설치」 누르기', '③ 홈 화면에 생긴 「던전 히어로」 아이콘으로 들어오면 선물!'] : ['① 휴대폰에서 이 주소를 크롬 · 사파리로 열어 주세요', '② 메뉴에서 「홈 화면에 추가」를 누르면 설치돼요', '③ PC는 주소창 오른쪽 설치 아이콘(모니터 모양)'];
       box(34 + steps.length * 26, '#7ad8ff'); tfit('설치하는 방법 (30초)', 28, y + 18, 15, '#bff4ff', W - 56, FT); steps.forEach((s, i) => tfit(s, 30, y + 44 + i * 26, 13.5, '#fff', W - 60)); y += 44 + steps.length * 26;
+      if (IS_AND && !IS_SAMSUNG) { button('🌐 크롬으로 열어 설치하기 (기록 그대로)', 40, y, W - 80, 44, openOutside, true); y += 54; }
       if (IS_IOS) { tfit('※ 아이폰은 설치한 앱의 기록이 따로예요 → 아래 「기록 복사」 후', 24, y + 6, 12, '#ffb070', W - 48); tfit('   설치한 앱에서 「기록 붙여넣기」를 누르면 그대로 이어져요', 24, y + 24, 12, '#ffb070', W - 48); y += 40; } }
+    if (!meta.pwaGift && !trial) { button('✅ 설치했어요 · 선물 받기', 40, y, W - 80, 48, () => { giveAppGift(); instSay('선물이 🎒 가방에 들어갔어요! [전설] ' + INAME.w[3] + ' + 💎' + GIFT_DIA); }, true); y += 58; }
     box(96); tfit('📦 기록 옮기기 (다른 브라우저 · 다른 폰으로)', 28, y + 18, 14, '#c8a888', W - 56, FT); const bw = (W - 68) / 2;
     button('📋 기록 복사', 28, y + 36, bw, 46, () => copyText(saveCode(), '기록을 복사했어요 · 옮길 곳의 도움말 → 설치에서 「붙여넣기」'), false); button('📥 기록 붙여넣기', 40 + bw, y + 36, bw, 46, pasteCode, false); y += 106;
     if (instMsg && t - instMsgT < 420) { ctx.fillStyle = 'rgba(20,50,30,.95)'; rrect(16, y, W - 32, 40, 10); ctx.fill(); tfit(instMsg, W / 2, y + 21, 13, '#b8ffc8', W - 52, FB, 'center'); }
@@ -3103,7 +3110,7 @@
       if (!busy && movedPop) { movedPop = false; townPop = { txt: '📦 기록을 옮겨 왔어요', sub: '최고 ' + (meta.best || 0) + '층 · 💎' + meta.dia + ' 그대로예요', t0: t }; }
       else if (!busy && isApp && !meta.pwaGift && !trial) giveAppGift();
       else if (!busy && meta.help54 && meta.news !== NEWS[0][0] && BUILD.indexOf('BUILD') < 0) { meta.news = NEWS[0][0]; saveMeta(); townPop = { txt: '🆕 업데이트됐어요', sub: '❓ 도움말 → 「소식」에서 바뀐 점 보기', t0: t }; }
-      if (!isApp && !meta.pwaGift && !attPop) { button('📲 설치 🎁', 8, 48, 86, 28, () => openHelp(4, 'town'), false); } }; }
+      }; }
   MENU.push('help');
 
   // ===================== 빌드 55: 💎 부활 = 그 자리에서(보스 체력 그대로) · 용사 크기 =====================
