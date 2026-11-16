@@ -288,14 +288,21 @@
   const later2 = (n, fn) => setTimeout(fn, n * 16);
   let townPop = null;
   if (meta.w30pop && !attPop) { meta.w30pop = 0; townPop = { txt: '🚩 시즌 3 · 모두 1층부터!', sub: '같은 조건으로 새 출발 · 선물 💎100', t0: 0 }; }
-  if (!meta.payRv) { meta.payRv = 1; if ((meta.paid || 0) > 0) { const bt = meta.bought || {}, G = { starter: [300, 30, 3], month: [300, 0, 0], grow: [1500, 100, 10], abyss: [5000, 400, 30], d1: [60, 0, 0], d2: [330, 0, 0], d3: [1200, 0, 0], d4: [4000, 0, 0], d5: [9000, 0, 0] };
+  if ((meta.payRv || 0) < 2) { const was = meta.payRv || 0; meta.payRv = 2; let take = 0, minG = 2, did = 0;
+    if (was === 0 && (meta.paid || 0) > 0) { did = 1; const bt = meta.bought || {}, G = { starter: [300, 30, 3], month: [300, 0, 0], grow: [1500, 100, 10], abyss: [5000, 400, 30], d1: [60, 0, 0], d2: [330, 0, 0], d3: [1200, 0, 0], d4: [4000, 0, 0], d5: [9000, 0, 0] };
       let gd = 0, gs = 0, gh = 0; Object.keys(bt).forEach(k => { if (G[k]) { gd += G[k][0] * bt[k]; gs += G[k][1] * bt[k]; gh += G[k][2] * bt[k]; } });
       let lack = Math.max(0, gd - meta.dia); meta.dia = Math.max(0, meta.dia - gd);
       const ts = Math.min(meta.stone, gs); meta.stone -= ts; lack += (gs - ts) * 5; const th = Math.min(meta.hammer, gh); meta.hammer -= th; lack += (gh - th) * 60;
+      take = Math.floor(lack / 80);
+      const cand = meta.bag.filter(it => it && it.g >= 2).length + ['w', 'a', 'r'].filter(k => meta.item[k] && meta.item[k].g >= 2).length, tk = Math.min(take, cand); lack = Math.max(0, lack - tk * 80); take = tk;
       const s2 = Math.min(meta.stone, Math.ceil(lack / 5)); meta.stone -= s2; lack = Math.max(0, lack - s2 * 5); const h2 = Math.min(meta.hammer, Math.ceil(lack / 60)); meta.hammer -= h2; lack = Math.max(0, lack - h2 * 60);
       if (lack > 0) meta.dia = -Math.min(300, Math.round(lack));
-      if (bt.abyss) { const bi = meta.bag.findIndex(it => it && it.g === 4); if (bi >= 0) meta.bag.splice(bi, 1); else for (const k of ['w', 'a', 'r']) if (meta.item[k] && meta.item[k].g === 4) { meta.item[k] = null; break; } }
-      meta.paid = 0; meta.bought = {}; meta.monthUntil = 0; townPop = { txt: '🔒 시연 결제가 회수됐어요', sub: '유료 상품은 아직 준비 중이에요 · 정식 출시 때 열려요', t0: 0 }; }
+      if (bt.abyss) take = Math.max(take, 1);
+      meta.paid = 0; meta.bought = {}; meta.monthUntil = 0; }
+    else if (was === 1 && meta.dia < 0) { did = 1; take = 999; minG = 3; }
+    for (let g = 4; g >= minG && take > 0; g--) { for (const k of ['w', 'a', 'r']) if (take > 0 && meta.item[k] && meta.item[k].g === g) { meta.item[k] = null; take--; }
+      for (let bi = meta.bag.length - 1; bi >= 0 && take > 0; bi--) if (meta.bag[bi] && meta.bag[bi].g === g) { meta.bag.splice(bi, 1); take--; } }
+    if (did) { townPop = { txt: '🔒 시연 결제가 회수됐어요', sub: '결제로 얻은 다이아 · 장비를 되돌렸어요 · 유료 상품은 준비 중', t0: 0 }; try { setTimeout(() => { try { autoEquip(); saveMeta(); } catch (e) {} }, 800); } catch (e) {} }
     try { localStorage.setItem('dh-save-staff3', JSON.stringify(meta)); } catch (e) {} }
   const DSHOP = [
     { e: '🔷', n: '강화석 10개', d: '장비 강화 재료', p: 50, f: () => { meta.stone += 10; } },
@@ -2072,7 +2079,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116175715'; let updReady = null;
+  const BUILD = '1116180049'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
