@@ -1984,7 +1984,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116150123'; let updReady = null;
+  const BUILD = '1116150410'; let updReady = null;
   function updGo() { try { localStorage.setItem('dh-upd', '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady); }
   function updCheck() {
     if (BUILD.indexOf('BUILD') >= 0 || !/^https?:/.test(location.protocol)) return;
@@ -2285,6 +2285,18 @@
     _drawHUDV(); };
   const _updateV = update;
   update = function (k) { const v = vipLv(); if (v >= 2 && state === 'play' && t % (7 - v) === 0) { const c = vipCol().split(','); fx.push({ k: 'p', x: P.x + rnd(-12, 12), y: P.y + rnd(-4, 10), vx: rnd(-.4, .4), vy: -1.4, life: 22, max: 22, c: 'rgb(' + c.join(',') + ')', s: 3 + v * .4 }); } return _updateV(k); };
+
+  const SUBS = { meteor: ['天より堕ちよ……灼熱の星々よ。メテオ！', '하늘에서 떨어져라… 불타는 별들이여. 메테오!'], slash: ['地獄の剣よ、斬り裂け！', '지옥의 검이여, 베어 갈라라!'], pillars: ['燃え上がれ……獄炎の柱よ！', '타올라라… 지옥불의 기둥이여!'],
+    blackhole: ['闇よ……全てを吞み込め。', '어둠이여… 모든 것을 삼켜라.'], nova: ['闇の波動よ、弾けろ！', '어둠의 파동이여, 터져라!'], cross: ['十字の裁きを受けよ！', '십자의 심판을 받아라!'], chain: ['フハハハ！捕まえてみろ！', '후하하하! 잡아 봐라!'],
+    shadow: ['……後ろだ。', '…뒤다.'], clones: ['我が分身たちよ、現れよ！', '나의 분신들이여, 나타나라!'], blizzard: ['凍てつけ……永遠の吹雪よ。ブリザード！', '얼어붙어라… 영원한 눈보라여. 블리자드!'], tornado: ['荒れ狂え、地獄の竜巻！', '휘몰아쳐라, 지옥의 회오리!'],
+    firewall: ['炎の壁よ、全てを焼き尽くせ！', '불의 벽이여, 모든 것을 불태워라!'], swords: ['千の魔剣よ……降り注げ！', '천 개의 마검이여… 쏟아져라!'], intro: ['よくぞここまで来た……我こそは魔王！', '용케 여기까지 왔구나… 내가 바로 마왕이다!'],
+    form2: ['少しは楽しめそうだ……本気を見せてやろう。', '조금은 즐길 수 있겠군… 진심을 보여 주마.'], form3: ['これが……魔王の真の力だ！', '이것이… 마왕의 진짜 힘이다!'], death: ['見事だ……強くなったな。', '훌륭하다… 강해졌구나.'] };
+  let subNow = null;
+  const _playVox = playVox; playVox = function (n) { _playVox(n); if (SUBS[n]) subNow = { jp: SUBS[n][0], ko: SUBS[n][1], t0: t }; };
+  const _drawHUDS = drawHUD;
+  drawHUD = function () { _drawHUDS(); if (subNow && t - subNow.t0 < 190 && (state === 'play' || state === 'victory' || state === 'over')) { const a = Math.min(1, (190 - (t - subNow.t0)) / 25, (t - subNow.t0) / 8), y = R.y0 + 92; ctx.globalAlpha = a;
+      ctx.font = `17px ${FB}`; const w = Math.min(W - 24, Math.max(ctx.measureText(subNow.ko).width, ctx.measureText(subNow.jp).width * .72) + 34); ctx.fillStyle = 'rgba(8,2,4,.82)'; rrect(W / 2 - w / 2, y - 22, w, 50, 12); ctx.fill(); ctx.strokeStyle = 'rgba(255,90,70,.7)'; ctx.lineWidth = 1.5; ctx.stroke();
+      txt(subNow.jp, W / 2, y - 9, 12, '#ffb4a8', FB); txt(subNow.ko, W / 2, y + 12, 17, '#fff', FB); ctx.globalAlpha = 1; } };
   const _sfr2 = startFloorRun; startFloorRun = function (f, resumed) { _sfr2(f, resumed); if (updReady && !resumed) { writeRun(); updGo(); } };
   (function () {
     let flag = null; try { flag = localStorage.getItem('dh-upd'); localStorage.removeItem('dh-upd'); } catch (e) {}
@@ -2299,7 +2311,7 @@
   })();
   window.__updCheck = updCheck;
 
-  window.__dh = { payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive, get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
+  window.__dh = { vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive, get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
 })();
 </script>
 </body>
