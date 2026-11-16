@@ -425,17 +425,17 @@
     startFloor = sf; floor = sf; runGold = 0; skills = { arrow: 0 };
     Object.assign(P, { x: W / 2, y: 650, hp: 130, maxHp: 130, inv: 60, xp: 0, lv: 1, need: 7, kills: 0, revive: meta.up.rev, guard: false, guardT: 0 });
     recalc(); P.hp = P.maxHp;
-    pendingLv = meta.up.card + Math.round((sf - 1) * .6);
+    pendingLv = meta.up.card + Math.round(Math.max((sf - 1) * .6, Math.min(sf * 1.2, 4 + sf * .6) * (sf > 1 ? 1 : 0)));
     let fromBuild = 0;
     if (meta.lastBuild) { const bud0 = Math.max(pendingLv, Object.keys(meta.lastBuild).reduce((s, k) => s + (CARDS[k] && !CARDS[k].hidden ? meta.lastBuild[k] : 0), 0)); let bud = bud0; const order = Object.keys(meta.lastBuild).filter(k => CARDS[k] && !CARDS[k].hidden).sort((a, b) => meta.lastBuild[b] - meta.lastBuild[a] || (CARDS[b].weapon ? 1 : 0) - (CARDS[a].weapon ? 1 : 0));
       for (const k of order) { while (bud > 0 && lvOf(k) < Math.min(meta.lastBuild[k], CARDS[k].max)) { skills[k] = lvOf(k) + 1; bud--; } }
       HIDDEN.forEach(h => { if (meta.lastBuild[h]) skills[h] = 1; });
-      if (bud > 0) autoCards(bud); fromBuild = bud0; pendingLv = 0; recalc(); P.hp = P.maxHp;
+      let extra = 0; if (bud > 0) { extra = Math.min(8, bud); if (bud > extra) autoCards(bud - extra); } fromBuild = bud0; pendingLv = extra; recalc(); P.hp = P.maxHp;
       P.lv = Math.max(1, (meta.lastLv || 1) + Math.max(0, fromBuild - Object.keys(meta.lastBuild).reduce((s, k) => s + (CARDS[k] && !CARDS[k].hidden ? meta.lastBuild[k] : 0), 0))); P.need = 4 + P.lv * 3 + Math.floor(P.lv * P.lv * .12); }
     if (pendingLv > 8) { autoCards(pendingLv - 8); pendingLv = 8; }
     runBest0 = meta.best; meta.lastPow = power(); saveMeta();
     state = 'play'; startFloorRun(sf);
-    if (sf > 1 || (meta.streak || 0) > 0) { banner = '⚔️ 전투력 ' + power().toLocaleString(); bannerSub = (meta.streak ? '🔥 용기 +' + meta.streak * 8 + '% · ' : '') + sf + '층부터 출발!' + (fromBuild ? ' · 지난 판 카드 그대로 Lv ' + P.lv : ''); bannerT = 160; }
+    if (sf > 1 || (meta.streak || 0) > 0) { banner = '⚔️ 전투력 ' + power().toLocaleString(); bannerSub = (meta.streak ? '🔥 용기 +' + meta.streak * 8 + '% · ' : '') + sf + '층부터 출발!' + (fromBuild ? ' · 지난 판 카드 그대로 Lv ' + P.lv + (pendingLv ? ' · 모자란 카드 ' + pendingLv + '장 더 골라요' : '') : ''); bannerT = 160; }
     if (pendingLv > 0) openLevelUp();
   }
   function startFloorRun(f, resumed) {
@@ -2056,7 +2056,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116173457'; let updReady = null;
+  const BUILD = '1116173644'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
