@@ -2083,7 +2083,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116210341'; let updReady = null;
+  const BUILD = '1116210859'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2754,7 +2754,7 @@
   [SPH].concat(Object.keys(SPE).map(k => SPE[k]), Object.keys(RIG).map(k => RIG[k])).forEach(s => { s.img.onload = () => { s.ok = 1; }; s.img.src = s.src; s.src = ''; });
   const heroLook = () => 2, inRun = () => state === 'play' || state === 'levelup';
   const _heroModelL = heroModel;
-  heroModel = function (X, Z, yaw, sc, fw) { if (inRun() && heroLook() && (heroLook() === 1 ? SPH.ok : RIG.torso.ok)) { part(null, 'disc', X, .04, Z, .62, 1, .4, [0, 0, 0], { a: .38 }); return; } _heroModelL(X, Z, yaw, sc, fw); };
+  heroModel = function (X, Z, yaw, sc, fw) { if (state === 'town' && RIG.torso.ok) return; if (inRun() && heroLook() && (heroLook() === 1 ? SPH.ok : RIG.torso.ok)) { part(null, 'disc', X, .04, Z, .62, 1, .4, [0, 0, 0], { a: .38 }); return; } _heroModelL(X, Z, yaw, sc, fw); };
   const _enemyModelL = enemyModel;
   enemyModel = function (e) { const S = SPE[e.type]; if (S && S.ok && !e.gold) { const b = (e.big || 1) * e.r / 26; part(null, 'disc', wx(e.x), .04, wz(e.y), .55 * b, 1, .36 * b, [0, 0, 0], { a: .34 }); if (e.elite) part(null, 'disc', wx(e.x), .05, wz(e.y), .9 * b, 1, .9 * b, [1, .3, .2], { em: [.7, .15, .1], a: .22, yaw: e.t * .04 }); return; } _enemyModelL(e); };
 
@@ -2865,6 +2865,10 @@
     for (let i = 0; i < 3; i++) { const r = ((VK.t * 4 + i * 70) % 260); ctx.strokeStyle = 'rgba(255,230,150,' + (.6 * (1 - r / 260) * fade).toFixed(3) + ')'; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(cx, cy + 20, r, r * .45, 0, 0, 6.283); ctx.stroke(); }
     ctx.restore();
     for (const c of VK.c) { if (VK.t < c.d || c.y > 60) continue; ctx.save(); ctx.translate(cx + c.x, cy + c.y); ctx.scale(Math.max(.3, Math.abs(Math.cos(c.r))), 1); icn(c.k, 0, 0, c.k === 'gold' ? 22 : 20, fade); ctx.restore(); } };
+
+  const _drawTownRig = drawTown;
+  drawTown = function () { if (RIG.torso.ok) { const cx = W / 2, fy = 474 + btnOff, g = 250 / 1000; ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(cx, fy + 2, 62, 15, 0, 0, 6.283); ctx.fill(); ctx.translate(cx - 6, fy); ctx.scale(g, g); const hc = hCast; hCast = null; drawRigHero(false, -1, 0); hCast = hc; ctx.restore(); ctx.filter = 'none'; ctx.globalAlpha = 1; }
+    _drawTownRig(); };
   const _sfr2 = startFloorRun; startFloorRun = function (f, resumed) { _sfr2(f, resumed); if (updReady && !resumed && !trial && f !== startFloor) { writeRun(); updGo(); } };
   (function () {
     let flag = null; try { flag = localStorage.getItem('dh-upd'); localStorage.removeItem('dh-upd'); } catch (e) {}
