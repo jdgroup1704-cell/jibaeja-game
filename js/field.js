@@ -32,10 +32,10 @@ const HF = {
     if (!ring) {   /* 11-16 00:25 대표님 「완전 따로 포지션 · 가운데가 서브(영웅) · 서브도 탱커 · 중수 · 후미」: 영웅은 앞줄(방패 · 칼 · 창) 뒤 가운데 칸에 역할별로 고정 — 탱커 -195 · 근접 -255 · 원거리 · 후원 -335(같은 역할이 둘이면 35 더 뒤), 줄은 위 · 가운데 · 아래로 나눔. 적에게 뛰어가지 않음 */
       const F0 = (FAR() ? foeLine() - 50 : 740) + clamp(S.engDx || 0, 0, 60), role = h => (this.ROLE[h.id] ?? (((this.KIND[h.id] || {}).far) ? 2 : 1)), ord = this.list.slice().sort((p, q) => role(p) - role(q) || this.list.indexOf(p) - this.list.indexOf(q));
       const HS = [[-220, 490], [-220, 712], [-320, 600], [-440, 728]];   /* 바둑판 칸(director.js SLOT과 짝) — 탱커 · 근접이 앞 칸, 원거리가 뒤 칸 */
-      ord.forEach((h, j) => { const q = HS[j] || HS[3]; h.tx = F0 + q[0]; h.ty = q[1]; h.flip = false; });
+      ord.forEach((h, j) => { const q = HS[j] || HS[3]; h.tx = F0 + q[0]; h.ty = GY(q[1]); h.flip = false; });
       this.ring = ring; this.rise(); return;
     }
-    this.list.forEach((h, i) => { if (!ring && big) { const q = PB[i] || PB[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; if (!(this.KIND[h.id] || {}).far && ffx && ffx < 1e8) { const mi = this.list.filter((o, j) => j < i && !(this.KIND[o.id] || {}).far).length; h.tx = Math.max(h.tx, ffx - 95 - mi * 55); h.ty = [712, 600, 490, 650][mi] ?? h.ty; } return; }   /* 11-15 순서 #6: 근접 영웅 둘(세라핀 · 녹스)이 같은 자리(앞 95 · 아래 줄 712)에 딱 포개져 한 명처럼 보였음(포개짐 34%) → 근접끼리 55씩 뒤로 · 줄도 아래 · 가운데 · 위로 나눔 */   /* 11-15 22:50 대표님 「움직임이 자꾸 이상」 · 느린 영상: 근접 영웅이 때릴 때마다 뛰어갔다 제자리로 튕겨 돌아옴(요요) → 적이 있으면 적 맨 앞줄 앞까지 걸어가 그 자리에서 계속 벰(버섯커처럼) */ if (ring) { const q = R[i] || R[0]; h.tx = g.x + q[0]; h.ty = q[1]; h.flip = !!q[2]; } else { const q = P[i] || P[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; } });
+    this.list.forEach((h, i) => { if (!ring && big) { const q = PB[i] || PB[0]; h.tx = fx + q[0]; h.ty = GY(q[1]); h.flip = false; if (!(this.KIND[h.id] || {}).far && ffx && ffx < 1e8) { const mi = this.list.filter((o, j) => j < i && !(this.KIND[o.id] || {}).far).length; h.tx = Math.max(h.tx, ffx - 95 - mi * 55); h.ty = [712, 600, 490, 650][mi] ?? h.ty; } return; }   /* 11-15 순서 #6: 근접 영웅 둘(세라핀 · 녹스)이 같은 자리(앞 95 · 아래 줄 712)에 딱 포개져 한 명처럼 보였음(포개짐 34%) → 근접끼리 55씩 뒤로 · 줄도 아래 · 가운데 · 위로 나눔 */   /* 11-15 22:50 대표님 「움직임이 자꾸 이상」 · 느린 영상: 근접 영웅이 때릴 때마다 뛰어갔다 제자리로 튕겨 돌아옴(요요) → 적이 있으면 적 맨 앞줄 앞까지 걸어가 그 자리에서 계속 벰(버섯커처럼) */ if (ring) { const q = R[i] || R[0]; h.tx = g.x + q[0]; h.ty = q[1]; h.flip = !!q[2]; } else { const q = P[i] || P[0]; h.tx = fx + q[0]; h.ty = q[1]; h.flip = false; } });
     this.ring = ring; this.rise();
   },
   rise() {   /* 11-16 순서 #9: 새 영웅은 왼쪽에서 걸어오다 궁수 · 다른 영웅 몸을 뚫고 지나갔음(진형재기 겹침 14%) → 자기 칸 땅에서 보랏빛 원과 함께 차례로 솟아오름 */
@@ -52,8 +52,13 @@ const HF = {
       const hitAt = (d, e = 0) => placed.find(p => x0 + e < p.x + p.w && x0 + e + w > p.x && y0 + d < p.y + p.h && y0 + d + hh > p.y); let dx = 0;
       if (hitAt(0)) { const st2 = hh + 1.5 * m.d, CAND = []; for (const k of [1, 2, 3, 4]) for (const e of [0, 0.55, -0.55]) for (const d of [k * st2, -k * st2]) CAND.push([d, e * w]); for (const e of [0.6, -0.6, 1.1, -1.1]) CAND.push([0, e * w]); CAND.sort((p, q) => Math.hypot(p[0], p[1] * 0.7) - Math.hypot(q[0], q[1] * 0.7)); const ok = CAND.find(([d, e]) => !hitAt(d, e)); if (ok) { dy = ok[0]; dx = ok[1]; } }   /* 11-15 눈 확인: 위아래로만 비키다 지배자 발밑까지 줄줄이 내려가 주인과 멀어짐 → 옆으로도 반 칸 비키며 가장 가까운 빈자리 */
       placed.push({ x: x0 + dx, y: y0 + dy, w, h: hh }); ctx.setTransform(m.a, 0, 0, m.d, m.e + dx, m.f + dy);
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = g.a; ctx.fillStyle = 'rgba(12,4,22,.78)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-tw / 2, g.ty - g.fz * 0.68, tw, th, g.fz * 0.68) : ctx.rect(-tw / 2, g.ty - g.fz * 0.68, tw, th); ctx.fill();
-      ctx.strokeStyle = g.line; ctx.globalAlpha = g.a * (g.rt >= 2 ? 1 : 0.7); ctx.lineWidth = g.rt >= 2 ? 2.5 : 1.5; if (g.rt === 3) { ctx.shadowColor = g.RC; ctx.shadowBlur = 10; } ctx.stroke(); ctx.shadowBlur = 0; ctx.globalAlpha = g.a; ctx.fillStyle = g.txt; ctx.fillText(g.nt, 0, g.ty + 0.5); }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = g.a; const y0b = g.ty - g.fz * 0.68;
+      /* 11-16 11:38 등급마다 이름표가 화려해짐: N 수수 · R 파랑 테 · SR 보라 빛 · SSR 금빛 바탕 + 빛이 훑고 지나감 + 양옆 별 반짝 · 별이 오를수록 테가 굵어짐 · ☠7 붉은 불꽃 */
+      if (g.rt === 3) { const gr = ctx.createLinearGradient(-tw / 2, 0, tw / 2, 0); gr.addColorStop(0, 'rgba(70,40,4,.92)'); gr.addColorStop(0.5, 'rgba(120,78,10,.92)'); gr.addColorStop(1, 'rgba(70,40,4,.92)'); ctx.fillStyle = gr; } else if (g.rt === 2) ctx.fillStyle = 'rgba(44,14,74,.85)'; else ctx.fillStyle = 'rgba(12,4,22,.78)';
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-tw / 2, y0b, tw, th, g.fz * 0.68) : ctx.rect(-tw / 2, y0b, tw, th); ctx.fill();
+      if (g.rt === 3) { ctx.save(); ctx.clip(); const sx = ((S.t * 0.45) % 1.6 - 0.3) * tw - tw / 2, sg = ctx.createLinearGradient(sx - 18, 0, sx + 18, 0); sg.addColorStop(0, 'rgba(255,240,180,0)'); sg.addColorStop(0.5, 'rgba(255,245,200,.55)'); sg.addColorStop(1, 'rgba(255,240,180,0)'); ctx.fillStyle = sg; ctx.fillRect(sx - 18, y0b, 36, th); ctx.restore(); }
+      ctx.strokeStyle = g.line; ctx.globalAlpha = g.a * (g.rt >= 1 ? 1 : 0.7); ctx.lineWidth = (g.rt >= 2 ? 2.2 : 1.4) + Math.min(6, g.sr || 1) * 0.25; if (g.rt >= 2) { ctx.shadowColor = g.sr >= 7 ? '#ff3a4a' : g.RC; ctx.shadowBlur = g.rt === 3 ? 12 + 5 * Math.sin(S.t * 3) : 7; } ctx.stroke(); ctx.shadowBlur = 0; ctx.globalAlpha = g.a; ctx.fillStyle = g.rt === 3 ? '#fff1b8' : g.txt; if (g.rt === 3) { ctx.shadowColor = '#3a2000'; ctx.shadowBlur = 3; } ctx.fillText(g.nt, 0, g.ty + 0.5); ctx.shadowBlur = 0;
+      if (g.rt === 3) { ctx.font = `900 ${Math.round(g.fz * 0.9)}px sans-serif`; for (const sd of [-1, 1]) { const tw2 = 0.55 + 0.45 * Math.sin(S.t * 4 + sd * 1.7); ctx.globalAlpha = g.a * tw2; ctx.fillStyle = '#ffe58a'; ctx.fillText('✦', sd * (tw / 2 + g.fz * 0.55), g.ty); } } }
     ctx.restore(); ctx.textBaseline = 'alphabetic'; ctx.globalAlpha = 1;
   },
   front() { let m = 0; for (const h of this.list) m = Math.max(m, h.x + 40); return m; },
@@ -203,8 +208,8 @@ const HF = {
       if (h.skT <= 0) { h.skT = k.sk * rnd(0.9, 1.1); this.skill(h); }
       /* 적 반격: 앞줄 쫄따구가 있으면 쫄따구가 막고 맞음(아래 shieldHits), 쫄따구가 없을 때만 수하가 맞음 */
       h.kb = Math.max(0, (h.kb || 0) - dt);
-      const wall = S.army.some(a => !a.fly && a.rise >= 1 && a.x > h.x + 40 && Math.abs(a.y - h.y) < 170);   /* 11-16 순서 #9: 내 앞(같은 쪽 줄)에 서 있는 소환수가 막아 줄 때만 안 맞음 — 앞줄이 무너지면 영웅이 맞음 */
-      const foe = wall ? null : S.foes.find(f => !f.dead && !f.flee && f.x - h.x > -40 && f.x - h.x < 200 && Math.abs(f.y - h.y) < 110 && !(f.atk > 0));
+      const wall = S.army.some(a => !a.fly && a.rise >= 1 && a.x > h.x + 40 && Math.abs(a.y - h.y) < 170 * GYk);   /* 11-16 땅을 세로로 펼친 만큼(GYk) 거리도 */   /* 11-16 순서 #9: 내 앞(같은 쪽 줄)에 서 있는 소환수가 막아 줄 때만 안 맞음 — 앞줄이 무너지면 영웅이 맞음 */
+      const foe = wall ? null : S.foes.find(f => !f.dead && !f.flee && f.x - h.x > -40 && f.x - h.x < 200 && Math.abs(f.y - h.y) < 110 * GYk && !(f.atk > 0));
       h.hitT = (h.hitT == null ? rnd(0.6, 1.4) : h.hitT) - dt;
       if (foe && h.hitT <= 0 && !(st.frozen > 0) && !(foe.stun > 0)) { h.hitT = rnd(0.9, 1.6); foe.atk = 0.32; foe.atkTo = h; }
       if (!foe && !(st.boss && S.giant.alpha > 0.5 && !S.giant.dead)) h.hp = Math.min(1, h.hp + dt * 0.05);   /* 싸움이 멎으면 혼자 차오름 */
@@ -299,7 +304,7 @@ const HF = {
     h.hbT = Math.max(0, (h.hbT || 0) - 1 / 60); if (h.hurtT > 0) h.hbT = 2.5;
     { ctx.globalAlpha = Math.max(0, h.enter) * (h.hbT > 0 || h.hp < 0.6 ? 1 : 0.85); this.bar(0, -H2 - 10, 46 * sc, h.hp, h.hp > 0.5 ? '#5dff8f' : h.hp > 0.25 ? '#ffcf5a' : '#ff5a5a'); ctx.globalAlpha = Math.max(0, h.enter); }   /* 11-15 대표님 「우리든 체력바 보여야」: 영웅 막대도 늘 보임 */   /* 19:13 늘 떠 있던 막대 → 맞았을 때 · 다쳤을 때만 */
     { const sr = JB.heroStar(o), nm = L.heroes[h.id].name, nt = `${nm} ${sr >= 7 ? '☠' : '★'}${sr}`,   /* 11-15 이름표 = 이름 + 별 수(★1~6 · 초월 ☠7) */ fz = Math.round(11.5 * Math.min(WK(), 2.2));   /* 19:13 발밑 이름표 */
-      this.tags.push({ m: ctx.getTransform(), nt, fz, ty: 10 + fz * 0.6, rt, RC, line: sr >= 7 ? '#ff3a4a' : rt >= 2 ? RC : tc || k.col, txt: sr >= 7 ? '#ffb0b8' : rt >= 2 ? RC : tc || '#f3e8ff', a: Math.max(0, h.enter) * (st.best < 15 ? 1 : (h.tag0 = h.tag0 ?? S.t, S.t - h.tag0 < 6 ? 1 : S.t - h.tag0 < 7 ? 7 - (S.t - h.tag0) : 0)) }); }   /* 11-16 09:15 「화면 난리」(후반 사진: 이름표 다섯이 늘 떠 있음): 15판부터는 처음 나타난 6초만 보이고 사라짐 */   /* 11-15 눈 확인: 30판에서 영웅 넷 이름표가 서로 포개짐 → 그리기는 다 모아서 마지막에(drawTags), 겹치면 아래로 비킴 */
+      this.tags.push({ m: ctx.getTransform(), nt, fz, ty: 10 + fz * 0.6, rt, RC, line: sr >= 7 ? '#ff3a4a' : rt >= 2 ? RC : tc || k.col, txt: sr >= 7 ? '#ffb0b8' : rt >= 2 ? RC : tc || '#f3e8ff', sr, a: Math.max(0, h.enter) });   /* 11-16 11:38 대표님 「이름표가 없고 · 좋은 거 뽑을수록 이름표도 더 화려해져야」: 15판부터 6초 뒤 사라지던 것 되돌림 */ }   /* 11-16 09:15 「화면 난리」(후반 사진: 이름표 다섯이 늘 떠 있음): 15판부터는 처음 나타난 6초만 보이고 사라짐 */   /* 11-15 눈 확인: 30판에서 영웅 넷 이름표가 서로 포개짐 → 그리기는 다 모아서 마지막에(drawTags), 겹치면 아래로 비킴 */
     ctx.restore(); ctx.globalAlpha = 1;
   },
   glowC: {},
@@ -371,7 +376,7 @@ const LM = {
   T: {}, fx: [], pose: 0, shown: {},
   open(id) { const d = this.DEF[id]; return d.vip ? JB.vipLv(st) >= d.vip : (st.best >= d.at || st.awakens > 0); },
   staff() { const r = this.staff0(); r.x += LDX() + (!window.LORDV_OK && S.lord && S.lord.pkx || 0); return r; },
-  staff0() { if (typeof need === 'function' && !window.LORDV_OK && need('lordA')) return { x: 196 + 10 - 92, y: 560 + 34 - 297 };   /* 11-16 #10 새 지배자 그림(758×899)의 지팡이 구슬(130,89) — 새동작.py 재기 */   /* 09:58 그림 A 지배자 지팡이 보석 자리(그림 276×420의 38,48) — 영혼탄이 진짜 보석에서 나감 */
+  staff0() { if (typeof need === 'function' && !window.LORDV_OK && need('lordA')) return { x: 196 + 10 + 101, y: 560 + 34 - 326 };   /* 11-16 11:28 지배자를 뒤집어 지팡이 구슬도 오른쪽으로 */   /* 11-16 #10 새 지배자 그림(758×899)의 지팡이 구슬(130,89) — 새동작.py 재기 */   /* 09:58 그림 A 지배자 지팡이 보석 자리(그림 276×420의 38,48) — 영혼탄이 진짜 보석에서 나감 */
     if (typeof STYLE !== 'undefined' && STYLE === 'old' && need('ld7_idle')) return { x: 222 + LDX() + 29 * LSC(), y: 594 - 358 * LSC() }; if (typeof STYLE !== 'undefined' && STYLE === '2d') return { x: 321, y: 330 }; if (typeof lordSD === 'function' && lordSD()) return { x: 328, y: 352 }; return JB.vipLv(st) >= 5 ? { x: 340, y: 232 } : { x: 260, y: 250 }; },   /* 11-14 SD 지배자: 내지른 지팡이 구슬 자리 */   /* 지팡이 끝 보석(세계 좌표) — 21:20 지팡이 등급 그림을 손에 들린 뒤 그 그림 끝에 맞춤 */
   update(dt) {
     for (const id in this.DEF) if (this.open(id) && !st.seen['lm_' + id]) { st.seen['lm_' + id] = 1; UI.toast(L.unlock.title, L.lm.unlock(L.lm.names[id] || L.vip.spell[id])); this.T[id] = 1.5; }

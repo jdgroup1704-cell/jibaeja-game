@@ -29,7 +29,7 @@ const BRAG = {
     g.fillStyle = 'rgba(10,3,24,.35)'; g.fillRect(x0, y0, w, h);
     const gy = y0 + h - 40;
     if ((st.thralls || 0) > 0) { g.save(); g.globalAlpha = 0.95; this.spr(g, 'foev4', 'idle', x0 + w * 0.74, gy - 20, 420, true, 'hue-rotate(235deg) saturate(1.25) brightness(0.82) drop-shadow(0 0 14px rgba(185,95,255,.95))'); g.restore(); }
-    const lord = ART.lordA || (typeof need === 'function' && need('lordA')); if (lord) { const lh = 470, lw = lh * lord.width / lord.height; g.drawImage(lord, x0 + w * 0.17 - lw / 2, gy - lh + 10, lw, lh); }
+    const lord = ART.lordA || (typeof need === 'function' && need('lordA')); if (lord) { const lh = 470, lw = lh * lord.width / lord.height; g.save(); g.translate(x0 + w * 0.17, 0); g.scale(-1, 1); g.drawImage(lord, -lw / 2, gy - lh + 10, lw, lh); g.restore();   /* 11-16 지배자가 보스 쪽을 봄 */ }
     [['sumv3', 0.40], ['sumv1', 0.53], ['sumv2', 0.64], ['sumv4', 0.33]].forEach(([n, fx], i) => this.spr(g, n, 'idle', x0 + w * fx, gy - 70 - (i === 3 ? 30 : 0), 170));
     const hs = (st.squad || []).filter(Boolean).slice(0, 4); hs.forEach((id, i) => this.spr(g, 'heroI_' + id, 'idle', x0 + w * (0.36 + i * 0.16), gy + 10, 230));
     const fade = g.createLinearGradient(0, y0 + h - 120, 0, y0 + h); fade.addColorStop(0, 'rgba(7,1,15,0)'); fade.addColorStop(1, 'rgba(7,1,15,1)'); g.fillStyle = fade; g.fillRect(x0, y0 + h - 120, w, 120);

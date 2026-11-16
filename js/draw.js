@@ -413,7 +413,7 @@ function drawSkel(a) {
   const SA = a.big && !a.fly ? need('sumA' + ({ '-1': 0, 1: 1, 2: 2, 3: 3 }[a.c] ?? 0)) : null;
   const SVN = a.big && !a.fly ? { '-1': 'sumv1', 1: 'sumv2', 2: 'sumv3', 3: 'sumv4' }[a.c] : null, SVok = SVN && VS[SVN] && need(SVN + '_idle');   /* 11-16 #13 숨쉬기 그림만 와도 새 그림으로(공격 그림은 오는 대로) — 전엔 공격까지 다 와야 해서 느린 망에서 옛 임시 그림이 8초 더 보였음 */
   if (SVok) {   /* 03:10 영상 움직임: 평소 숨쉬기(앞뒤로 돌림) · 공격 0.6초 동안 영상 공격 장면 전부 */
-    const atT = 0.6; if (a.sw > 0 && !(a.vT > 0)) a.vT = atT; if (a.vT > 0) a.vT -= 1 / 60; const at = a.vT > 0 && !!need(SVN + '_attack'), M = VS[SVN], h = 150 * sc * pop;
+    const atT = 0.6; if (a.sw > 0 && !(a.vT > 0)) a.vT = atT; if (a.vT > 0) a.vT -= 1 / 60; const at = a.vT > 0 && !!need(SVN + '_attack'), M = VS[SVN], h = 128 * sc * pop;   /* 11-16 11:35 대표님 「해골 · 궁수는 왜 이리 크고 지배자는 작고」: 150 → 128 */
     const NI = M.n.idle, q = (S.t * 10 + a.ph * 7) % (2 * NI - 2), fi = at ? (1 - a.vT / atT) * (M.n.attack - 1) : (q < NI ? q : 2 * NI - 2 - q);
     const wk = !at && (a.wamp || 0) > 0.25 && need(SVN + '_walk'); a.wf = ((a.wf ?? a.ph * 9) + (wk ? (a.back ? -1 : 1) * Math.max(0.12, Math.min(mv, 8) * 16 / 75) : 0) + 16) % 16;   /* 움직인 거리만큼 발을 내딛음(75 걸으면 한 바퀴) · 뒤로 갈 땐 거꾸로 */
     if (wk) { vsDraw(SVN + 'w', 'walk', a.wf, h, '', a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.06 : 0, true); if (a.flash > 0) a.flash -= 1 / 60; }
@@ -631,7 +631,7 @@ function drawBanners() {
   for (let i = 0; i < k; i++) { const x = k === 1 ? (x0 + x1) / 2 : lerp(x0 + 20, x1 - 20, i / (k - 1)); drawBanner(x, GROUND + 52, 0.62, i * 1.7); }
 }
 function drawLordTag() {   /* 주인공 이름표: 지배자 머리 위 금빛 패 */
-  if (TRAILER || S.phase === 'cast' || st.best >= 15) return; const x = 222 + LDX() + 8, y = 614;   /* 11-16 15판부터 지배자 이름표 숨김(화면 난리) */   /* 19:22 머리 위 패가 왼쪽 위 「빠른 보상 · 상점」과 겹침 → 영웅처럼 발밑 이름표 */   /* 세로 화면: 위 아이콘에 가려서 지배자 오른쪽 어깨 옆으로 */
+  if (TRAILER || S.phase === 'cast') return;   /* 11-16 11:35 대표님 「표기도 없어」: 15판부터 숨기던 것 되돌림 — 늘 보임 */ const x = 222 + LDX() + 8, y = 614;   /* 11-16 15판부터 지배자 이름표 숨김(화면 난리) */   /* 19:22 머리 위 패가 왼쪽 위 「빠른 보상 · 상점」과 겹침 → 영웅처럼 발밑 이름표 */   /* 세로 화면: 위 아이콘에 가려서 지배자 오른쪽 어깨 옆으로 */
   const vl = JB.vipLv(st), ttl = vl >= 12 ? L.vip.title12 : vl >= 10 ? L.vip.title10 : '', tc = vl >= 4 ? '#ffd76a' : vl >= 1 ? '#e4ecf8' : '#c9a96a';   /* 11-14 귀빈 이름표: 0 낡은 금 · 1 은빛 · 4 금빛 · 10 칭호 · 11 빛나는 금 · 12 천년의 군주 */
   const fz = Math.round(13 * Math.min(WK(), 2.2)); ctx.save(); ctx.font = `900 ${fz}px ${SERIF}`; const t = '♛ ' + (ttl || (st.myName || L.ui.lordTag)), w = ctx.measureText(t).width + fz * 1.1;
   if (vl >= 11) { ctx.shadowColor = '#ffcf5a'; ctx.shadowBlur = 16 + 8 * Math.sin(S.t * 3); }
@@ -691,14 +691,14 @@ function drawLordA(L) {   /* 01:58 그림체 A 지배자: 숨쉬기 · 영창 �
   const VF = vl >= 10 ? 'saturate(1.15) brightness(1.06) ' : '', VG = vl >= 5 ? 'rgba(255,215,110,' : 'rgba(200,140,255,';   /* 귀빈은 색을 돌리지 않고(빨간 옷 · 초록 왕관이 됐음 — 후반_1 사진) 금빛 테두리만 */
   if (L.shotT > 0) L.shotT = Math.max(0, L.shotT - 1 / 60);
   const sp = L.shotT > 0 ? 1 - L.shotT / 0.28 : 1, at = sp < 1 ? (sp < 0.3 ? -sp / 0.3 * 0.4 : sp < 0.45 ? -0.4 + 1.4 * (sp - 0.3) / 0.15 : (1 - (sp - 0.45) / 0.55)) : 0;   /* 09:58 기본 공격: 살짝 뒤로 젖혀 모았다(0.08초) → 앞으로 쿡 내밀며 지팡이 구슬에서 발사 → 천천히 돌아옴 */
-  const br = 1 + 0.016 * Math.sin(S.t * 2.2), r = L.raise || 0, pk = Math.max(L.poke > 0 ? Math.sin(Math.min(1, L.poke / 0.25) * Math.PI) : 0, at), h = 330 * (1 + 0.05 * r), w = h * im.width / im.height;
+  const br = 1 + 0.016 * Math.sin(S.t * 2.2), r = L.raise || 0, pk = Math.max(L.poke > 0 ? Math.sin(Math.min(1, L.poke / 0.25) * Math.PI) : 0, at), h = 362 * (1 + 0.05 * r), w = h * im.width / im.height;   /* 11-16 11:35 주인공이 가장 크게 330 → 362 */
   const LW = window.LORDW_OK ? need('lordw_attack') : null;   /* 11-16 08:44 대표님 「지배자 뒤돌아 때리고」: 이 영상 2~5번째 장면에서 몸을 뒤로 돌림 · 지팡이 둘레 초록 얼룩 · 보라 불꽃이 칸 끝에서 잘림 → 안 씀(깨끗한 정지 그림을 앞으로 쿡 내지름) */ if (LW && L.shotT > 0.2 && !(L.wA > 0) && r < 0.05 && (LM.bN || 0) % 2 === 0) L.wA = 0.6;   /* 두 번에 한 번만 크게 내지름(작게 쿡 → 크게 쭉, 박자) — 0.85초마다 큰 번쩍이면 화면이 덮임 */ if (L.wA > 0) L.wA -= 1 / 60;
   if (LW && L.wA > 0) {   /* 영상 내지르기 0.6초: 모음 → 앞으로 쭉 내질러 보석 번쩍 → 돌아옴, 끝 2장은 정지 그림과 섞어 이음 */
     const fi = (1 - L.wA / 0.6) * 15, pf = ctx.filter; L.pkx = 0; ctx.save(); ctx.translate(10, 34);
     if (fi < 14) vsDraw('lordw', 'attack', fi, 330, st.lskin && typeof LSF !== 'undefined' && LSF[st.lskin] ? LSF[st.lskin] : '', 0, false);
     else ctx.drawImage(im, -w / 2, -h, w, h);   /* 11-15 눈 확인(1판 0.12초 간격 12장): 끝 장면을 정지 그림과 반투명으로 섞어 지배자 머리가 둘로 보였음 → 섞지 않고 정지 그림으로 바로 돌아옴 */
     ctx.restore(); ctx.filter = pf; return true; }
-  L.pkx = pk * 37 - r * 20; ctx.save(); ctx.translate(10 + pk * 16, 34); ctx.rotate(-0.07 * r + 0.07 * pk);   /* 보석이 몸과 함께 움직인 만큼 → LM.staff()가 따라감 */ ctx.scale(1 / Math.sqrt(br), br);
+  L.pkx = pk * 37 - r * 20; ctx.save(); ctx.translate(10 + pk * 16, 34); ctx.rotate(-0.07 * r + 0.07 * pk);   /* 보석이 몸과 함께 움직인 만큼 → LM.staff()가 따라감 */ ctx.scale(1 / Math.sqrt(br), br); ctx.scale(-1, 1);   /* 11-16 11:28 대표님 「지배자가 아직도 뒤돌아 있고」: 새 그림(#10)은 왼쪽(적 반대)을 봄 → 뒤집어 적 쪽을 봄 · 지팡이는 앞(오른쪽) */
   const pf = ctx.filter; if (st.lskin && typeof LSF !== 'undefined' && LSF[st.lskin]) ctx.filter = LSF[st.lskin] + `drop-shadow(0 0 4px rgba(${LSG[st.lskin]},.9))`; else ctx.filter = VF + `drop-shadow(0 0 ${3 + r * 6 + (vl >= 5 ? 3 : 0)}px ${VG}${0.6 + r * 0.4}))`;
   ctx.drawImage(im, -w / 2, -h, w, h); ctx.filter = pf; ctx.restore(); return true;
 }
@@ -784,6 +784,14 @@ function drawAlly() {
   const h = 240, w = h * art.width / art.height; ctx.drawImage(tinted(art, 'ally' + r, 1, RISE_TINT), -w / 2, -h, w, h); ctx.restore(); ctx.globalAlpha = 1;
 }
 function drawRises() {
+  if (S.riseGhosts && S.riseGhosts.length) {   /* 11-16 #15 쓰러진 적 → 보랏빛 망자로 솟음(0.55초) → 군단 쪽으로 날아가며 작아져 녹아듦(0.75초) · 「+1」 */
+    const ax = typeof armyMid === 'function' ? armyMid() : { x: 400, y: 600 };
+    for (const r of S.riseGhosts) { r.t += 1 / 60; const FV = 'foev' + (r.rt || 0); if (!VS[FV] || !need(FV + '_idle')) continue;
+      const up = Math.min(1, r.t / 0.55), fl = clamp((r.t - 0.65) / 0.75, 0, 1), e2 = ease(fl), x = lerp(r.x, ax.x, e2), y = lerp(r.y, ax.y - 30, e2) - Math.sin(fl * Math.PI) * 90, sc = (0.6 + 0.4 * up) * (1 - 0.6 * e2);
+      ctx.save(); ctx.globalAlpha = (r.t < 0.65 ? up : 1 - fl * 0.8); ctx.translate(x, y); if (r.t < 0.65) { ctx.beginPath(); ctx.rect(-80, -200, 160, 200); ctx.clip(); ctx.translate(0, (1 - up) * 70); }
+      ctx.scale(-1, 1); vsDraw(FV, 'idle', 0, 82 * sc, 'hue-rotate(235deg) saturate(1.25) brightness(0.85) drop-shadow(0 0 6px rgba(185,95,255,.95))', 0, false); ctx.restore();
+      if (fl >= 1 && !r.done) { r.done = 1; burst(ax.x, ax.y - 40, 12, { col: ['#c99bff', '#8a3cff', '#ffffff'], vmin: 40, vmax: 180, up: 80, lmax: 0.6, add: true }); say('+1', ax.x, ax.y - 90, { size: 22, col: '#e8d4ff', glow: '#8a3cff', life: 0.6, vy: -60 }); S.risenTot = (S.risenTot || 0) + 1; } }
+    S.riseGhosts = S.riseGhosts.filter(r => r.t < 1.45); }
   if (S.riseRings && S.riseRings.length) { for (const r of S.riseRings) { r.t += 1 / 60; const k = r.t / 0.9; if (k >= 1) continue; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = '#b87cff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(r.x, r.y - 2, 22 + 30 * k, 7 + 9 * k, 0, 0, 7); ctx.stroke(); ctx.fillStyle = 'rgba(140,60,255,.35)'; ctx.fill(); ctx.restore(); } S.riseRings = S.riseRings.filter(r => r.t < 0.9); }   /* 11-16 #15 망자가 솟는 보라 고리 */   /* 11-15 일으켜라 한 번 = 땅이 갈라지며 뼈 손이 쑥 솟았다 가라앉음(0.8초) */
   if (!S.rises || !S.rises.length) return; const k = typeof WK === 'function' ? Math.min(WK(), 1.8) : 1;
   for (const r of S.rises) { r.t += 1 / 60; const p = r.t, up = p < 0.18 ? p / 0.18 : p < 0.5 ? 1 : Math.max(0, 1 - (p - 0.5) / 0.3), a = p < 0.6 ? 1 : Math.max(0, 1 - (p - 0.6) / 0.2);
@@ -801,7 +809,7 @@ function drawRises() {
 function drawBossBar() {   /* 11-15 보스 머리 바로 위: 이름 · 남은 시간(막대 위) + 큰 체력 막대(안에 %) · 깎인 부분은 흰색으로 남았다 줄어듦 */
   const g = S.giant, b = st.boss; if (TRAILER || !b || !g.on || g.dead || g.alpha < 0.5 || !['fight', 'wait', 'cast'].includes(b.phase) || S.phase === 'cast') return;
   const v = clamp(st.hp / st.maxHp, 0, 1); g.hpG = g.hpG == null || g.hpG < v ? v : Math.max(v, g.hpG - 0.35 / 60);
-  const k = Math.min(WK(), 2.4), w = 200 * k, hh = Math.round(13 * k), x0 = clamp(g.x - w / 2, VIS.x0 + 20, VIS.x1 - 70 * k - w), y0 = g.y - 372;
+  const k = Math.min(WK(), 2.4), cr = cv.getBoundingClientRect(), pw = (VIS.y1 - VIS.y0) / Math.max(1, cr.height), w = Math.min(320 * k, (VIS.x1 - VIS.x0) * 0.56), hh = Math.round(13 * k), x0 = (VIS.x0 + VIS.x1) / 2 - w / 2, y0 = VIS.y0 + 74 * pw + 18 * k;   /* 11-16 11:40 대표님 「보스 체력이 위 상단하고 캐릭터에도」 → 제 추천대로 하나만: 화면 위(판 이름 아래) 가운데 큰 막대 — 보스 얼굴 · 말풍선을 안 가림 */
   ctx.save(); ctx.lineJoin = 'round'; ctx.font = `900 ${Math.round(14 * k)}px sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.lineWidth = 3.5 * k; ctx.strokeStyle = 'rgba(10,0,16,.92)';
   const nm = '☠ ' + L.boss.name(L.regions[regionOf(st.stage)], b.lord); ctx.strokeText(nm, x0, y0 - 5 * k); ctx.fillStyle = '#ffd0b0'; ctx.fillText(nm, x0, y0 - 5 * k);
   if (b.phase === 'fight') { const tt = '⏱ ' + L.boss.timer(Math.ceil(b.timer)); ctx.textAlign = 'right'; ctx.fillStyle = b.timer < 8 ? '#ff5a5a' : '#fff3c4'; ctx.strokeText(tt, x0 + w, y0 - 5 * k); ctx.fillText(tt, x0 + w, y0 - 5 * k); }

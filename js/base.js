@@ -44,3 +44,9 @@ const fmt = n => L.num(n);
 const fmtD = n => { const t = n < 10 ? String(Math.max(1, Math.round(n))) : fmt(n); fmtD.v = n; fmtD.s = t; return t; };   /* 값도 기억 — 가까이 뜬 숫자를 합칠 때 씀 */   /* 11-15 눈 확인(알림한줄 1-1): 피해 숫자 「0.6」 「0.5」 — 때리는 맛이 소수점이면 약해 보임 → 피해 숫자는 10 밑이면 정수(최소 1) */
 const TI_ART = { up: 't_up', grave: 't_grave', hero: 't_hero', awaken: 't_awaken', crypt: 't_rule', mission: 't_mission' };   /* 아래 탭 그림 아이콘 */
 const IC = n => `<img class="ic" src="art/${n}.webp" alt="" onerror="this.remove()">`;   /* 글자 앞 작은 그림 아이콘(그림이 없으면 사라지고 글자만) */
+
+/* 11-16 11:29 대표님 「밑에 공간 아예 많은데 · 안 겹치게 한다며 · 화면상으로도 겹치고」(PC 세로로 긴 창): 진형 · 적이 땅 위쪽(445~712)에만 서고 아래 140이 비었음 → 기술 단추 줄 위까지 쓸 수 있는 땅만큼 아래로 펼침(폰은 단추 줄이 덮어 그대로) */
+let GYk = 1, GYt = 0;
+function GYupd() { try { if (!document.getElementById('app').classList.contains('tall') || innerWidth < 500) { GYk = 1; return; }   /* 폰은 그대로(펼치면 영웅끼리 포개짐 — 관문⑯) · PC 세로 창만 */ const c = cv, sb = document.getElementById('skillbar'); if (!c || !sb) return; const cr = c.getBoundingClientRect(); if (cr.height < 50) return; let top = cr.bottom; if (sb.offsetParent) for (const e of sb.querySelectorAll('button,#slots,.sbsp')) { const r = e.getBoundingClientRect(); if (r.height > 4 && e.offsetParent) top = Math.min(top, r.top); }   /* 단추 줄의 투명 위쪽(그라데이션)이 아니라 실제 단추 위 */
+    const T = window.__VT; if (!T || !T.k) return; const gb = ((top - cr.top) * cv.height / cr.height - T.ty) / T.k - 22,   /* 실제 카메라 변환(__VT)으로 — VW.h는 화면 세로와 달랐음(PC 창은 세로로 훨씬 더 보임) */ k = (gb - 470) / (712 - 470); GYk = k < 1.12 ? 1 : Math.min(1.6, k); }   /* 폰은 남는 땅이 거의 없어 펼치면 영웅끼리 포개졌음(관문⑯ 7%) → 남는 땅이 넉넉할 때(PC 세로 창)만 */ catch (e) { GYk = 1; } }
+const GY = y => y <= 470 ? y : 470 + (y - 470) * GYk;

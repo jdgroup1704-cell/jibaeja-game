@@ -20,7 +20,7 @@ function resetView() {
 function addSkel(fromPortal) {
   const depth = Math.random(), n = S.army.length;
   const spread = Math.min(470, 80 + n * 1.6);
-  S.army.push({ x: fromPortal ? rnd(150, 230) : rnd(260, 260 + spread), y: lerp(GROUND + 40, 680, depth), d: depth,
+  S.army.push({ x: fromPortal ? rnd(150, 230) : rnd(260, 260 + spread), y: GY0(GROUND + 40, 680, depth), d: depth,
     tx: rnd(280, 280 + spread) + depth * 30, w: (Math.random() * 3) | 0, ph: rnd(0, 7), rise: fromPortal ? 0 : 1, fly: null, cheer: rnd(0, 7), ...pickClass() });
 }
 // 무덤에서 일으킨 병과가 군단에 섞여 보이게: 채워진 칸 중 하나(빈 군단은 기본 해골)
@@ -113,8 +113,10 @@ function syncArmy(dt) {
 // 진형: 뒤(왼쪽)부터 마법사·활·기본 해골·창·검·말 탄 해골·방패(맨 앞 벽). 줄 맞춰 서되 조금씩 흐트러지게
 const RANK_ORDER = [5, 3, -1, 1, 0, 4, 2];
 let formT = 0, formKey = '';
+const GY0 = (a, b, d) => GY(lerp(a, b, d));
 function formation(force) {
-  const live = S.army.filter(a => !a.fly);
+  if (S.t - GYt > 1) { GYt = S.t; const o = GYk; GYupd(); if (Math.abs(o - GYk) > 0.01) force = true; }
+  const live = S.army.filter(a => !a.fly && a.rf !== -1);   /* 11-16 일어난 망자는 진형 계산에서 뺌(작은 망자가 끼면 「모두 큰 소환수」가 깨져 진형 전체가 격자로 바뀌었음 — 관문⑲) */
   const key = live.length + ':' + live.map(a => a.c + '' + (a.evo || 0)).join('');
   if (!force && key === formKey) return; formKey = key;
   const n = live.length; if (!n) return;
@@ -124,7 +126,7 @@ function formation(force) {
   if (BIG) {   /* 09:40 대표님 「직업별 배치 · 왜 꼭 몰려 있어」: 숫자로 보니 네 소환수가 가로 183(휴대폰 60점) 안에 몰린 채 통째로 적 앞까지 밀려감 → 직업별 자리를 가로 350에 펼쳐 놓고 그 자리에서 싸움
        방패 = 맨 앞(적과 맞닿음) · 칼 = 바로 뒤 아래 · 창 = 그 뒤 가운데(긴 창으로 앞 사이로 찌름) · 활 = 맨 뒤 위(지배자 앞) */
     /* 11-15 16:01 대표님 「배치 넓게 · 위아래 대각」 · 「해골 궁수가 지배자 공격할 때마다 가림」: 방패 가운데 맨 앞 · 칼 위 · 창 위 뒤 · 궁수는 아래 줄 맨 뒤(지배자 지팡이보다 오른쪽) — 영웅(field.js PB)과 번갈아 세 줄 */ const F = FAR() ? foeLine() - 50 : 740, SLOT = { '-1': [0, 490], 2: [0, 712], 1: [-110, 600], 3: [-455, 445] }   /* 11-16 00:33 대표님 「같은 자리 2마리여도 안 겹치게 · 자기만의 위치」: 바둑판 — 위(490) · 아래(712) 줄은 F · F-220 칸, 가운데(600) 줄은 F-110 · F-330 · F-440 칸(가로 110 = 몸통 폭보다 넓게, 진형재기.js로 잼). 앞줄 칼(위) · 방패(아래) · 창(가운데) / 영웅은 F-220 위 · 아래 · F-320 가운데 · F-440 아래(넷째 — 위 줄이면 지배자 몸에 가렸음, 사진) / 맨 뒤 궁수 F-450 위 */   /* 11-16 00:25 대표님 「겹치는 싸움 말고 완전 따로 포지션 — 앞 전사 · 방패, 가운데 서브(영웅), 뒤 궁수 · 법사」: 앞줄 방패(위) · 칼(아래) · 둘째 줄 창 · 가운데 칸(-190~-340)은 영웅 · 맨 뒤 궁수 */   /* 11-15 22:20 대표님 버섯커 영상(21:51): 우리 편은 왼쪽 한 덩어리 · 적은 오른쪽 — 자리표시로 보니 우리 8명이 x 470~790(320)에 몰리고 지배자 앞 260~470은 비어 있었음 → 우리 앞줄을 적에서 60 더 떼고 우리 편을 400~740에 줄마다 130씩 띄워 세움(field.js PB와 짝) · 맨 뒷줄은 지배자 지팡이 빛(흰 별빛 덮임 6%→3%)에서 조금 뗌 */, used = {};
-    for (const a of live) { const q = SLOT[a.c] || [-120, 620], k = used[a.c] = (used[a.c] || 0) + 1; a.jx = 0; a.jy = 0; a.tx = F + q[0] - (k - 1) * 60 + a.jx; a.ty = q[1] + (k - 1) * 30 + a.jy; }
+    for (const a of live) { const q = SLOT[a.c] || [-120, 620], k = used[a.c] = (used[a.c] || 0) + 1; a.jx = 0; a.jy = 0; a.tx = F + q[0] - (k - 1) * 60 + a.jx; a.ty = GY(q[1] + (k - 1) * 30) + a.jy; }
     return;
   }
   const sorted = live.slice().sort((p, q) => (p.evo || 0) - (q.evo || 0) || RANK_ORDER.indexOf(p.c) - RANK_ORDER.indexOf(q.c) || p.g - q.g || p.x - q.x);   /* 18:58 같은 병과끼리는 지금 앞에 선 놈이 그대로 앞에(새 병사가 일어날 때마다 줄이 뒤섞여 앞줄이 뒤로 걸어가는 게 「밀리는」 것처럼 보였음) */   /* 진화한 쫄따구는 맨 앞 줄로 */
@@ -132,7 +134,7 @@ function formation(force) {
     const col = Math.floor(i / rows), row = i % rows;
     a.jx = 0; a.jy = 0;
     a.tx = x0 + col * colW2 + (row % 2) * colW2 * 0.5 + a.jx;
-    a.ty = lerp(top, bot, rows > 1 ? row / (rows - 1) : 0.5) + a.jy;
+    a.ty = GY(lerp(top, bot, rows > 1 ? row / (rows - 1) : 0.5)) + a.jy;
     if (a.evo) a.tx += a.evo * 6 + (row % 3) * 8;   /* 진화한 놈은 크니까 조금씩 앞뒤로 엇갈려 덜 겹치게 */
   });
 }
@@ -228,7 +230,7 @@ function armySkill(a, T, land) {
   else if (a.c === 1 && T && T.foe) { const f2 = S.foes.filter(f => !f.dead && !f.flee && f !== T.foe && f.x > T.foe.x && f.x - T.foe.x < 170).sort((p, q) => p.x - q.x)[0]; if (f2) { if (a.skN % 3 === 0) skillSay(a, SK[1], '#9fe9ff'); land({ foe: f2, x: f2.x, y: f2.y - 60 }, '#9fe9ff', false); S.aslash.push({ x: f2.x - 18, y: f2.y - 70, age: 0, life: 0.22, star: 1, c: 1, ax: T.foe.x, ay: f2.y - 70 }); } }
   else if (a.c === 2 && a.skN % 4 === 0) { skillSay(a, SK[2], '#ffb36a'); S.aslash.push({ ring: 1, x: a.x + 20, y: a.y, age: 0, life: 0.45, c: 2 }); for (const f of S.foes) if (!f.dead && !f.flee && Math.abs(f.x - a.x) < 380) { f.kbT = 0.16; f.flash = 0.18; f.stun = Math.max(f.stun || 0, 0.6); } punch(0.05, 5); Snd.slam && Snd.slam(0.2); }
 }
-function armyFront() { let m = 0; for (const a of S.army) { if (a.fly) continue; const x = a.big && a.tx != null ? Math.min(a.x, a.tx + (S.engDx || 0) + 30) : a.x; if (x > m) m = x; } return m || 300; }   /* 10:10 관문: 큰 소환수가 적에게 걸어가면 적이 「맨 앞 + 70」에 서려고 같이 물러나 끝없이 쫓음 → 큰 소환수는 자기 자리 기준 */
+function armyFront() { let m = 0; for (const a of S.army) { if (a.fly || a.rf === -1) continue;   /* 일어난 망자(선봉)는 앞줄 계산에서 뺌(계속 앞으로 밀려 나감) */ const x = a.big && a.tx != null ? Math.min(a.x, a.tx + (S.engDx || 0) + 30) : a.x; if (x > m) m = x; } return m || 300; }   /* 10:10 관문: 큰 소환수가 적에게 걸어가면 적이 「맨 앞 + 70」에 서려고 같이 물러나 끝없이 쫓음 → 큰 소환수는 자기 자리 기준 */
 /* 적 종류(21:10 싸움 다양화): 6판부터 궁수(뒤에서 쏨) · 11판 방패병(크고 느림, 앞줄) · 16판 날개 적(쫄따구 줄 위로 넘어와 수하를 침) · 21판 자폭병(빨리 달려와 쫄따구 줄에서 터짐)
    피해는 보여주기(규칙의 체력은 그대로) — 판마다 싸움 모양이 달라지게 */
 function skelFall(a) {   /* 11-14 대표님 「공격하면 우리 쫄따구도 죽고」: 진짜로 쓰러져 뼈 무더기 → 3초 뒤 지배자가 보랏빛으로 다시 일으킴(군단 수는 그대로) */
@@ -239,7 +241,7 @@ function raiseFallen() { if (!S.fallen || !S.fallen.length) return 0; const n = 
 /* 지역 정예(11-14): 지역 순서 = 묘지 · 피의 늪 · 재의 평원 · 얼어붙은 성채 · 타락한 왕도 · 독안개 숲 · 가라앉은 신전 · 심연의 문. 그림은 병사 3D에 지역 색 + 고유 효과(전용 3D는 브라우저가 돌아오면) */
 const ELITE_OF = [null, 'leech', 'pyro', 'frost', 'lancer', 'plague', 'paladin', 'abyss'];
 function bigHold(a) { if (!a.big) return false; if (S.t - (a.bornT ?? -99) < 6 || Math.random() > 0.35) { a.hurt = 0.3; a.flash = 0.15; a.vh = Math.max(0.12, (a.vh ?? 1) - 0.3); a.hbT = 2.5; return true; } return false; }   /* 11-16 순서 #9: 큰 소환수 넷은 진형의 기둥 — 적 특수 공격(돌진 · 폭탄 · 화살비)이 맞혀도 35%만 쓰러지고 나머지는 움찔 · 체력만 깎임(쓰러지면 칸이 3초 빔) */
-function fellArmy(n, near, fx) { let c = 0; const L0 = S.army.filter(a => !a.fly && a.rise >= 1 && !a.evo && a.rf == null && !a.gone);
+function fellArmy(n, near, fx) { let c = 0; const L0 = S.army.filter(a => !a.fly && a.rise >= 1 && !a.evo && (a.rf == null || a.rf === -1) && !a.gone).sort((p, q) => (q.rf === -1) - (p.rf === -1));   /* 일어난 망자가 먼저 쓰러짐 */
   L0.sort(near ? (a, b) => Math.hypot(a.x - near.x, a.y - near.y) - Math.hypot(b.x - near.x, b.y - near.y) : (a, b) => b.x - a.x);
   for (const a of L0) { if (c++ >= n) break; if (bigHold(a)) continue; a.gone = true; skelFall(a); burst(a.x, a.y - 40, 8, { col: fx || ['#e8dcc0'], vmin: 80, vmax: 280, up: 160, g: 600, lmax: 0.7, add: false }); } return c; }
 function armyMid() { const L0 = S.army.filter(a => !a.fly && a.rise >= 1); if (!L0.length) return { x: 400, y: 600 }; const t = L0[Math.floor(Math.random() * L0.length)]; return { x: t.x, y: t.y }; }
@@ -250,7 +252,7 @@ const ELITE = {
   lancer: { off: 0, cd: [5, 6], col: '#ffe0c0', glow: '#ff8a2a', act(f) { f.charge = 0.7; f.atk = 0.32; fellArmy(3, null, ['#e8dcc0', '#ffb070']); (S.slashes = S.slashes || []).push({ x: f.x - 160, y: f.y - 70, t: 0 }); S.shake = Math.max(S.shake, 10); Snd.smp && Snd.smp('slam', 0.25, 0, 1.6); } },   // 타락한 왕도 · 창기병: 앞줄 3을 꿰뚫는 돌격
   plague: { off: 230, cd: [5.5, 6.5], col: '#e0ffb0', glow: '#5aa020', act(f) { const t = armyMid(); (S.clouds = S.clouds || []).push({ x: t.x, y: t.y, t: 0, L: 3.2, hit: 0 }); } },   // 독안개 숲 · 역병술사: 독구름(3초 동안 해골이 하나씩 쓰러짐)
   paladin: { off: 120, cd: [6, 7], col: '#fff6c0', glow: '#ffd23a', act(f) { st.guard = 3.5; for (const o of S.foes) if (!o.dead && !o.flee) o.guard = 3.5; } },   // 가라앉은 신전 · 성기사: 3.5초 성스러운 방패(적 무리가 받는 피해 절반)
-  abyss: { off: 260, cd: [6, 7], col: '#e0c8ff', glow: '#7a2aff', act(f) { for (let j = 0; j < 2; j++) { const d = Math.random(); const o = foeKind({ x: f.x + rnd(-40, 40), y: lerp(GROUND + 40, 680, d), d, ph: rnd(0, 7), sp: rnd(240, 310), born: S.t, dead: false, flee: false, off: rnd(20, 120), summoned: 1 }, 5); o.kind = 'foot'; o.elite = 0; o.big = 1; S.foes.push(o); (S.portals = S.portals || []).push({ x: o.x, y: o.y, t: 0 }); } } },   // 심연의 문 · 심연술사: 보병 2를 불러냄
+  abyss: { off: 260, cd: [6, 7], col: '#e0c8ff', glow: '#7a2aff', act(f) { for (let j = 0; j < 2; j++) { const d = Math.random(); const o = foeKind({ x: f.x + rnd(-40, 40), y: GY0(GROUND + 40, 680, d), d, ph: rnd(0, 7), sp: rnd(240, 310), born: S.t, dead: false, flee: false, off: rnd(20, 120), summoned: 1 }, 5); o.kind = 'foot'; o.elite = 0; o.big = 1; S.foes.push(o); (S.portals = S.portals || []).push({ x: o.x, y: o.y, t: 0 }); } } },   // 심연의 문 · 심연술사: 보병 2를 불러냄
 };
 function eliteUpdate(dt) {
   if (S.chill > 0) S.chill -= dt; if (st.chill > 0) st.chill -= dt; if (st.guard > 0) st.guard -= dt;
@@ -280,7 +282,7 @@ function foeAct(f, dt, front) {   /* 종류별 행동 */
     for (const o of S.foes) if (!o.dead && !o.flee) { o.bless = 2.5; } say(L.foes.heal, f.x, f.y - 150, { size: 24, col: '#fff2a8', glow: '#ffcf3a', life: 1.0, vy: -40 }); (S.slams = S.slams || []); }
   if (f.kind === 'captain' && f.actT <= 0 && f.x < VX1 - 60 && !(st.frozen > 0)) { f.actT = rnd(4.5, 5.5);
     if (Math.random() < 0.6) { f.atk = 0.32; f.charge = 0.5; S.shake = Math.max(S.shake, 12); say(L.foes.charge, f.x, f.y - 210, { size: 34, col: '#ffd0b0', glow: '#ff3a2a', life: 1.1, vy: -30, stamp: true });   /* 기사단장: 돌진 베기 — 앞줄 해골 4~6이 쓰러짐 */
-      let n = 0; for (const a of S.army.filter(a => !a.fly && a.rise >= 1 && !a.evo && a.rf == null).sort((a, b) => b.x - a.x)) { if (n++ >= 4 + (Math.random() * 3 | 0)) break; if (bigHold(a)) continue; a.gone = true; skelFall(a); burst(a.x, a.y - 40, 6, { col: ['#e8dcc0', '#ff5a3a'], vmin: 80, vmax: 260, up: 140, g: 600, lmax: 0.6, add: false }); }
+      let n = 0; for (const a of S.army.filter(a => !a.fly && a.rise >= 1 && !a.evo && (a.rf == null || a.rf === -1)).sort((a, b) => (b.rf === -1) - (a.rf === -1) || b.x - a.x)) { if (n++ >= 4 + (Math.random() * 3 | 0)) break; if (bigHold(a)) continue; a.gone = true; skelFall(a); burst(a.x, a.y - 40, 6, { col: ['#e8dcc0', '#ff5a3a'], vmin: 80, vmax: 260, up: 140, g: 600, lmax: 0.6, add: false }); }
       (S.slashes = S.slashes || []).push({ x: f.x - 160, y: f.y - 70, t: 0 }); Snd.smp && Snd.smp('slam', 0.3, 0, 1.4); }
     else { f.cryT = 1.2; for (const o of S.foes) if (!o.dead && !o.flee) o.bless = 4; say(L.foes.cry, f.x, f.y - 210, { size: 34, col: '#ffe08a', glow: '#ff8a2a', life: 1.2, vy: -30, stamp: true }); S.shake = Math.max(S.shake, 8); } }
   if (f.elite && ELITE[f.kind] && f.actT <= 0 && f.x < VX1 - 40 && !(st.frozen > 0)) { const E = ELITE[f.kind]; f.actT = rnd(E.cd[0], E.cd[1]); f.flash = 0.25; E.act(f); say(L.foes.elite[f.kind].skill, f.x, f.y - 190, { size: 28, col: E.col, glow: E.glow, life: 1.1, vy: -36, stamp: true }); }
@@ -297,7 +299,7 @@ function syncFoes() {
   if (S.foeWave !== key) {   // 새 무리
     S.foes.forEach(f => { if (!f.dead) { f.dead = true; killFx(f); } });
     S.foeWave = key; S.foeN = clamp(4 + Math.floor(st.stage / 15), 4, 6);   /* 09:35 갓깨비 사진 「적이 빽빽」 → 4~6마리(간격 70 → 56) */   /* 02:55 큰 소환수 4 · 큰 적: 3~5마리(10마리면 오른쪽에 뭉쳐 체력 막대가 겹치고 단추 밑까지 밀림) */   /* A판: 적이 커져서 10마리까지 */   /* 적 무리도 우리 군단 크기를 따라 늘림(11-14 대표님 「우리 군단 대비 적이 너무 적다」: 전엔 3~8마리 고정, 우리는 최대 72) */
-    for (let i = 0; i < S.foeN; i++) { const d = Math.random(); S.foes.push(foeKind({ x: rnd(VX1 + 10, VX1 + 90) + i * 10, y: lerp(GROUND + 40, 680, d), d, ph: rnd(0, 7), sp: rnd(240, 310), born: S.t, dead: false, flee: false, off: i * 56 + rnd(0, 16) }, i));   /* 03:15 적이 한 자리에 겹쳐 섬 → 한 마리씩 뒤로 */   /* off: 맞서는 자리를 앞뒤로 흩음 — 한 줄로 몰려 숫자가 한곳에 쌓였음(16:55) */ }
+    for (let i = 0; i < S.foeN; i++) { const d = Math.random(); S.foes.push(foeKind({ x: rnd(VX1 + 10, VX1 + 90) + i * 10, y: GY0(GROUND + 40, 680, d), d, ph: rnd(0, 7), sp: rnd(240, 310), born: S.t, dead: false, flee: false, off: i * 56 + rnd(0, 16) }, i));   /* 03:15 적이 한 자리에 겹쳐 섬 → 한 마리씩 뒤로 */   /* off: 맞서는 자리를 앞뒤로 흩음 — 한 줄로 몰려 숫자가 한곳에 쌓였음(16:55) */ }
   }
   const aliveWant = Math.ceil(S.foeN * clamp(st.hp / st.maxHp, 0, 1));
   const alive = S.foes.filter(f => !f.dead && !f.flee);
@@ -328,19 +330,16 @@ function comboHit() {
 }
 /* 11-16 순서 #15(제 제안 · 08:44 대표님 「현재까지도 재미없어 보인다」): 「죽은 자를 일으키는 지배자」를 싸움 한가운데서 보이게 —
    적 4마리를 쓰러뜨릴 때마다 1마리가 그 자리 보라 고리에서 망자로 솟아 우리 편이 되어 같이 싸움(화면에 6마리까지 · 22초 뒤 보라 연기). 규칙(군단 힘)은 그대로, 보이는 것만 */
+window.RISE_ON = window.RISE_ON ?? true;   /* 11-16 진형에서 빼고 선봉 자리로 다시 만든 뒤 켬 */
 const RISE_KIND = { foot: 0, archer: 1, shield: 2, priest: 3, captain: 2, lancer: 0, paladin: 2, leech: 2, pyro: 3, frost: 3, plague: 3, abyss: 3, bomber: 0 };
 function riseFallen(f) {
   if (!window.RISE_ON || TRAILER || UI.awakening || f.fly || f.boom || S.phase === 'cast') return;   /* 11-16 09:50 관문⑲: 진형 자리 없이 앞줄에 겹쳐 서고 쓰러지지 않아 적이 영웅까지 못 옴 → 진형에 맞게 다시 만들 때까지 끔 */
-  S.riseN = (S.riseN || 0) + 1; if (S.riseN % 4 !== 0) return;
-  if (S.army.filter(a => a.rf === -1 && !a.gone).length >= 6) return;
+  S.riseN = (S.riseN || 0) + 1; if (S.riseN % 3 !== 0) return;
+  if ((S.riseGhosts || []).length >= 4) return;
   const x = f.x, y = f.y, d = f.d, rt = RISE_KIND[f.kind] ?? 0;
   (S.riseRings = S.riseRings || []).push({ x, y, t: 0 });
-  setTimeout(() => {
-    if (UI.awakening) return;
-    S.army.push({ x, y, d, tx: Math.min(x, armyFront() - 10), ty: y, w: 0, ph: rnd(0, 7), rise: 0, fly: null, cheer: rnd(0, 7), c: -1, g: 0, rf: -1, rt, life: 22, bornT: S.t });
-    burst(x, y - 30, 16, { col: ['#c99bff', '#8a3cff', '#ffffff'], vmin: 40, vmax: 220, up: 160, g: -40, lmax: 0.8, add: true }); Snd.smp && Snd.smp('rise', 0.35, 0, 1.2);
-    S.risenTot = (S.risenTot || 0) + 1;
-  }, 550);
+  (S.riseGhosts = S.riseGhosts || []).push({ x, y, d, rt, t: 0 });   /* 11-16 11:40 다시 만듦: 진형 자리를 주면 늘 겹쳐(관문⑲) → 그 자리에서 솟아 군단 쪽으로 날아가 녹아듦 */
+  setTimeout(() => { if (!UI.awakening) Snd.smp && Snd.smp('rise', 0.16, 0, 1.2); }, 300);   /* 관문⑱ 깨짐 4 → 작게 */
 }
 function killFx(f) {
   if (!(UI.awakening)) { soulOrbs(f.x, f.y - 50, f.elite || f.kind === 'captain' ? 5 : 1 + (Math.random() < 0.4 ? 1 : 0)); comboHit(); if (f.elite || f.kind === 'captain') punch(0.08, 9, 35); }

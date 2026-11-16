@@ -23,7 +23,7 @@ const BV = {
     if (!b.ph2 && st.hp / Math.max(1, st.maxHp) < 0.5 && !S.texts.some(t => t.screen && t.size >= 40 && t.age < t.life)) this.phase2();   /* 「반격!」 같은 큰 글자가 지나간 뒤에(겹쳤음) */
   },
   line(i, stage) { const r = regionOf(stage || st.stage); return (L.bline[r] || L.bline[0])[i]; },
-  arrive() { setTimeout(() => { if (st.boss) this.bubble(this.line(0)); }, 1900); },
+  arrive() { setTimeout(() => { if (st.boss && !(UI.vsShown)) this.bubble(this.line(0)); UI.vsShown = 0; }, 2700); },   /* 대결 화면에서 이미 말했으면 말풍선은 생략 */
   phase2() {
     const b = st.boss; b.ph2 = 1; S.ph2 = 1;
     const nm = typeof bossName === 'function' ? bossName() : L.boss.name(L.regions[regionOf(st.stage)], b.lord);

@@ -90,18 +90,24 @@ const UI = {
     st.seen.curTip = 1;
   },
   vsCustom(img, name, sub, then) {   /* 05:05 던전 · 길드 보스 도전도 결과 창만 뜨던 것 → 대결 띠 1.6초 뒤 결과(대표님 「현질하면 확실한 효과 · 몰입」) */
-    this.closeModal(); let el = $('vsfx'); if (!el) { el = document.createElement('div'); el.id = 'vsfx'; $('stagewrap').appendChild(el); }
-    el.innerHTML = `<div class="vl"><img src="art/lordA.webp" alt=""><span>${st.myName ? '지배자 ' + st.myName : L.vs.me}</span></div><div class="vr"><img src="art/${img}.webp" alt=""><span>${name}</span></div><b class="vsx">${L.vs.x}</b><div class="vsw">${sub || ''}</div>`;
-    el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); clearTimeout(this.vsT); this.vsT = setTimeout(() => { el.classList.remove('go'); then && then(); }, 1650);
-    Snd.slam && setTimeout(() => Snd.slam(0.5), 330);
+    this.closeModal(); const el = this.vsBuild(img, st.myName ? '지배자 ' + st.myName : L.vs.me, name, sub, ''); this.vsDone = then; clearTimeout(this.vsT); this.vsT = setTimeout(() => { el.classList.remove('go'); const f = this.vsDone; this.vsDone = null; f && f(); }, 2400);
   },
-  vsShow(lord) {   /* 00:55 보스 「VS」 화면 1.7초: 왼쪽 지배자(보라) · 오른쪽 보스(빨강)가 대각선으로 밀려 들어오고 가운데 VS 쾅 */
-    if (UI.awakening || document.getElementById('modal').style.display === 'flex') return false;
+  vsBuild(img, myName, name, sub, line) {   /* 11-16 11:39 대표님 「보스 VS 너무 허접해 · 등장이 · 좀 멋있게」: 어두워짐 → 붉은 번개 → 지배자 밀려 들어옴 → 보스가 위에서 쿵(흔들림 · 땅 갈라짐 · 먼지) → 금속 VS 박힘 + 불꽃 → 이름판 찍힘 → 보스 한마디 → 둘로 갈라지며 사라짐(2.5초 · 누르면 넘어감) */
     let el = $('vsfx'); if (!el) { el = document.createElement('div'); el.id = 'vsfx'; $('stagewrap').appendChild(el); }
-    const nm = L.boss.name(L.regions[regionOf(st.stage)], lord), lk = 'lordA';   /* 01:55 그림체 A 지배자(오른쪽을 봄 = 보스와 마주 봄) */
-    el.innerHTML = `<div class="vl"><img src="art/${lk}.webp" alt=""><span>${st.myName ? '지배자 ' + st.myName : L.vs.me}</span></div><div class="vr"><img src="art/bossV.webp" alt=""><span>${nm}</span></div><b class="vsx">${L.vs.x}</b><div class="vsw">${lord ? L.boss.lord : L.boss.arrive}</div>`;
-    el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); clearTimeout(this.vsT); this.vsT = setTimeout(() => el.classList.remove('go'), 1750);
-    Snd.slam && setTimeout(() => Snd.slam(0.5), 330); return true;
+    const sp = Array.from({ length: 14 }, (_, i) => `<i style="--a:${i * 360 / 14 + (i % 3) * 9}deg;--d:${70 + (i * 37) % 70}px;--t:${0.45 + (i % 4) * 0.08}s"></i>`).join('');
+    el.innerHTML = `<div class="vbg"></div><svg class="vbolt" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="62,-5 54,22 66,30 47,58 60,64 40,105" /><polyline class="b2" points="62,-5 54,22 66,30 47,58 60,64 40,105" /></svg>`
+      + `<div class="vl"><img src="art/lordA.webp" alt=""><span class="vnm">${myName}</span></div>`
+      + `<div class="vr"><div class="vdrop"><img src="art/${img}.webp" alt=""></div><svg class="vcrack" viewBox="0 0 200 40"><polyline points="100,2 88,14 96,20 78,34" /><polyline points="100,2 114,12 108,22 130,36" /><polyline points="100,2 70,8 52,4" /><polyline points="100,2 140,6 160,14" /></svg><div class="vdust"></div><span class="vnm vb">${name}<small>${sub || ''}</small></span></div>`
+      + `<b class="vsx">VS</b><div class="vspark">${sp}</div>${line ? `<div class="vline">「${line}」</div>` : ''}<div class="vflash"></div>`;
+    el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); el.onclick = () => { el.classList.remove('go'); clearTimeout(this.vsT); this.vsDone && this.vsDone(); this.vsDone = null; };
+    if (typeof Snd !== 'undefined') { Snd.slam && setTimeout(() => Snd.slam(0.9), 420); Snd.smp && setTimeout(() => Snd.smp('boom', 0.6, 0, 0.7), 620); }
+    setTimeout(() => { if (typeof S !== 'undefined') S.shake = Math.max(S.shake || 0, 16); }, 420); return el;
+  },
+  vsShow(lord) {
+    if (UI.awakening || document.getElementById('modal').style.display === 'flex') return false;
+    const nm = L.boss.name(L.regions[regionOf(st.stage)], lord), ln = typeof BV !== 'undefined' && L.bline ? BV.line(0) : '';
+    const el = this.vsBuild('bossV', st.myName ? '지배자 ' + st.myName : L.vs.me, nm, lord ? L.boss.lord : L.boss.arrive, ln); this.vsShown = 1;
+    clearTimeout(this.vsT); this.vsDone = null; this.vsT = setTimeout(() => el.classList.remove('go'), 2600); return true;
   },
   cutIn(id, name, col) {
     const now = performance.now(); if (now - (this.cutT || 0) < 7000 /* 23:55 4초 → 7초: 너무 자주 가림 */ || (S.bubble && S.bubble.age < (S.bubble.life || 3.2)) || document.querySelector('#toast .toast') || $('reraise').classList.contains('on') /* 23:59 겹침재기: 말풍선 · 일으켜라 알약과 86~93% 겹침 → 그땐 띠 대신 영웅 머리 위 글자 */ || S.warn || S.phase !== 'battle' && S.phase !== 'fight' || UI.awakening || TRAILER || ($('rcard') && $('rcard').classList.contains('on'))) return false;   /* 21:45 「제2장」 지역 카드 위에 기술 띠가 겹쳐 글자가 가려짐 → 카드 동안엔 안 띄움 */ this.cutT = now;
