@@ -43,7 +43,7 @@ const HF = {
   },
   tags: [],
   drawTags() {   /* 영웅 이름표: 위에서부터 놓고, 먼저 놓인 표와 겹치면 그 아래로 한 칸씩 비킴(최대 6번) */
-    const T = this.tags; this.tags = []; if (!T.length || S.phase === 'cast') return; T.sort((p, q) => p.m.f - q.m.f); const placed = [];
+    const T = this.tags.filter(g => g.a > 0.02); this.tags = []; if (!T.length || S.phase === 'cast') return; T.sort((p, q) => p.m.f - q.m.f); const placed = [];
     if (!TRAILER && S.phase !== 'cast') { const M = ctx.getTransform(), fz = Math.round(13 * Math.min(WK(), 2.2)); ctx.save(); ctx.font = `900 ${fz}px ${SERIF}`; const w = ctx.measureText('♛ ' + L.ui.lordTag).width + fz * 1.6; ctx.restore(); placed.push({ x: M.a * (230 + LDX() - w / 2) + M.e, y: M.d * (614 - fz * 0.8) + M.f, w: w * M.a, h: fz * 1.6 * M.d }); }   /* 지배자 이름표 자리도 피함 */
     { const cr = cv.getBoundingClientRect(), kx = cv.width / (cr.width || 1), ky = cv.height / (cr.height || 1); for (const b of document.querySelectorAll('#slots > *, #raiseBtn, #cast, #chatpv.on')) { const r = b.getBoundingClientRect(); if (!r.width || getComputedStyle(b).display === 'none' || getComputedStyle(b).visibility === 'hidden') continue; placed.push({ x: (r.left - cr.left) * kx, y: (r.top - cr.top) * ky, w: r.width * kx, h: r.height * ky, dom: 1 }); } }   /* 11-15 눈 확인: 이름표가 부활 · 태양 단추 밑에 깔렸음 → 전장 위 단추 자리도 피함 */
     ctx.save();
@@ -299,7 +299,7 @@ const HF = {
     h.hbT = Math.max(0, (h.hbT || 0) - 1 / 60); if (h.hurtT > 0) h.hbT = 2.5;
     { ctx.globalAlpha = Math.max(0, h.enter) * (h.hbT > 0 || h.hp < 0.6 ? 1 : 0.85); this.bar(0, -H2 - 10, 46 * sc, h.hp, h.hp > 0.5 ? '#5dff8f' : h.hp > 0.25 ? '#ffcf5a' : '#ff5a5a'); ctx.globalAlpha = Math.max(0, h.enter); }   /* 11-15 대표님 「우리든 체력바 보여야」: 영웅 막대도 늘 보임 */   /* 19:13 늘 떠 있던 막대 → 맞았을 때 · 다쳤을 때만 */
     { const sr = JB.heroStar(o), nm = L.heroes[h.id].name, nt = `${nm} ${sr >= 7 ? '☠' : '★'}${sr}`,   /* 11-15 이름표 = 이름 + 별 수(★1~6 · 초월 ☠7) */ fz = Math.round(11.5 * Math.min(WK(), 2.2));   /* 19:13 발밑 이름표 */
-      this.tags.push({ m: ctx.getTransform(), nt, fz, ty: 10 + fz * 0.6, rt, RC, line: sr >= 7 ? '#ff3a4a' : rt >= 2 ? RC : tc || k.col, txt: sr >= 7 ? '#ffb0b8' : rt >= 2 ? RC : tc || '#f3e8ff', a: Math.max(0, h.enter) }); }   /* 11-15 눈 확인: 30판에서 영웅 넷 이름표가 서로 포개짐 → 그리기는 다 모아서 마지막에(drawTags), 겹치면 아래로 비킴 */
+      this.tags.push({ m: ctx.getTransform(), nt, fz, ty: 10 + fz * 0.6, rt, RC, line: sr >= 7 ? '#ff3a4a' : rt >= 2 ? RC : tc || k.col, txt: sr >= 7 ? '#ffb0b8' : rt >= 2 ? RC : tc || '#f3e8ff', a: Math.max(0, h.enter) * (st.best < 15 ? 1 : (h.tag0 = h.tag0 ?? S.t, S.t - h.tag0 < 6 ? 1 : S.t - h.tag0 < 7 ? 7 - (S.t - h.tag0) : 0)) }); }   /* 11-16 09:15 「화면 난리」(후반 사진: 이름표 다섯이 늘 떠 있음): 15판부터는 처음 나타난 6초만 보이고 사라짐 */   /* 11-15 눈 확인: 30판에서 영웅 넷 이름표가 서로 포개짐 → 그리기는 다 모아서 마지막에(drawTags), 겹치면 아래로 비킴 */
     ctx.restore(); ctx.globalAlpha = 1;
   },
   glowC: {},
@@ -323,6 +323,7 @@ const HF = {
       for (const [lw, c] of [[34, 'rgba(255,30,60,.25)'], [14, 'rgba(255,60,90,.7)'], [4, '#ffffff']]) { ctx.lineWidth = lw; ctx.strokeStyle = c; ctx.beginPath(); ctx.moveTo(f.x0, f.y + 10); ctx.lineTo(x, f.y - 10); ctx.stroke(); } }
     else if (f.kind === 'soulburst') { const ph = UK() < 1, r = 40 + k * (ph ? 170 : 260); ctx.globalAlpha = (1 - k) * (ph ? 0.65 : 1);   /* 11-15 폰: 영혼 폭발 흰 빛이 영웅 셋을 통째로 덮음(효과재기 29번) → 작고 옅게 */ const g = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, r); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(0.3, 'rgba(180,110,255,.7)'); g.addColorStop(1, 'rgba(60,10,140,0)'); ctx.fillStyle = g; ctx.fillRect(f.x - r, f.y - r, r * 2, r * 2);
       for (let j = 0; j < 7; j++) { const an = j / 7 * 6.28 + k * 2, rr = r * 0.8; ctx.fillStyle = 'rgba(230,210,255,.8)'; ctx.beginPath(); ctx.arc(f.x + Math.cos(an) * rr, f.y + Math.sin(an) * rr * 0.6, 8 * (1 - k), 0, 7); ctx.fill(); } }
+    else if (f.kind === 'ghost' && VS['heroI_' + f.id] && need('heroI_' + f.id + '_idle')) { ctx.save(); ctx.globalAlpha = 0.5 * (1 - k); ctx.translate(f.x, f.y); vsDraw('heroI_' + f.id, 'idle', 0, 150, 'brightness(0.55) sepia(1) hue-rotate(220deg) saturate(3)', 0, false); ctx.restore(); }   /* 11-16 그림자 분신도 새 그림(옛 heroF 그림이 1119번 그려졌음 — 옛그림재기) */
     else if (f.kind === 'ghost') { const im = need('heroF_' + f.id); if (im) { const H2 = 150, w = H2 * im.width / im.height; ctx.globalAlpha = 0.45 * (1 - k); ctx.filter = 'brightness(0) invert(.7) sepia(1) hue-rotate(150deg) saturate(3)'; ctx.drawImage(im, f.x - w / 2, f.y - H2, w, H2); ctx.filter = 'none'; } }
     else if (f.kind === 'xcut') { ctx.globalAlpha = 1 - k; ctx.lineCap = 'round'; for (const [lw, c] of [[16, 'rgba(120,240,255,.4)'], [5, '#ffffff']]) { ctx.lineWidth = lw * (1 - k * 0.5); ctx.strokeStyle = c; const L2 = 70 * Math.min(1, k * 4); ctx.beginPath(); ctx.moveTo(f.x - L2, f.y - L2); ctx.lineTo(f.x + L2, f.y + L2); ctx.moveTo(f.x + L2, f.y - L2); ctx.lineTo(f.x - L2, f.y + L2); ctx.stroke(); } }
     else if (f.kind === 'dustline') { ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 0.5 * (1 - k); for (let j = 0; j < 10; j++) { const x = f.x + j * 45 * Math.min(1, k * 2), r = 30 + j * 4; const g = ctx.createRadialGradient(x, f.y - 10, 2, x, f.y - 10, r); g.addColorStop(0, 'rgba(200,180,150,.6)'); g.addColorStop(1, 'rgba(120,100,80,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, f.y - 10 - r, r * 2, r * 2); } ctx.globalCompositeOperation = 'lighter'; }
@@ -370,7 +371,7 @@ const LM = {
   T: {}, fx: [], pose: 0, shown: {},
   open(id) { const d = this.DEF[id]; return d.vip ? JB.vipLv(st) >= d.vip : (st.best >= d.at || st.awakens > 0); },
   staff() { const r = this.staff0(); r.x += LDX() + (!window.LORDV_OK && S.lord && S.lord.pkx || 0); return r; },
-  staff0() { if (typeof need === 'function' && !window.LORDV_OK && need('lordA') && JB.vipLv(st) < 5) return { x: 196 + 10 - 92, y: 560 + 34 - 297 };   /* 11-16 #10 새 지배자 그림(758×899)의 지팡이 구슬(130,89) — 새동작.py 재기 */   /* 09:58 그림 A 지배자 지팡이 보석 자리(그림 276×420의 38,48) — 영혼탄이 진짜 보석에서 나감 */
+  staff0() { if (typeof need === 'function' && !window.LORDV_OK && need('lordA')) return { x: 196 + 10 - 92, y: 560 + 34 - 297 };   /* 11-16 #10 새 지배자 그림(758×899)의 지팡이 구슬(130,89) — 새동작.py 재기 */   /* 09:58 그림 A 지배자 지팡이 보석 자리(그림 276×420의 38,48) — 영혼탄이 진짜 보석에서 나감 */
     if (typeof STYLE !== 'undefined' && STYLE === 'old' && need('ld7_idle')) return { x: 222 + LDX() + 29 * LSC(), y: 594 - 358 * LSC() }; if (typeof STYLE !== 'undefined' && STYLE === '2d') return { x: 321, y: 330 }; if (typeof lordSD === 'function' && lordSD()) return { x: 328, y: 352 }; return JB.vipLv(st) >= 5 ? { x: 340, y: 232 } : { x: 260, y: 250 }; },   /* 11-14 SD 지배자: 내지른 지팡이 구슬 자리 */   /* 지팡이 끝 보석(세계 좌표) — 21:20 지팡이 등급 그림을 손에 들린 뒤 그 그림 끝에 맞춤 */
   update(dt) {
     for (const id in this.DEF) if (this.open(id) && !st.seen['lm_' + id]) { st.seen['lm_' + id] = 1; UI.toast(L.unlock.title, L.lm.unlock(L.lm.names[id] || L.vip.spell[id])); this.T[id] = 1.5; }
@@ -393,7 +394,7 @@ const LM = {
     const sp = Math.max(0.5, 0.85 - 0.02 * Math.min(15, st.up.magic || 0)); this.bT = sp * rnd(0.92, 1.08); this.bN = (this.bN || 0) + 1;
     let tgt; if (bossOn) tgt = { x: g.x - 90 + rnd(-30, 30), y: g.y - 230 + rnd(-50, 40), boss: true };
     else { const fs = S.foes.filter(f => !f.dead && !f.flee && f.x < VX1 - 60).sort((a, b) => a.x - b.x); if (!fs.length) return; const f = fs[Math.min(fs.length - 1, (Math.random() * Math.min(3, fs.length)) | 0)]; tgt = { x: f.x, y: f.y - 80 * lerp(0.85, 1.1, f.d), f }; }
-    if (this.bN % 4 === 0 && !UI.awakening) { this.bigSlash(bossOn); return; }   /* 09:20 대표님 갓깨비 사진: 화면을 가로지르는 큰 칼 궤적 · 쌓이는 큰 숫자 */
+    if (this.bN % 8 === 0 && !UI.awakening) { this.bigSlash(bossOn); return; }   /* 11-16 4번에 한 번 → 8번에 한 번(화면 난리) */   /* 09:20 대표님 갓깨비 사진: 화면을 가로지르는 큰 칼 궤적 · 쌓이는 큰 숫자 */
     const shots = this.bN % 3 === 0 ? 2 : 1;
     for (let j = 0; j < shots; j++) {
       const vw = !window.LORDV_OK && window.LORDW_OK && need('lordw_attack') && JB.vipLv(st) < 5 && this.bN % 2 === 0 && !(S.lord.raise > 0.05), s = vw ? { x: 196 + LDX() + 10 + 239, y: 560 + 34 - 228 } : this.staff(), crit = Math.random() < 0.15, dy = rnd(-120, -40) - j * 40;   /* 10:05 영상 지배자: 내지른 보석 자리(줄그림 4번째 칸에서 잼)에서, 내지르는 순간(0.12초 뒤)에 발사 */
@@ -405,9 +406,9 @@ const LM = {
   },
   bigSlash(bossOn) {   /* 지배자 앞에서 적 무리를 가로질러 큰 초승달 궤적(보라 → 흰빛), 맞은 적마다 숫자 3줄이 쌓임 · 쓰러지면 뼈 · 갑옷 조각이 사방으로 */
     const g = S.giant, fs = bossOn ? [] : S.foes.filter(f => !f.dead && !f.flee && f.x < VX1 - 40).sort((a, b) => a.x - b.x).slice(0, 5);
-    const x0 = VW.x + VW.w * 0.24, x1 = VX1 - 20, y = bossOn ? g.y - 200 : GROUND - 60;   /* 화면 오른쪽 끝까지 가로지름 */
+    const x0 = Math.max(VW.x + VW.w * 0.24, armyFront() - 60), x1 = VX1 - 20, y = bossOn ? g.y - 200 : GROUND - 60;   /* 11-16 군단 앞줄에서 시작(지배자 앞부터 화면 끝까지는 너무 김) */   /* 화면 오른쪽 끝까지 가로지름 */
     const blue = (this.bN / 4) % 2 === 1;
-    this.fx.push({ kind: 'bigSlash', x0, x1, y, age: 0, life: 0.38, hitAt: 0.08, col: blue ? '#7ad7ff' : '#c58bff', land: () => {
+    this.fx.push({ kind: 'bigSlash', x0, x1, y, age: 0, life: 0.38, hitAt: 0.08, col: '#b47cff', land: () => {
       const hit = bossOn ? [{ x: g.x - 60, y: g.y - 260, boss: 1 }] : fs.filter(f => !f.dead).map(f => ({ f, x: f.x, y: f.y - 80 * lerp(0.85, 1.1, f.d) }));
       for (const h of hit) { if (h.f) { h.f.flash = 0.22; h.f.kbT = Math.max(h.f.kbT || 0, 0.18); } else S.giant.hitFl = 0.2;
         const base = JB.dps(st) * 0.5 * Math.pow(JB.C.MAGIC_MUL, st.up.magic || 0);
@@ -473,12 +474,14 @@ const LM = {
       const k = f.age / f.life;
       if (f.kind === 'orb') { if (f.age < 0 || f.age > 0.22) continue; const p = f.age / 0.22, tx = f.t.f ? f.t.f.x : f.t.x, ty = f.t.f ? f.t.f.y - 80 * lerp(0.85, 1.1, f.t.f.d) : f.t.y;
         const P = q => [lerp(f.x0, tx, q), lerp(f.y0, ty, q) + f.dy * 4 * q * (1 - q)], k2 = UK() < 1 ? WK() * 0.4 + 0.3 : WK() * 0.7 + 0.3;   /* 11-15 눈 확인(효과재기 흰 픽셀 1등): 폰에서 지배자 구슬 꼬리가 굵기 80의 흰 띠가 되어 전장을 가로지름 → 폰은 꼬리 굵기 0.65배 */
-        ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1;
-        for (let j = 7; j >= 0; j--) { const q = Math.max(0, p - j * 0.045), [x, y] = P(q), r = (f.crit ? 15 : 12) * k2 * (1 - j * 0.1); ctx.globalAlpha = 1 - j * 0.12; const g = ctx.createRadialGradient(x, y, 1, x, y, r * 1.8); g.addColorStop(0, '#ffffff'); g.addColorStop(0.35, f.col); g.addColorStop(1, 'rgba(120,60,255,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 1.8, 0, 7); ctx.fill(); }
+        /* 11-16 09:14 대표님 사진 「화면 난리」: 꼬리 8겹을 밝게 더해 그려 하늘색 · 흰 띠가 전장을 가로질렀음 → 꼬리 4겹은 옅은 보라(그냥 겹침) · 머리 구슬만 밝게 */
+        for (let j = 4; j >= 1; j--) { const q = Math.max(0, p - j * 0.04), [x, y] = P(q), r = (f.crit ? 11 : 9) * k2 * (1 - j * 0.15); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 0.45 - j * 0.08; ctx.fillStyle = f.crit ? '#e0b040' : '#8a4cff'; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+        { const [x, y] = P(p), r = (f.crit ? 13 : 10) * k2; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.9; const g = ctx.createRadialGradient(x, y, 1, x, y, r * 1.6); g.addColorStop(0, '#f4e8ff'); g.addColorStop(0.4, f.col); g.addColorStop(1, 'rgba(120,60,255,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 1.6, 0, 7); ctx.fill(); }
+        ctx.globalCompositeOperation = 'source-over';
         ctx.globalAlpha = 1; continue; }
       if (f.kind === 'bigSlash') { const q = clamp(f.age / 0.14, 0, 1), fade = 1 - clamp((f.age - 0.12) / 0.26, 0, 1), cx = (f.x0 + f.x1) / 2, R = (f.x1 - f.x0) / 2, a0 = Math.PI * 1.02, a1 = a0 - Math.PI * 1.04 * q;   /* 왼쪽 위에서 아래로 휘어 오른쪽으로 빠지는 큰 베기 */
         ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
-        for (const [lw, al, c] of [[70, 0.3, f.col], [36, 0.75, f.col], [13, 1, '#ffffff']]) { ctx.globalAlpha = al * fade; ctx.strokeStyle = c; ctx.lineWidth = lw * (0.6 + 0.4 * fade); ctx.shadowColor = f.col; ctx.shadowBlur = 24; ctx.beginPath(); ctx.ellipse(cx, f.y - R * 0.12, R, R * 0.3, -0.1, a0, a1, true); ctx.stroke(); }
+        for (const [lw, al, c] of [[28, 0.22, f.col], [14, 0.6, f.col], [5, 0.85, '#efe2ff']]) { ctx.globalAlpha = al * fade;   /* 11-16 09:14 「화면 난리」: 굵기 70 · 흰 13의 하늘색 띠가 전장을 가로질렀음 → 28 · 연보라 5 */ ctx.strokeStyle = c; ctx.lineWidth = lw * (0.6 + 0.4 * fade); ctx.shadowColor = f.col; ctx.shadowBlur = 24; ctx.beginPath(); ctx.ellipse(cx, f.y - R * 0.12, R, R * 0.3, -0.1, a0, a1, true); ctx.stroke(); }
         ctx.shadowBlur = 0; ctx.globalAlpha = 1; continue; }
       if (f.kind === 'orbRing') { const q = f.age / f.life, r = (f.big ? 70 : 46) * (0.3 + q) * (WK() * 0.5 + 0.5); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1 - q; ctx.strokeStyle = f.col; ctx.lineWidth = (f.big ? 7 : 5) * (1 - q) + 1; ctx.beginPath(); ctx.ellipse(f.x, f.y, r, r * 0.75, 0, 0, 7); ctx.stroke();
         const g = ctx.createRadialGradient(f.x, f.y, 1, f.x, f.y, r * 0.9); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(1, 'rgba(160,100,255,0)'); ctx.globalAlpha = (1 - q) * 0.8; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(f.x, f.y, r * 0.9, 0, 7); ctx.fill(); ctx.globalAlpha = 1; continue; }

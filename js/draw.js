@@ -389,7 +389,12 @@ function drawSkel(a) {
   const wkey = (a.evo && need('evo' + a.evo)) ? '' : a.c >= 0 && ART['cls' + a.c] ? 'cls' + a.c : 'skel', legs = !!LEGS[wkey];   /* 다리 나눠 그리는 병과는 휘두를 때 윗몸만 숙이고 발은 땅에 붙임 */
   if (a.fly) ctx.rotate(a.fly.r); else if (swk && !legs && !(ART.sk4_idle && !a.evo)) ctx.rotate(swk * 0.42);
   ctx.globalAlpha = a.rise;
-  if (a.rf != null && !a.fly) {   /* 부활한 지역 병사: 그 지역 적 그림을 오른쪽으로 돌려 초록 망자 빛으로 */
+  if (a.rf != null && !a.fly) {   /* 11-16 #15 일어난 망자 · 부활한 지역 병사: 새 그림체 적을 오른쪽으로 돌려 보랏빛(옛 그림 · 초록빛이었음) */
+    const FV = 'foev' + (a.rt ?? (a.rf >= 0 ? a.rf % 4 : 0));
+    if (VS[FV] && need(FV + '_idle')) { const M = VS[FV], at = (a.sw || 0) > 0 && !!need(FV + '_attack'), NI = M.n.idle, q = (S.t * 8 + (a.ph || 0) * 5) % (2 * NI - 2), fi = at ? (1 - a.sw / SW_T) * (M.n.attack - 1) : (q < NI ? q : 2 * NI - 2 - q), fade = a.rf === -1 && a.life < 1.5 ? Math.max(0, a.life / 1.5) : 1;
+      ctx.globalAlpha = a.rise * fade; ctx.scale(-1, 1); vsDraw(FV, at ? 'attack' : 'idle', fi, 82 * sc, 'hue-rotate(235deg) saturate(1.25) brightness(0.85) drop-shadow(0 0 5px rgba(185,95,255,.9))', 0, false); ctx.restore(); ctx.globalAlpha = 1; return; }
+  }
+  if (a.rf != null && !a.fly) {   /* (새 그림이 아직 안 왔을 때만) 부활한 지역 병사: 그 지역 적 그림을 오른쪽으로 돌려 초록 망자 빛으로 */
     const fa = a.rf === 0 ? ART.knight : ART['foe_' + REGION_BG[a.rf]];
     if (fa) { const h = 74 * sc, w = h * fa.width / fa.height; ctx.scale(-1, 1); ctx.drawImage(tinted(fa, 'rise' + a.rf, 1, RISE_TINT), -w / 2, -h, w, h); ctx.restore(); ctx.globalAlpha = 1; return; }
   }
@@ -416,7 +421,7 @@ function drawSkel(a) {
     if (a.wamp > 0.05) ctx.translate(0, -Math.abs(Math.sin(a.wph)) * 6 * a.wamp);
     if (at && a.c !== 3) { const p = 1 - a.vT / atT; ctx.translate(p < 0.25 ? -12 * p / 0.25 : p < 0.42 ? -12 + 52 * (p - 0.25) / 0.17 : 40 * Math.pow(1 - (p - 0.42) / 0.58, 2), 0); }   /* 09:40 대표님 「때리기 이상」: 근접은 살짝 물러섰다 → 맞는 순간(0.25초)에 앞으로 쑥 40 내디딤 → 천천히 제자리 */
     vsDraw(SVN, at ? 'attack' : 'idle', fi, h, '', a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.06 : 0, false);
-    if (a.flash > 0) { a.flash -= 1 / 60; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, a.flash * 5); vsDraw(SVN, at ? 'attack' : 'idle', fi, h, 'brightness(2.2) saturate(0)', 0, false); ctx.restore(); }
+    if (a.flash > 0) { a.flash -= 1 / 60; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, a.flash * 2.5); vsDraw(SVN, at ? 'attack' : 'idle', fi, h, 'brightness(1.7) saturate(0.5)', 0, false); ctx.restore(); }
     }
   } else if (SA) {   /* 01:45 새 그림체 A 소환수 + 「딱딱탁」: 0.08초 뒤로 젖힘 → 0.05초 확 내려침(앞으로 쏠림 · 살짝 커짐) → 제자리 */
     const atT = 0.34; if (a.sw > 0 && !(a.vT > 0)) a.vT = atT; if (a.vT > 0) a.vT -= 1 / 60;
@@ -425,7 +430,7 @@ function drawSkel(a) {
     const br = 1 + Math.sin(S.t * 2.4 + a.ph) * 0.018, h = 150 * sc * pop, w = h * SA.width / SA.height, hurt = a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.14 : 0;
     if (a.wamp > 0.05) ctx.translate(0, -Math.abs(Math.sin(a.wph)) * 7 * a.wamp);
     ctx.save(); ctx.translate(dx, 0); ctx.rotate(hurt * 0.4); ctx.translate(0, -h * 0.5); ctx.scale(sq, br / Math.sqrt(sq)); ctx.translate(0, h * 0.5); ctx.drawImage(SA, -w * 0.5, -h, w, h);
-    if (a.flash > 0) { a.flash -= 1 / 60; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, a.flash * 6); ctx.filter = 'brightness(2.2) saturate(0)'; ctx.drawImage(SA, -w * 0.5, -h, w, h); ctx.filter = 'none'; }
+    if (a.flash > 0) { a.flash -= 1 / 60; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, a.flash * 2.5); ctx.filter = 'brightness(1.7) saturate(0.5)'; ctx.drawImage(SA, -w * 0.5, -h, w, h); ctx.filter = 'none'; }
     ctx.restore();
   } else if (!ea && vsOk('sv')) {   /* 영상 장면 망자병: 칼을 치켜들었다 내리침(0.8초) · 맞으면 뒤로 움찔 · 평소 숨쉬기 */
     const kc = KC[a.c] && vsOk(KC[a.c]) ? KC[a.c] : null, atT = kc ? K_AT[kc] : 0.55;
@@ -437,7 +442,7 @@ function drawSkel(a) {
     if (a.wamp > 0.05 && (!walk || kc === 'k2')) ctx.translate(0, -Math.abs(Math.sin(a.wph)) * (kc === 'k2' ? 6 : 4) * a.wamp);
     const [vn, va, vf] = walk ? [WN, 'walk', a.wf] : kc ? [kc, at ? 'attack' : 'idle', at ? (1 - a.vT / atT) * (VS[kc].n.attack - 1) : (n => { const q = vsIdle(a.ph, 4, 2 * n - 2); return q < n ? q : 2 * n - 2 - q; })(VS[kc].n.idle)] : ['sv', at ? 'attack' : 'idle', at ? svAtkF(0.55 - a.vT) : vsIdle(a.ph)];   /* 병과 대기는 앞뒤로 오가며(끊김 없이) */
     vsDraw(vn, va, vf, h * (kc === 'k2' ? 1.08 : a.c === 2 ? 1.07 : 1), kc ? SV_TINT.d : (SV_TINT[a.c] || SV_TINT.d), (a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.12 : 0) + (at ? 0 : lean), !at);
-    if (a.flash > 0) { a.flash -= 1 / 60; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, a.flash * 6); vsDraw(vn, va, vf, h, 'brightness(2.2) saturate(0)', 0, !at); ctx.restore(); }   /* 18:42 맞는 순간 하얗게 번쩍 */
+    if (a.flash > 0) { a.flash -= 1 / 60; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, a.flash * 2.5); vsDraw(vn, va, vf, h, 'brightness(1.7) saturate(0.5)', 0, !at); ctx.restore(); }   /* 18:42 맞는 순간 하얗게 번쩍 */
     { const per = Math.max(1, Math.round(JB.armySize(st) / Math.max(1, armyVis()))); if (false && !a.fly && per > 1) { ctx.font = `800 ${Math.round(18 * sc)}px sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.fillStyle = '#e8dcff'; ctx.strokeText('×' + per, 0, -h - 10); ctx.fillText('×' + per, 0, -h - 10); } }
   } else
   if (STYLE === '2d' && !ea && need('d2_skel')) {   /* 2D 망자병: 윗몸으로 칼 내리치기 · 맞으면 뒤로 움찔 · 걸으면 통통 */
@@ -482,14 +487,14 @@ function drawFoe0(f) {
     const M = VS[FVi], h = (f.elite ? 104 : 90) * sc, at = f.atk > 0 && !!need(FVi + '_attack'), NI = M.n.idle, q = (S.t * 9 + f.ph * 5) % (2 * NI - 2), fi = at ? (1 - f.atk / 0.32) * (M.n.attack - 1) : (q < NI ? q : 2 * NI - 2 - q);
     if (f.elite && ELITE[f.kind]) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5; ctx.fillStyle = ELITE[f.kind].col || '#ffcc33'; ctx.beginPath(); ctx.ellipse(0, -2, 46 * sc / 1.9, 9, 0, 0, 7); ctx.fill(); ctx.restore(); }
     vsDraw(FVi, at ? 'attack' : 'idle', fi, h, f.elite && ELITE[f.kind] ? 'drop-shadow(0 0 6px ' + (ELITE[f.kind].col || '#ffcc33') + ')' : '', 0, false);
-    if (f.flash > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, f.flash * 4); vsDraw(FVi, at ? 'attack' : 'idle', fi, h, 'brightness(2.2) saturate(0)', 0, false); ctx.restore(); }
+    if (f.flash > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, f.flash * 2.5); vsDraw(FVi, at ? 'attack' : 'idle', fi, h, 'brightness(1.7) saturate(0.5)', 0, false); ctx.restore(); }
     ctx.restore(); return;
   }
   if (FAi) {   /* 02:05 그림체 A 적(밝고 굵은 인간 왕국 병사): 그림 한 장 + 숨쉬기 · 공격 쏠림 · 맞으면 하얗게 */
     const h = (f.elite ? 104 : 90) * sc, w = h * FAi.width / FAi.height, br = 1 + Math.sin(S.t * 2.6 + f.ph) * 0.02; const pf = ctx.filter;
     if (f.elite && ELITE[f.kind]) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5; ctx.fillStyle = ELITE[f.kind].col || '#ffcc33'; ctx.beginPath(); ctx.ellipse(0, -2, 46 * sc / 1.9, 9, 0, 0, 7); ctx.fill(); ctx.restore(); ctx.filter = 'drop-shadow(0 0 6px ' + (ELITE[f.kind].col || '#ffcc33') + ')'; }
     ctx.save(); ctx.scale(1 / Math.sqrt(br), br); ctx.drawImage(FAi, -w / 2, -h, w, h); ctx.filter = pf;
-    if (f.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, f.flash * 4); ctx.filter = 'brightness(2.2) saturate(0)'; ctx.drawImage(FAi, -w / 2, -h, w, h); ctx.filter = pf; }
+    if (f.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, f.flash * 2.5); ctx.filter = 'brightness(1.7) saturate(0.5)'; ctx.drawImage(FAi, -w / 2, -h, w, h); ctx.filter = pf; }
     ctx.restore(); ctx.restore(); return;
   }
   if (!f.fly && ['walk', 'idle', 'attack', 'hit'].every(k => need('kn_' + k))) {   /* 04:30 적 병사 3D 동작(걷기 · 대기 · 베기 · 맞기) */
@@ -510,9 +515,9 @@ function drawFoe0(f) {
       if (f.wamp > 0.05 && !at && !fwalk) ctx.translate(0, -Math.abs(Math.sin(f.wph * 1.4)) * 6 * f.wamp);   /* 19:59 뛰어 들어올 때 걸음마다 들썩 · 앞으로 숙임 */
       const [kn2, ka2, kf2] = fwalk ? ['kw', 'walk', f.wf] : ['kv', at ? 'attack' : 'idle', at ? svAtkF(0.55 - f.vT) : vsIdle(f.ph, 4.4)];
       vsDraw(kn2, ka2, kf2, H3, tint + 'brightness(1.12) contrast(1.06) drop-shadow(0 0 2px rgba(255,170,120,.85))', (an === 'hit' ? Math.sin(Math.min(1, kk0(f)) * Math.PI) * 0.14 : 0) - (at || fwalk ? 0 : (f.wamp || 0) * 0.1), !at);
-      if (f.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, f.flash * 3); vsDraw(kn2, ka2, kf2, H3, 'brightness(2)', 0, !at); }
+      if (f.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, f.flash * 2.5); vsDraw(kn2, ka2, kf2, H3, 'brightness(2)', 0, !at); }
       ctx.restore(); return; }
-    if (d2) { const kk = an === 'attack' ? 1 - f.atk / 0.32 : an === 'hit' ? 1 - f.hT / 0.4 : an === 'cast' ? 1 - f.castT / 1.3 : an === 'cry' ? 1 - f.cryT / 1.2 : 0, H2 = (f.kind === 'captain' ? 165 : f.kind === 'shield' ? 158 : 150) * (f.big || 1) * lerp(0.85, 1.1, f.d); ctx.filter = STYLE0 === 'hq' && f.kind === 'foot' ? 'brightness(1.25) contrast(1.1) drop-shadow(0 0 2px rgba(255,200,140,.9))' : f.kind === 'foot' || (d2s !== ART.d2_knight && !f.elite) ? 'brightness(1.02)' : ({ captain: 'sepia(.3) saturate(1.6)', priest: 'brightness(1.3) saturate(.5)', leech: 'saturate(1.8) hue-rotate(-12deg)', pyro: 'sepia(.5) saturate(2) hue-rotate(-20deg)', frost: 'brightness(1.3) hue-rotate(170deg)', lancer: 'sepia(.4) saturate(1.3)', plague: 'sepia(.5) saturate(1.6) hue-rotate(50deg)', paladin: 'brightness(1.4) sepia(.6)', abyss: 'saturate(1.4) hue-rotate(230deg)', archer: 'hue-rotate(80deg) saturate(.8)', shield: 'hue-rotate(200deg) saturate(.8)' }[f.kind] || ''); puppet(d2s, H2, { flip: false, cut: 0.5, slash: f.kind === 'archer' || f.kind === 'priest' ? null : '#ffd9a0', st: an === 'attack' ? 'attack' : an === 'hit' ? 'hit' : an === 'walk' ? 'walk' : an === 'cast' || an === 'cry' ? 'cast' : 'idle', k: kk, ph: f.ph, wph: f.wph }); ctx.filter = pf; if (f.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, f.flash * 3); puppet(d2s, H2, { cut: 0.5, st: 'hit', k: 0.5 }); } ctx.restore(); return; }
+    if (d2) { const kk = an === 'attack' ? 1 - f.atk / 0.32 : an === 'hit' ? 1 - f.hT / 0.4 : an === 'cast' ? 1 - f.castT / 1.3 : an === 'cry' ? 1 - f.cryT / 1.2 : 0, H2 = (f.kind === 'captain' ? 165 : f.kind === 'shield' ? 158 : 150) * (f.big || 1) * lerp(0.85, 1.1, f.d); ctx.filter = STYLE0 === 'hq' && f.kind === 'foot' ? 'brightness(1.25) contrast(1.1) drop-shadow(0 0 2px rgba(255,200,140,.9))' : f.kind === 'foot' || (d2s !== ART.d2_knight && !f.elite) ? 'brightness(1.02)' : ({ captain: 'sepia(.3) saturate(1.6)', priest: 'brightness(1.3) saturate(.5)', leech: 'saturate(1.8) hue-rotate(-12deg)', pyro: 'sepia(.5) saturate(2) hue-rotate(-20deg)', frost: 'brightness(1.3) hue-rotate(170deg)', lancer: 'sepia(.4) saturate(1.3)', plague: 'sepia(.5) saturate(1.6) hue-rotate(50deg)', paladin: 'brightness(1.4) sepia(.6)', abyss: 'saturate(1.4) hue-rotate(230deg)', archer: 'hue-rotate(80deg) saturate(.8)', shield: 'hue-rotate(200deg) saturate(.8)' }[f.kind] || ''); puppet(d2s, H2, { flip: false, cut: 0.5, slash: f.kind === 'archer' || f.kind === 'priest' ? null : '#ffd9a0', st: an === 'attack' ? 'attack' : an === 'hit' ? 'hit' : an === 'walk' ? 'walk' : an === 'cast' || an === 'cry' ? 'cast' : 'idle', k: kk, ph: f.ph, wph: f.wph }); ctx.filter = pf; if (f.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, f.flash * 2.5); puppet(d2s, H2, { cut: 0.5, st: 'hit', k: 0.5 }); } ctx.restore(); return; }
     ctx.scale(own || sd ? 1 : KN_FLIP, 1); ctx.filter = sd && f.kind === 'foot' ? 'brightness(1.12) saturate(1.25) contrast(1.1) drop-shadow(0 0 1.2px #12051e) drop-shadow(0 0 1.2px #12051e)' : own ? ({ shield: 'brightness(1.7) contrast(1.1)', archer: 'brightness(1.7) contrast(1.1)', captain: 'brightness(1.5) contrast(1.1)', priest: 'brightness(1.15) contrast(1.1)' }[f.kind] || 'brightness(1.35) contrast(1.12)') : ({ captain: 'brightness(1.15) contrast(1.2) sepia(.35) saturate(1.6)', priest: 'brightness(1.5) saturate(.4) sepia(.5)', leech: 'brightness(1.1) saturate(1.8) hue-rotate(-12deg) contrast(1.2)', pyro: 'brightness(1.25) sepia(.6) saturate(2.2) hue-rotate(-20deg)', frost: 'brightness(1.5) saturate(.5) hue-rotate(170deg)', lancer: 'brightness(1.2) sepia(.5) saturate(1.4) contrast(1.15)', plague: 'brightness(1.1) sepia(.5) saturate(1.6) hue-rotate(50deg)', paladin: 'brightness(1.6) sepia(.7) saturate(1.3)', abyss: 'brightness(1.05) saturate(1.4) hue-rotate(230deg) contrast(1.2)', archer: 'brightness(1.05) hue-rotate(-20deg) saturate(.8)', shield: 'brightness(.95) contrast(1.25) saturate(.7)' }[f.kind] || (STYLE === 'old' ? 'brightness(1.4) contrast(1.15) saturate(1.15) drop-shadow(0 0 2px #ff9a6a) drop-shadow(0 0 1px #000)' : 'brightness(1.1) contrast(1.15)'));
     ctx.drawImage(ART[sheet], fi * M5.cw, 0, M5.cw, M5.ch, -M5.ax * k, -M5.ay * k, M5.cw * k, M5.ch * k); ctx.filter = pf;
     if (f.flash > 0) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = f.flash * 3; ctx.drawImage(ART[sheet], fi * M5.cw, 0, M5.cw, M5.ch, -M5.ax * k, -M5.ay * k, M5.cw * k, M5.ch * k); }
@@ -539,6 +544,9 @@ window.KN_shield = { cw: 333, ch: 264, ax: 210.8, ay: 235.8, hpx: 220 };   /* 11
 window.KN_captain = { cw: 376, ch: 315, ax: 213.4, ay: 259.6, hpx: 220 };   /* 11-14 적 대장(중간 보스) 3D: 걷기 · 대기 · 베기 · 맞기 · 외침 · 쓰러짐 */   /* 적 병사 줄그림 정보 · 왼쪽 보게 뒤집기 */
 const SK4 = { cw: 449, ch: 322, ax: 174.1, ay: 257.9, hpx: 220 }, SW_T = 0.45, SK5 = { cw: 325, ch: 291, ax: 168.6, ay: 234.5, hpx: 220 };   /* 칼 해골 줄그림 정보(tools 가공 결과) · 베기 시간 */
 function drawFallen(c) {   /* 쓰러진 우리 해골: 칼 해골 쓰러짐 동작 → 뼈 무더기로 누움 → 보랏빛 기둥과 함께 일어남 */
+  if (VS.sumv1 && need('sumv1_idle')) {   /* 11-16 새 그림체: 소환수가 뒤로 쓰러져 누웠다가(3초) 보랏빛 속에 일어나며 사라짐(옛 해골 그림 sv2가 쓰였음 — 옛그림재기) */
+    const up = c.t > 3, p = up ? Math.max(0, 1 - (c.t - 3) / 0.4) : Math.min(1, c.t / 0.45); if (up && p <= 0) return;
+    ctx.save(); ctx.translate(c.x, c.y); ctx.globalAlpha = up ? p : Math.min(1, 0.4 + (1 - Math.max(0, c.t - 2.4) / 0.6) * 0.6); ctx.rotate(-1.3 * ease(up ? p : p)); vsDraw('sumv1', 'idle', 0, 110 * lerp(0.85, 1.1, c.d || 0.5), 'brightness(0.6) saturate(0.6)', 0, false); ctx.restore(); return; }
   if (vsOk('sv')) { const up = c.t > 3, p = up ? Math.max(0, 1 - (c.t - 3) / 0.4) : Math.min(1, c.t / 0.6); ctx.save(); ctx.translate(c.x, c.y); ctx.globalAlpha = up ? Math.max(0.2, 1 - (c.t - 3) / 0.6) : 1; vsDraw('sv', 'idle', 0, 150 * c.sc, 'brightness(.9) saturate(.7)', -ease(p) * 1.4); if (c.t > 2.4) { const q = Math.min(1, (c.t - 2.4) / 0.6); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createLinearGradient(0, -200, 0, 0); g.addColorStop(0, 'rgba(160,100,255,0)'); g.addColorStop(1, `rgba(180,120,255,${0.55 * q})`); ctx.fillStyle = g; ctx.fillRect(-28, -200, 56, 200); } ctx.restore(); return; }
   if (STYLE === '2d' && need('d2_skel')) { const up = c.t > 3; ctx.save(); ctx.translate(c.x, c.y); ctx.globalAlpha = up ? Math.max(0, 1 - (c.t - 3) / 0.6) : 1; puppet(ART.d2_skel, 145 * c.sc, { flip: true, cut: 0.5, st: 'die', k: up ? Math.max(0, 1 - (c.t - 3) / 0.4) : c.t }); ctx.restore(); return; }
   const sd = STYLE === '3d' && need('sk5_death'), im = sd || need('sk4_death'), MK = sd ? SK5 : SK4; if (!im) return; const up = c.t > 3, k = (sd ? 150 : 165) * c.sc / MK.hpx, fi = up ? Math.max(0, 11 - Math.floor((c.t - 3) / 0.05)) : Math.min(11, Math.floor(c.t / 0.9 * 11));
@@ -549,6 +557,8 @@ function drawFallen(c) {   /* 쓰러진 우리 해골: 칼 해골 쓰러짐 동�
 }
 function drawSlashes() { if (!S.slashes) return; for (const o of S.slashes) { o.t += 1 / 60; const k = o.t / 0.35; if (k > 1) continue; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.sin(k * Math.PI); ctx.strokeStyle = '#ffd2c0'; ctx.lineCap = 'round'; for (const [lw, a] of [[28, 0.3], [9, 1]]) { ctx.globalAlpha = Math.sin(k * Math.PI) * a; ctx.lineWidth = lw; ctx.beginPath(); ctx.arc(o.x + 120, o.y + 40, 190, Math.PI * (0.75 + k * 0.2), Math.PI * (1.35 + k * 0.3)); ctx.stroke(); } ctx.restore(); } S.slashes = S.slashes.filter(o => o.t < 0.4); }
 function drawCorpse(c) {   /* 쓰러진 적: 0.3초 뒤로 넘어지며 밀려나고 0.6초 뒤부터 사라짐 */
+  { const FV = 'foev' + (typeof RISE_KIND !== 'undefined' ? (RISE_KIND[c.kind] ?? 0) : 0);   /* 11-16 쓰러진 적도 새 그림체: 뒤로 넘어지며 밀려나고 사라짐(옛 기사 쓰러짐 그림 kn_*_death가 쓰였음 — 옛그림재기 · 1-1 바닥의 빨간 기사) */
+    if (VS[FV] && need(FV + '_idle')) { const T = 0.45, p = Math.min(1, c.t / T), fade = clamp(1 - (c.t - 0.8) / 0.45, 0, 1); if (fade <= 0) return; ctx.save(); ctx.globalAlpha = fade; ctx.translate(c.x + 30 * ease(p), c.y); ctx.rotate(1.25 * ease(p)); vsDraw(FV, 'idle', 0, 90 * (c.big || 1) * lerp(0.85, 1.1, c.d), 'brightness(0.8) saturate(0.8)', 0, false); ctx.restore(); return; } }
   if (vsOk('kv') && !(c.kind && c.kind !== 'foot' && need('kn_' + c.kind + '_death'))) { const T = 0.9, p = Math.min(1, c.t / T), fade = clamp(1 - (c.t - T - 0.1) / 0.4, 0, 1); if (fade <= 0) return; ctx.save(); ctx.globalAlpha = fade; ctx.translate(c.x + 26 * p, c.y); vsDraw('kv', 'idle', 0, 160 * (c.big || 1) * lerp(0.85, 1.1, c.d), `brightness(${(1 + Math.round((1 - p) * 4) / 4 * 0.8).toFixed(2)})`, ease(p) * 1.35); ctx.restore(); return; }
   if (STYLE === '2d' && need('d2_knight')) { const ci2 = need('d2_' + ({ archer: 'archer', shield: 'shield', priest: 'priest', captain: 'captain' }[c.kind] || 'knight')) || ART.d2_knight; const fade = clamp(1 - (c.t - 0.7) / 0.4, 0, 1); if (fade <= 0) return; ctx.save(); ctx.globalAlpha = fade; ctx.translate(c.x + 30 * Math.min(1, c.t * 3), c.y); puppet(ci2, 150 * (c.big || 1) * lerp(0.85, 1.1, c.d), { cut: 0.5, st: 'die', k: c.t }); ctx.restore(); return; }
   if (need('kn_death')) { const own = c.kind && c.kind !== 'foot' && !window.BACKVIEW[c.kind] && need('kn_' + c.kind + '_death'), sd = STYLE === '3d' && !own && need('kn5_death'), M = own && window['KN_' + c.kind] || (sd ? KN5 : KN), T = c.kind === 'captain' ? 1.6 : 1.0, fade = clamp(1 - (c.t - T - 0.15) / 0.4, 0, 1); if (fade <= 0) return; const fi = Math.min(11, Math.floor(c.t / T * 11)), h = (sd ? 150 : 172) * (c.big || 1) * lerp(0.85, 1.1, c.d), k = h / M.hpx; ctx.save(); ctx.globalAlpha = fade; ctx.translate(c.x + 18 * Math.min(1, c.t * 3), c.y); ctx.scale(own || sd ? 1 : KN_FLIP, 1); ctx.filter = 'brightness(1.1) contrast(1.15)'; ctx.drawImage(ART[own ? 'kn_' + c.kind + '_death' : sd ? 'kn5_death' : 'kn_death'], fi * M.cw, 0, M.cw, M.ch, -M.ax * k, -M.ay * k, M.cw * k, M.ch * k); ctx.restore(); return; }   /* 04:30 적 병사: 진짜 쓰러지는 동작 */
@@ -621,7 +631,7 @@ function drawBanners() {
   for (let i = 0; i < k; i++) { const x = k === 1 ? (x0 + x1) / 2 : lerp(x0 + 20, x1 - 20, i / (k - 1)); drawBanner(x, GROUND + 52, 0.62, i * 1.7); }
 }
 function drawLordTag() {   /* 주인공 이름표: 지배자 머리 위 금빛 패 */
-  if (TRAILER || S.phase === 'cast') return; const x = 222 + LDX() + 8, y = 614;   /* 19:22 머리 위 패가 왼쪽 위 「빠른 보상 · 상점」과 겹침 → 영웅처럼 발밑 이름표 */   /* 세로 화면: 위 아이콘에 가려서 지배자 오른쪽 어깨 옆으로 */
+  if (TRAILER || S.phase === 'cast' || st.best >= 15) return; const x = 222 + LDX() + 8, y = 614;   /* 11-16 15판부터 지배자 이름표 숨김(화면 난리) */   /* 19:22 머리 위 패가 왼쪽 위 「빠른 보상 · 상점」과 겹침 → 영웅처럼 발밑 이름표 */   /* 세로 화면: 위 아이콘에 가려서 지배자 오른쪽 어깨 옆으로 */
   const vl = JB.vipLv(st), ttl = vl >= 12 ? L.vip.title12 : vl >= 10 ? L.vip.title10 : '', tc = vl >= 4 ? '#ffd76a' : vl >= 1 ? '#e4ecf8' : '#c9a96a';   /* 11-14 귀빈 이름표: 0 낡은 금 · 1 은빛 · 4 금빛 · 10 칭호 · 11 빛나는 금 · 12 천년의 군주 */
   const fz = Math.round(13 * Math.min(WK(), 2.2)); ctx.save(); ctx.font = `900 ${fz}px ${SERIF}`; const t = '♛ ' + (ttl || L.ui.lordTag), w = ctx.measureText(t).width + fz * 1.1;
   if (vl >= 11) { ctx.shadowColor = '#ffcf5a'; ctx.shadowBlur = 16 + 8 * Math.sin(S.t * 3); }
@@ -675,8 +685,10 @@ function drawLordV(L) {   /* 03:10 지배자 영상: 평소 숨쉬기 · 마법 
   const NI = M.n.idle, q = (S.t * 8) % (2 * NI - 2), fi = at ? (1 - L.vA / 0.9) * (M.n.attack - 1) : (q < NI ? q : 2 * NI - 2 - q);
   ctx.save(); ctx.translate(10, 34); vsDraw('lordv', at ? 'attack' : 'idle', fi, 330 * (window.LVK || 1), st.lskin && typeof LSF !== 'undefined' && LSF[st.lskin] ? LSF[st.lskin] : '', 0, false); ctx.restore(); return true;
 }
+/* 11-16 09:14 대표님 사진(적이 하얗게 타서 안 보임): 맞을 때 덧씌우는 하얀 그림을 최대 42% · 흰색 대신 밝은 제 색으로 — 아래 a.flash · f.flash · g.hitFl 줄 */
 function drawLordA(L) {   /* 01:58 그림체 A 지배자: 숨쉬기 · 영창 때 뒤로 젖히며 커짐 · 작은 마법 때 앞으로 쿡 */
-  const im = need('lordA'); if (!im) return false; const vl = JB.vipLv(st); if (vl >= 5) return false;
+  const im = need('lordA'); if (!im) return false; const vl = JB.vipLv(st);   /* 11-16 09:15 대표님 사진(귀빈 5↑ 저장): 귀빈 5단계부터는 이 새 그림을 건너뛰고 아주 옛 코드 그림(검은 종이 인형)이 나왔음 → 귀빈도 새 그림 + 단계별 색 · 금빛 테두리 */
+  const VF = vl >= 10 ? 'saturate(1.15) brightness(1.06) ' : '', VG = vl >= 5 ? 'rgba(255,215,110,' : 'rgba(200,140,255,';   /* 귀빈은 색을 돌리지 않고(빨간 옷 · 초록 왕관이 됐음 — 후반_1 사진) 금빛 테두리만 */
   if (L.shotT > 0) L.shotT = Math.max(0, L.shotT - 1 / 60);
   const sp = L.shotT > 0 ? 1 - L.shotT / 0.28 : 1, at = sp < 1 ? (sp < 0.3 ? -sp / 0.3 * 0.4 : sp < 0.45 ? -0.4 + 1.4 * (sp - 0.3) / 0.15 : (1 - (sp - 0.45) / 0.55)) : 0;   /* 09:58 기본 공격: 살짝 뒤로 젖혀 모았다(0.08초) → 앞으로 쿡 내밀며 지팡이 구슬에서 발사 → 천천히 돌아옴 */
   const br = 1 + 0.016 * Math.sin(S.t * 2.2), r = L.raise || 0, pk = Math.max(L.poke > 0 ? Math.sin(Math.min(1, L.poke / 0.25) * Math.PI) : 0, at), h = 330 * (1 + 0.05 * r), w = h * im.width / im.height;
@@ -687,7 +699,7 @@ function drawLordA(L) {   /* 01:58 그림체 A 지배자: 숨쉬기 · 영창 �
     else ctx.drawImage(im, -w / 2, -h, w, h);   /* 11-15 눈 확인(1판 0.12초 간격 12장): 끝 장면을 정지 그림과 반투명으로 섞어 지배자 머리가 둘로 보였음 → 섞지 않고 정지 그림으로 바로 돌아옴 */
     ctx.restore(); ctx.filter = pf; return true; }
   L.pkx = pk * 37 - r * 20; ctx.save(); ctx.translate(10 + pk * 16, 34); ctx.rotate(-0.07 * r + 0.07 * pk);   /* 보석이 몸과 함께 움직인 만큼 → LM.staff()가 따라감 */ ctx.scale(1 / Math.sqrt(br), br);
-  const pf = ctx.filter; if (st.lskin && typeof LSF !== 'undefined' && LSF[st.lskin]) ctx.filter = LSF[st.lskin] + `drop-shadow(0 0 4px rgba(${LSG[st.lskin]},.9))`; else ctx.filter = `drop-shadow(0 0 ${3 + r * 6}px rgba(200,140,255,${0.6 + r * 0.4}))`;
+  const pf = ctx.filter; if (st.lskin && typeof LSF !== 'undefined' && LSF[st.lskin]) ctx.filter = LSF[st.lskin] + `drop-shadow(0 0 4px rgba(${LSG[st.lskin]},.9))`; else ctx.filter = VF + `drop-shadow(0 0 ${3 + r * 6 + (vl >= 5 ? 3 : 0)}px ${VG}${0.6 + r * 0.4}))`;
   ctx.drawImage(im, -w / 2, -h, w, h); ctx.filter = pf; ctx.restore(); return true;
 }
 function drawLordVid(L) {
@@ -718,7 +730,7 @@ function drawLord() {
   ctx.fillStyle = ag; ctx.fillRect(-340, -420, 680, 560);
   if (rk >= 2) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; const cg = ctx.createRadialGradient(18, -282, 2, 18, -282, 34 + rk * 7); cg.addColorStop(0, `rgba(255,220,130,${0.25 + rk * 0.08 + 0.1 * Math.sin(S.t * 3)})`); cg.addColorStop(1, 'rgba(255,200,90,0)'); ctx.fillStyle = cg; ctx.fillRect(-72, -372, 180, 180); ctx.restore(); }
   if (rk >= 4) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 2 + rk; i++) { const a = S.t * 0.9 + i * 6.283 / (2 + rk), ox = Math.cos(a) * 95, oy = -170 + Math.sin(a) * 40; const og = ctx.createRadialGradient(ox, oy, 1, ox, oy, 14); og.addColorStop(0, 'rgba(210,180,255,.95)'); og.addColorStop(1, 'rgba(150,90,255,0)'); ctx.fillStyle = og; ctx.fillRect(ox - 14, oy - 14, 28, 28); } ctx.restore(); }
-  if (ART.lord) {   // 그림 버전: 지팡이를 들수록 살짝 커지고 보라빛이 진해짐
+  if (ART.lord || need('lordA')) {   // 그림 버전: 지팡이를 들수록 살짝 커지고 보라빛이 진해짐   /* 11-16 「검은 종이 인형」: 옛 그림(lord)이 아직 안 오면(4초 뒤에 받게 바꾼 뒤) 아래 옛 코드 그림으로 빠졌음 → 새 그림(lordA)이 있으면 이쪽 */
     if (L.raise > 0.02) {   /* 04:20 「마법도 움직임 자연스러워야」: 영창 때 발밑 마법진이 돌고, 몸이 떠오르며 뒤로 젖혀졌다가, 빛 알갱이가 솟음 */
       const r = L.raise; ctx.save(); ctx.scale(1, 0.32); ctx.globalCompositeOperation = 'lighter';
       for (const [rad, sp, al] of [[150, 0.6, 0.55], [112, -0.9, 0.45], [72, 1.4, 0.4]]) { ctx.save(); ctx.rotate(S.t * sp); ctx.strokeStyle = `rgba(190,130,255,${al * r})`; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(0, 0, rad * (0.6 + 0.4 * r), 0, 7); ctx.stroke(); for (let i = 0; i < 8; i++) { const a = i * 0.785; ctx.fillStyle = `rgba(230,200,255,${al * r})`; ctx.fillRect(Math.cos(a) * rad * (0.6 + 0.4 * r) - 4, Math.sin(a) * rad * (0.6 + 0.4 * r) - 4, 8, 8); } ctx.restore(); }
@@ -726,7 +738,7 @@ function drawLord() {
       ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 14; i++) { const ph = (S.t * 0.7 + i * 0.137) % 1, px = Math.sin(i * 12.9) * 120, py = -ph * 330; ctx.globalAlpha = r * Math.sin(ph * Math.PI) * 0.9; ctx.fillStyle = i % 3 ? '#c9a2ff' : '#ffffff'; ctx.beginPath(); ctx.arc(px + Math.sin(S.t * 3 + i) * 8, py, 2 + (i % 4), 0, 7); ctx.fill(); } ctx.restore();
       ctx.translate(0, -16 * r); ctx.rotate(-0.06 * r * (1 + 0.3 * Math.sin(S.t * 6)));
     }
-    if (!drawLordV(L) && !drawLordA(L) && !drawLordVid(L) && !drawLord2D(L) && !drawLordSD(L)) {
+    if (!drawLordV(L) && !drawLordA(L) && !need('lordA') && false) {   /* 11-16 09:15 「검은 종이 인형」: 새 그림이 오기 전 · 귀빈 5↑에 옛 코드 그림(drawLord2D)과 옛 영상(ld)이 나왔음 → 새 그림이 올 때까지 아무것도 안 그림(첫 화면 기다림 목록에 lordA가 있어 보통 0초) */
     const k = 1 + 0.05 * L.raise; ctx.save(); ctx.scale(k, k); const vl = JB.vipLv(st), vipArt = vl >= 10 ? need('lord_v10') || need('lord_vip') : vl >= 9 ? need('lord_v9') || need('lord_vip') : vl >= 6 ? need('lord_v6') || need('lord_vip') : vl >= 5 ? need('lord_vip') : null;   /* 귀빈 옷 단계(21:40): 5 「심연의 왕관」 · 6 핏빛 · 9 푸른 망령 · 10 상아빛 금 */
     const la = vipArt || need('lordA') || (vl >= 3 && need('lord_v3')) || (artName('lord') !== 'lord' && need('lord_a')) || ART.lord;   /* 01:50 그림체 A 지배자 */   /* 귀빈 3: 핏빛 로브(기본 그림과 같은 짜임이라 지팡이 등급 그림도 그대로) */ { const pf0 = ctx.filter; if (STYLE === 'old') { const br = 1 + 0.012 * Math.sin(S.t * 2.2); ctx.translate(0, 34); ctx.scale(1 / br, br); ctx.translate(0, -34); ctx.filter = `brightness(${1.3 + L.raise * 0.25}) contrast(1.12) drop-shadow(0 0 3px rgba(200,140,255,${0.8 + L.raise * 0.2})) drop-shadow(0 0 1px #000)`; } drawArt(la, vipArt ? 40 : la === ART.lordA ? 10 : 0, 34, vipArt ? 385 : la === ART.lordA ? 330 : 370, false); ctx.filter = pf0; }   /* ③ 개선: 숨쉬기 + 보랏빛 테두리, 주문 때 더 밝게 */
     { const at = vipArt ? STAFF_VIP : STAFF_AT, tier = Math.min(5, Math.floor((st.up.magic || 0) / 10)), sp = need('st_' + tier); if (sp && (vipArt || la === ART.lord || la === ART.lord_v3)) { const h = at.h, w = h * sp.width / sp.height; ctx.save(); ctx.translate(at.x, at.y); ctx.rotate(at.r); ctx.drawImage(sp, -w / 2, -h, w, h); ctx.restore(); } }   /* 귀빈 옷이어도 주력 지팡이는 등급 그림으로(21:45: 귀빈 5부터 지팡이가 사라졌었음) */   /* 지팡이 등급 그림(나무 · 뼈 · 은 · 금 · 심연 · 왕)을 원래 그림의 지팡이 위에 덮어 그림 */
@@ -771,17 +783,18 @@ function drawAlly() {
   ctx.save(); ctx.globalAlpha = Math.min(0.42, al.t * 0.4); ctx.translate(al.x, 560); ctx.rotate(0.15 * Math.sin((al.slam / 0.5) * Math.PI)); ctx.scale(-1, 1);
   const h = 240, w = h * art.width / art.height; ctx.drawImage(tinted(art, 'ally' + r, 1, RISE_TINT), -w / 2, -h, w, h); ctx.restore(); ctx.globalAlpha = 1;
 }
-function drawRises() {   /* 11-15 일으켜라 한 번 = 땅이 갈라지며 뼈 손이 쑥 솟았다 가라앉음(0.8초) */
+function drawRises() {
+  if (S.riseRings && S.riseRings.length) { for (const r of S.riseRings) { r.t += 1 / 60; const k = r.t / 0.9; if (k >= 1) continue; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = '#b87cff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(r.x, r.y - 2, 22 + 30 * k, 7 + 9 * k, 0, 0, 7); ctx.stroke(); ctx.fillStyle = 'rgba(140,60,255,.35)'; ctx.fill(); ctx.restore(); } S.riseRings = S.riseRings.filter(r => r.t < 0.9); }   /* 11-16 #15 망자가 솟는 보라 고리 */   /* 11-15 일으켜라 한 번 = 땅이 갈라지며 뼈 손이 쑥 솟았다 가라앉음(0.8초) */
   if (!S.rises || !S.rises.length) return; const k = typeof WK === 'function' ? Math.min(WK(), 1.8) : 1;
   for (const r of S.rises) { r.t += 1 / 60; const p = r.t, up = p < 0.18 ? p / 0.18 : p < 0.5 ? 1 : Math.max(0, 1 - (p - 0.5) / 0.3), a = p < 0.6 ? 1 : Math.max(0, 1 - (p - 0.6) / 0.2);
     ctx.save(); ctx.translate(r.x, r.y); ctx.scale(k, k); ctx.globalAlpha = a;
     ctx.fillStyle = 'rgba(30,18,10,.85)'; ctx.beginPath(); ctx.ellipse(0, 0, 34, 9, 0, 0, 7); ctx.fill();   /* 갈라진 흙 */
-    ctx.strokeStyle = 'rgba(93,255,143,.9)'; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i < 5; i++) { const an = -0.3 - i * 0.6; ctx.moveTo(0, 0); ctx.lineTo(Math.cos(an) * 36, Math.sin(an) * 9 + 2); } ctx.stroke();
+    ctx.strokeStyle = 'rgba(185,120,255,.9)'; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i < 5; i++) { const an = -0.3 - i * 0.6; ctx.moveTo(0, 0); ctx.lineTo(Math.cos(an) * 36, Math.sin(an) * 9 + 2); } ctx.stroke();
     const h = 58 * up; ctx.save(); ctx.beginPath(); ctx.rect(-40, -120, 80, 120); ctx.clip(); ctx.translate(0, -h + 6); ctx.rotate(Math.sin(p * 18) * 0.06);
     ctx.strokeStyle = '#efe6d2'; ctx.lineCap = 'round'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(0, 14); ctx.stroke();   /* 팔뼈 */
     ctx.lineWidth = 4; for (const [dx, dy] of [[-12, -16], [-5, -22], [3, -23], [10, -18], [15, -6]]) { ctx.beginPath(); ctx.moveTo(dx * 0.35, 8); ctx.lineTo(dx, dy); ctx.stroke(); }   /* 손가락 */
     ctx.restore();
-    const g = ctx.createLinearGradient(0, -110, 0, 0); g.addColorStop(0, 'rgba(93,255,143,0)'); g.addColorStop(1, `rgba(93,255,143,${0.45 * a})`); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(-22, -110, 44, 110);   /* 초록 기둥 */
+    const g = ctx.createLinearGradient(0, -110, 0, 0); g.addColorStop(0, 'rgba(185,120,255,0)'); g.addColorStop(1, `rgba(185,120,255,${0.45 * a})`); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(-22, -110, 44, 110);   /* 보라 기둥(11-16 옛 초록 → 새 그림체 보랏빛) */
     ctx.restore(); }
   S.rises = S.rises.filter(r => r.t < 0.8);
 }
@@ -813,7 +826,7 @@ function drawGiant() {
     if (g.wind > 0) { an = 'attack'; fi = (1 - g.wind / GWIND) * 11; } else if (g.slam > 0) { an = 'attack'; fi = 11 + (1 - g.slam / 0.6) * (M.n.attack - 12); } else if (g.raise > 0.15) { an = 'attack'; fi = Math.min(1, g.raise * 1.5) * 10; }
     if (g.rage > 0) { ctx.shadowColor = `rgba(255,60,30,${0.9 * g.rage})`; ctx.shadowBlur = 40 * g.rage * (0.75 + 0.25 * Math.sin(S.t * 9)); }
     vsDraw('foev4', an, fi, 400, '', 0, false);
-    if (g.hitFl > 0) { g.hitFl -= 1 / 60; ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, g.hitFl * 4); vsDraw('foev4', an, fi, 400, 'brightness(2) saturate(0)', 0, false); }
+    if (g.hitFl > 0) { g.hitFl -= 1 / 60; ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, g.hitFl * 2.5); vsDraw('foev4', an, fi, 400, 'brightness(1.6) saturate(0.5)', 0, false); }
     ctx.restore(); ctx.globalAlpha = 1; return;
   }
   const GA = need('foeA4');
@@ -825,7 +838,7 @@ function drawGiant() {
     else if (g.raise > 0.15) { rot = 0.12 * Math.min(1, g.raise * 1.5); }
     if (g.rage > 0) { ctx.shadowColor = `rgba(255,60,30,${0.9 * g.rage})`; ctx.shadowBlur = 40 * g.rage * (0.75 + 0.25 * Math.sin(S.t * 9)); }
     const h = 400 * sq, w = h * GA.width / GA.height; ctx.translate(dx, 0); ctx.rotate(rot); ctx.scale(1 / Math.sqrt(br), br); ctx.drawImage(GA, -w * 0.55, -h, w, h);
-    if (g.hitFl > 0) { g.hitFl -= 1 / 60; ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, g.hitFl * 4); ctx.filter = 'brightness(2) saturate(0)'; ctx.drawImage(GA, -w * 0.55, -h, w, h); ctx.filter = 'none'; }
+    if (g.hitFl > 0) { g.hitFl -= 1 / 60; ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, g.hitFl * 2.5); ctx.filter = 'brightness(1.6) saturate(0.5)'; ctx.drawImage(GA, -w * 0.55, -h, w, h); ctx.filter = 'none'; }
     ctx.restore(); ctx.globalAlpha = 1; return;
   }
   if (!lordArt && vsOk('gv')) {   /* 영상 장면 거인(11-14 17:30): 힘 모으기 = 망치를 머리 위로(0.55초) → 내려찍기(앞으로 숙이며 아래로) → 영상의 「다시 어깨에 메기」 */
@@ -837,7 +850,7 @@ function drawGiant() {
     else if (S.warn && S.warn.t < 2.2) { an = 'raise'; loop = false; fi = Math.min(1, (2.2 - S.warn.t) / 1.2) * 6; }
     if (g.rage > 0) { ctx.shadowColor = `rgba(255,30,20,${0.85 * g.rage})`; ctx.shadowBlur = 40 * g.rage * (0.75 + 0.25 * Math.sin(S.t * 9)); }
     vsDraw('gv', an, fi, 360, 'brightness(1.12) contrast(1.06) drop-shadow(0 0 3px rgba(255,120,80,.8))', rot, loop);
-    if (g.hitFl > 0) { g.hitFl -= 1 / 60; ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, g.hitFl * 4); vsDraw('gv', an, fi, 360, 'brightness(2) saturate(0)', rot, loop); ctx.globalCompositeOperation = 'source-over'; }   /* 19:02 맞는 순간 하얗게 */
+    if (g.hitFl > 0) { g.hitFl -= 1 / 60; ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, g.hitFl * 2.5); vsDraw('gv', an, fi, 360, 'brightness(1.6) saturate(0.5)', rot, loop); ctx.globalCompositeOperation = 'source-over'; }   /* 19:02 맞는 순간 하얗게 */
     ctx.restore(); ctx.globalAlpha = 1; return;
   }
   if (STYLE0 === '2d' && !lordArt && need('d2_giant')) {   /* 2D 거인: 내려찍기 = 윗몸 젖혔다 앞으로, 포효 = 뒤로 젖힘, 맞기 · 쓰러짐 */

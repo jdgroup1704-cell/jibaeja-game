@@ -41,7 +41,11 @@ function burst(x, y, n, o) {
 /* 11-14 17:45 휴대폰 세로에서 대마법 마법진이 오른쪽에서 잘리던 것(녹화로 확인): 좁은 화면이면 마법진 가운데(RC)가 화면 가운데 오게 카메라를 옮김 */
 function ringCam() { const narrow = cv.width / Math.max(1, cv.height) < 1.6; if (!narrow) return [820, 340]; const R = 310 * NS(), dx = Math.min(Math.max(0, RC.x + R + 15 - (VW.x + VW.w)), Math.max(0, 196 + LDX() - 105 - VW.x));   /* 11-16 08:44 「영창 깨지고」: 마법진 쪽으로 옮기면 지배자가 왼쪽 끝에서 반쯤 잘림 → 지배자 몸이 화면 안에 남는 만큼만 */ return [W / 2 + dx, H / 2]; }   /* 11-16 위로 올리면 지배자가 아래 단추 뒤로 내려감 → 위아래는 그대로 */   /* 18:22 마법진이 들어올 만큼만 옮김(전엔 마법진을 가운데로 → 지배자가 왼쪽 밖으로 잘림) */
 function camTo(x, y, z, dur) { S.camT = { fx: S.cam.x, fy: S.cam.y, fz: S.cam.z, x, y, z, t: 0, dur }; }
-function say(text, x, y, o = {}) { const sz = o.size || 28; if (!o.screen && ((typeof UI !== 'undefined' && UI.awakening) || S.t < (S.calmUntil || 0) || S.t < (S.quietUntil || 0))) return;
+function say(text, x, y, o = {}) {
+  if (!o.screen && typeof fmtD !== 'undefined' && text === fmtD.s && fmtD.v != null) {   /* 11-16 09:15 「화면 난리」(후반 사진: 8.9억 · 11억 · 4.4경이 유닛을 덮음): 피해 숫자는 화면에 동시 4개 · 크기 보통 21 · 큰 것 27까지 */
+    if (S.texts.filter(t => !t.screen && t.val != null && t.age < t.life).length >= 4 && !S.texts.some(t => !t.screen && t.val != null && t.age < 0.3 && Math.abs(t.x - x) < 90 && Math.abs(t.y - y) < 70)) { fmtD.v = null; return; }
+    o = Object.assign({}, o, { size: Math.min(o.size || 28, (o.size || 28) >= 30 ? 27 : 21) }); }
+  const sz = o.size || 28; if (!o.screen && ((typeof UI !== 'undefined' && UI.awakening) || S.t < (S.calmUntil || 0) || S.t < (S.quietUntil || 0))) return;
   if (!o.screen && typeof L !== 'undefined' && L.field && text === L.field.crit) return;
   if (!o.screen && typeof fmtD !== 'undefined' && text === fmtD.s && fmtD.v != null) { const v = fmtD.v, col = o.col || '#fff', m = S.texts.find(t => !t.screen && t.val != null && t.col === col && t.age < 0.3 && Math.abs(t.x - x) < 90 && Math.abs(t.y - y) < 70); fmtD.v = null;
     if (m) { m.val += v; m.text = fmtD(m.val); fmtD.v = null;  m.size = Math.min(36, Math.max(m.size, o.size || 28)); m.bump = 0.12; return; }   /* 11-15 19:58 타격 리듬 잼: 0.3초 안에 가까이 뜨는 같은 색 숫자는 하나로 합쳐 커짐(장르 게임 방식 — 숫자가 비처럼 쏟아지지 않게) */
@@ -102,8 +106,8 @@ function syncArmy(dt) {
   const n = JB.armySize(st);
   const m = [1000, 300, 100, 10].find(x => n >= x && S.milestone < x);   /* 한 번에 여러 고비를 넘으면 가장 큰 것 하나만(글자 두 겹 막기) */
   if (m) {
-    S.milestone = m; if (m >= 100 && S.t > 2 && !TRAILER && S.phase === 'battle') { const xs = S.army.filter(a => !a.fly).map(a => a.x), cx = xs.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : 420; S.cam = { x: cx, y: 560, z: 1.7 }; S.camT = null; camTo(W / 2, H / 2, 1, 1.5); Snd.stamp(0.5); }   /* 설계: 군단 100 · 300 · 1000에 카메라가 군단에 붙었다가 뒤로 빠짐 */
-    if (m >= 10 && S.t > 2 && !TRAILER) { say(L.milestone(m.toLocaleString('ko-KR')), W / 2, UK() < 1 ? 0 : 150, { size: UK() < 1 ? 40 : 54, col: '#e9dcff', glow: '#5dff8f', life: UK() < 1 ? 1.6 : 2.4, top: UK() < 1, vy: 0, stamp: true, screen: true }); Snd.cheer(); UI.feed(L.milestone(m.toLocaleString('ko-KR'))); }   /* 11-15 눈 확인(숫자간격 3번): 폰에서 「군단 힘 100 돌파!」가 영웅 · 군단 한가운데를 2.4초 덮음 → 폰은 판 제목 밑 맨 위에 작게(40) · 1.6초 */
+    S.milestone = m; if (m >= 100 && S.t > 2 && !TRAILER && S.phase === 'battle' && !NARROW()) {   /* 11-16 폰은 1.7배 당기지 않음(지배자 · 단추와 겹침) */ const xs = S.army.filter(a => !a.fly).map(a => a.x), cx = xs.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : 420; S.cam = { x: cx, y: 560, z: 1.7 }; S.camT = null; camTo(W / 2, H / 2, 1, 1.5); Snd.stamp(0.5); }   /* 설계: 군단 100 · 300 · 1000에 카메라가 군단에 붙었다가 뒤로 빠짐 */
+    if (m >= 10 && S.t > 2 && !TRAILER) { say(L.milestone(m.toLocaleString('ko-KR')), W / 2, UK() < 1 ? 0 : 150, { size: UK() < 1 ? 30 : 54, col: '#ffe9a8', glow: '#8a3cff', life: UK() < 1 ? 1.6 : 2.4, vy: 0, stamp: true, screen: true });   /* 11-16 폰: 맨 위(판 제목 · 빠른 보상과 겹침) · 초록 → 판 제목 아래 작게(30) · 금 글자 보라 빛 */ Snd.cheer(); UI.feed(L.milestone(m.toLocaleString('ko-KR'))); }   /* 11-15 눈 확인(숫자간격 3번): 폰에서 「군단 힘 100 돌파!」가 영웅 · 군단 한가운데를 2.4초 덮음 → 폰은 판 제목 밑 맨 위에 작게(40) · 1.6초 */
   }
 }
 // 진형: 뒤(왼쪽)부터 마법사·활·기본 해골·창·검·말 탄 해골·방패(맨 앞 벽). 줄 맞춰 서되 조금씩 흐트러지게
@@ -322,9 +326,26 @@ function comboHit() {
   const n = performance.now(); S.combo = n - (S.comboT || 0) < 2500 ? (S.combo || 0) + 1 : 1; S.comboT = n; const el = $('combo'); if (!el) return;
   if (S.combo >= 3) { el.innerHTML = `<b>${S.combo}</b><small>${L.ui.combo}</small>`; el.className = 'on' + (S.combo >= 20 ? ' hot' : S.combo >= 10 ? ' warm' : ''); void el.offsetWidth; el.classList.add('pop'); clearTimeout(comboHit.t); comboHit.t = setTimeout(() => { el.className = ''; }, 2500); if (S.combo % 10 === 0) { punch(0.05, 6, 30); Snd.chime && Snd.chime(660 + Math.min(10, S.combo / 10) * 60); } }
 }
+/* 11-16 순서 #15(제 제안 · 08:44 대표님 「현재까지도 재미없어 보인다」): 「죽은 자를 일으키는 지배자」를 싸움 한가운데서 보이게 —
+   적 4마리를 쓰러뜨릴 때마다 1마리가 그 자리 보라 고리에서 망자로 솟아 우리 편이 되어 같이 싸움(화면에 6마리까지 · 22초 뒤 보라 연기). 규칙(군단 힘)은 그대로, 보이는 것만 */
+const RISE_KIND = { foot: 0, archer: 1, shield: 2, priest: 3, captain: 2, lancer: 0, paladin: 2, leech: 2, pyro: 3, frost: 3, plague: 3, abyss: 3, bomber: 0 };
+function riseFallen(f) {
+  if (!window.RISE_ON || TRAILER || UI.awakening || f.fly || f.boom || S.phase === 'cast') return;   /* 11-16 09:50 관문⑲: 진형 자리 없이 앞줄에 겹쳐 서고 쓰러지지 않아 적이 영웅까지 못 옴 → 진형에 맞게 다시 만들 때까지 끔 */
+  S.riseN = (S.riseN || 0) + 1; if (S.riseN % 4 !== 0) return;
+  if (S.army.filter(a => a.rf === -1 && !a.gone).length >= 6) return;
+  const x = f.x, y = f.y, d = f.d, rt = RISE_KIND[f.kind] ?? 0;
+  (S.riseRings = S.riseRings || []).push({ x, y, t: 0 });
+  setTimeout(() => {
+    if (UI.awakening) return;
+    S.army.push({ x, y, d, tx: Math.min(x, armyFront() - 10), ty: y, w: 0, ph: rnd(0, 7), rise: 0, fly: null, cheer: rnd(0, 7), c: -1, g: 0, rf: -1, rt, life: 22, bornT: S.t });
+    burst(x, y - 30, 16, { col: ['#c99bff', '#8a3cff', '#ffffff'], vmin: 40, vmax: 220, up: 160, g: -40, lmax: 0.8, add: true }); Snd.smp && Snd.smp('rise', 0.35, 0, 1.2);
+    S.risenTot = (S.risenTot || 0) + 1;
+  }, 550);
+}
 function killFx(f) {
   if (!(UI.awakening)) { soulOrbs(f.x, f.y - 50, f.elite || f.kind === 'captain' ? 5 : 1 + (Math.random() < 0.4 ? 1 : 0)); comboHit(); if (f.elite || f.kind === 'captain') punch(0.08, 9, 35); }
-  (S.corpses = S.corpses || []).push({ x: f.x, y: f.y, d: f.d, t: 0, kind: f.kind, big: f.big }); S.shake = Math.max(S.shake || 0, 2.5);   /* A판: 그냥 사라지지 않고 쓰러짐 + 살짝 흔들림 */
+  (S.corpses = S.corpses || []).push({ x: f.x, y: f.y, d: f.d, t: 0, kind: f.kind, big: f.big });
+  riseFallen(f);   /* 11-16 #15 쓰러진 적이 그 자리에서 보랏빛 망자로 일어나 우리 편 */ S.shake = Math.max(S.shake || 0, 2.5);   /* A판: 그냥 사라지지 않고 쓰러짐 + 살짝 흔들림 */
   burst(f.x, f.y - 24, 10, { col: ['#fff6c8', '#ffd76a', '#ffffff'], vmin: 60, vmax: 260, up: 80, lmax: 0.5 });
   burst(f.x, f.y - 40, f.elite || f.kind === 'captain' ? 14 : 7, { col: ['#f3ecd9', '#d8ccb0', '#bfb59a', '#9aa3b5'], vmin: 160, vmax: 460, up: 360, g: 1100, lmin: 0.5, lmax: 0.9, smin: 3, smax: 6 });   /* 09:20 갓깨비 사진: 쓰러질 때 뼈 · 갑옷 조각이 사방으로 튐 */
   S.killN++; if ((S.combo || 0) >= 5 && S.combo % 5 === 0 && !S.texts.some(t => !t.screen && L.ui.kills.includes(t.text))) say(L.ui.kills[(Math.random() * L.ui.kills.length) | 0], f.x, f.y - 50, { size: 20, col: '#e8dcff', glow: '#8a3cff', life: 0.7 });   /* 19:04 적 무리 위가 숫자 · 막대 · 「압도 · 소멸 · 분쇄」로 뒤덮여 → 연속 처치 5 · 10 · 15…에만, 한 번에 하나 */
@@ -440,7 +461,7 @@ function boomFx() {
   S.tint = { col: st.spell === 'tide' || st.spell === 'graves' ? '60,220,140' : st.spell === 'sun' ? '255,170,40' : '150,60,255', a: 0.42 };   /* 09:20 대마법이 터질 때 화면 전체가 한 색으로 물듦 */
   if (st.spell === 'tide') {
     Snd.boom(); S.shake = 26; S.flash = 0.5; S.wave = { x: 300, y: 500, r: 0 };
-    burst(400, 600, 160, { col: ['#e9e3cf', '#9fffd0', '#5dff8f'], vmin: 200, vmax: 900, up: 200, g: 300, lmin: 0.5, lmax: 1.5, smin: 3, smax: 7 });
+    burst(400, 600, 160, { col: ['#e9e3cf', '#d8b8ff', '#b87cff'], vmin: 200, vmax: 900, up: 200, g: 300, lmin: 0.5, lmax: 1.5, smin: 3, smax: 7 });
   } else if (st.spell === 'graves') {   // 만 개의 묘비: 땅에서 묘비·초록 불길이 솟음
     Snd.boom(); Snd.smp('rise', 0.9); S.shake = 24; S.flash = 0.4; S.wave = { x: 520, y: 600, r: 0 };
     for (let i = 0; i < 40; i++) S.tombs.push({ x: rnd(260, gx + 80), y: rnd(GROUND + 40, 690), h: 0, life: 2.4, age: rnd(-0.4, 0) });
@@ -597,6 +618,7 @@ function viewUpdate(realDt) {
     const want = bossOn && mx > -1e9 ? clamp(BX - 330 - mx, -110, 0) : 0; S.bShift = (S.bShift || 0) + (want - (S.bShift || 0)) * Math.min(1, dt * 3); }
   const bigM = S.army.some(a => !a.fly) && S.army.every(a => a.fly || a.big);   /* 09:45 느린 화면으로 봄: 큰 소환수가 돌격 박자(150) · 밀어붙이기(22)로 자리를 벗어나 적 위에 겹쳐 들어가고, 1초에 30씩 뒤로 미끄러져 돌아옴 → 큰 소환수는 자기 자리에서 내디디며 침(그림에서), 벗어나면 걸어서 빨리 돌아옴 */
   for (const a of S.army) {
+    if (a.rf === -1 && !a.gone && (a.life -= dt) <= 0) { a.gone = true; burst(a.x, a.y - 40, 14, { col: ['#b87cff', '#5a2a9a', '#e8dcff'], vmin: 30, vmax: 140, up: 90, g: -60, lmax: 0.9, add: true }); continue; }   /* 11-16 #15 일어난 망자는 22초 뒤 보라 연기로 */
     if (a.hop > 0) a.hop = Math.max(0, a.hop - dt);
     if (a.fly) { a.x += a.fly.vx * dt; a.y += a.fly.vy * dt; a.fly.vy += 1400 * dt; a.fly.r += a.fly.vr * dt; if (a.y > 760) a.gone = true; continue; }
     if (a.rise < 1) { if (a.riseD > 0) a.riseD -= dt; else a.rise = Math.min(1, a.rise + dt * 2.5); }   /* riseD: 차례로 솟게 기다리는 시간 */
