@@ -17,6 +17,7 @@ const EX = {
     UI.openModal(`<h3>${L.ad.title}</h3><p class="muted">${L.ad.body}</p><button class="btn big gold" data-x="adOk">${L.ad.ok}</button>`);
   },
   act(x, arg) {
+    if (x === 'closeModal') { UI.closeModal(); return; }
     if (x === 'more') { this.moreOpen = !this.moreOpen; this.render(); return; }   /* 11-16 14:53 폰 오른쪽 단추 기둥(전장 12%를 가림) → 2배속 + 「≡」 하나로 접고, 누르면 펼침 */
     if (typeof BRAG !== 'undefined' && BRAG.act(x)) return;
     if (x === 'nmSave') { const cl = v => (v || '').replace(/[<>"'&]/g, '').trim().slice(0, 8); st.myName = cl(document.getElementById('nmMe')?.value); st.rival = cl(document.getElementById('nmRv')?.value); UI.toast(L.names.title, L.names.saved(st.myName, st.rival)); UI.closeModal(); UI.render(true); return; }

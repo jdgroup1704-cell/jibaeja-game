@@ -1,0 +1,15 @@
+// node 모험싸움재기.js 폴더 → JSON: 모험(던전 · 길드) 보스 도전 = UI.vsCustom → 대결 띠 뒤 실제 싸움 장면이 몇 초 · 맞힌 횟수 · 체력 막대가 줄었나 · 쓰러짐 · 결과가 그 뒤에 왔나 + 사진 (관문 ㉜ 11-16 15:57 대표님 「모험은 보스같이 나오고 싸움도 없이 클리어되어 버리고」)
+const { chromium } = require('/opt/npm-tools/node_modules/playwright');
+const http = require('http'), fs = require('fs'), path = require('path'), { execSync } = require('child_process');
+const dir = process.argv[2], PORT = 8257;
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png', '.json': 'application/json' };
+const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(PORT);
+(async () => { const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const pg = await (await b.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
+  await pg.goto(`http://localhost:${PORT}/index.html`); await pg.waitForTimeout(2500); await pg.evaluate(() => document.getElementById('opening')?.click()); await pg.waitForTimeout(1500);
+  await pg.evaluate(() => { st.stage = st.best = 20; for (const h of JB.HEROES.slice(0, 3)) st.heroes[h.id] = { lv: 2, wp: 1 }; JB.squadFit(st); st.squad = st.squad.map((_, i) => JB.HEROES[i] ? JB.HEROES[i].id : null); for (const k in st.seen) st.seen[k] = st.seen[k] || 9; UI.closeModal();
+    window.__M = { t0: performance.now(), fight: 0, f0: 0, hits: 0, hp0: null, hp1: null, down: 0, res: 0 }; const mo = new MutationObserver(() => { const m = document.getElementById('mfx'); if (m && m.classList.contains('on') && !__M.f0) __M.f0 = performance.now(); __M.hits = Math.max(__M.hits, document.querySelectorAll('#mfx .mnum').length ? __M.hits + 1 : __M.hits); const bar = document.querySelector('#mfx .mhp i i'); if (bar) { const w = parseFloat(bar.style.width || '100'); if (__M.hp0 == null) __M.hp0 = w; __M.hp1 = w; } if (document.querySelector('#mfx .mboss.down')) __M.down = 1; }); mo.observe(document.getElementById('stagewrap'), { childList: true, subtree: true, attributes: true });
+    UI.vsCustom('bossV', '시험 보스', '모험', () => { __M.res = performance.now(); }); });
+  const shots = []; for (let i = 0; i < 24; i++) { await pg.waitForTimeout(500); if ([7, 10, 13].includes(i)) { const f = `/tmp/mf_${i}.png`; await pg.screenshot({ path: f, clip: { x: 0, y: 30, width: 360, height: 330 } }); shots.push(f); } }
+  const M = await pg.evaluate(() => ({ 싸움초: __M.f0 && __M.res ? Math.round((__M.res - __M.f0) / 100) / 10 : 0, 맞힘: __M.hits, 체력처음: __M.hp0, 체력끝: __M.hp1, 쓰러짐: __M.down, 결과옴: !!__M.res }));
+  execSync(`ffmpeg -loglevel error -y ${shots.map(f => `-i ${f}`).join(' ')} -filter_complex hstack=inputs=${shots.length} /home/claude/rec/모험싸움.jpg`);
+  console.log(JSON.stringify({ ...M, 오류: errs.slice(0, 3) })); await b.close(); srv.close(); })();

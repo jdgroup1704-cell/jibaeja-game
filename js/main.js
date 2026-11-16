@@ -4,7 +4,7 @@
 const BAK_KEY = SAVE_KEY + '_예비';
 let restored = false, bakT = 0;
 function load() {
-  if (Q.get('reset') === '1') { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(BAK_KEY); }
+  if (Q.get('reset') === '1') { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(BAK_KEY); try { const u = new URL(location.href); u.searchParams.delete('reset'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) {} }   /* 11-16 19:02 대표님: 「처음부터」 주소로 한 번 지운 뒤엔 주소에서 reset을 빼서, 그 주소를 다시 열어도(새로 고침 · 즐겨찾기) 또 지우지 않음 */
   const raw = localStorage.getItem(SAVE_KEY);
   let s = null; try { s = JB.deserialize(raw || ''); } catch (e) {}
   if (!s && raw) {   // 본 저장이 있는데 못 읽음 = 깨짐
@@ -112,3 +112,8 @@ window.__game = () => ({ fps: Math.round(fps), qual: +QUAL.toFixed(2), px: cv.wi
 function wipeAll() { window.__wiped = true; try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(BAK_KEY); } catch (e) {} location.reload(); }
 /* 21:58 대표님 「모바일 앱이 아니라 확인이 답답」: 폰에서 처음 누를 때 전체 화면을 한 번 시도(Claude 앱 · 브라우저가 막으면 그냥 지나감) */
 document.addEventListener('pointerdown', function fsOnce() { document.removeEventListener('pointerdown', fsOnce, true); try { if (TRAILER || AUTO || !matchMedia('(pointer:coarse)').matches || document.fullscreenElement) return; const d = document.documentElement, f = d.requestFullscreen || d.webkitRequestFullscreen; if (f) { const r = f.call(d, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); } } catch (e) {} }, true);
+
+/* 11-16 19:03 대표님 「새로 업데이트되었다고 이용자들은 알 수 있게 알람」: 판이 바뀌면(오른쪽 아래 판 표시) 이어 하던 사람에게 「업데이트됐어요 · 바뀐 것」 창 — 저장은 그대로(저장 이름은 판과 상관없이 같음) */
+(function patchNote() { const T = setInterval(() => { if (typeof st === 'undefined' || !st) return; const op = document.getElementById('opening'); if (op && op.offsetParent) return; if (document.getElementById('modal').style.display === 'flex' || UI.awakening) return;
+  clearInterval(T); const ver = (document.getElementById('ver') || {}).textContent || ''; if (!ver) return; const was = st.lastVer; st.lastVer = ver; if (was === ver || !(st.best > 1)) { save(); return; }   /* 예전 판 이용자(was 없음)도 한 번 알림 */
+  const P = L.patch || {}; UI.openModal(`<h3>${P.title || '업데이트됐어요'}</h3><p class="muted">${ver}</p><ul class="patch">${(P.list || []).map(x => `<li>${x}</li>`).join('')}</ul><p class="muted">${P.keep || '하던 판 · 강화는 그대로 이어져요'}</p><button class="btn big gold" data-x="closeModal">${P.ok || '확인'}</button>`); save(); }, 700); })();

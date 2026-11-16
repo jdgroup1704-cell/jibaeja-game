@@ -1,0 +1,10 @@
+const { chromium } = require('/opt/npm-tools/node_modules/playwright');
+const http = require('http'), fs = require('fs'), path = require('path');
+const dir = process.argv[2], out = process.argv[3], PORT = 8217;
+const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': p.endsWith('.html') ? 'text/html' : p.endsWith('.js') ? 'text/javascript' : p.endsWith('.webp') ? 'image/webp' : 'application/octet-stream' }); r.end(d); }); }).listen(PORT);
+(async () => { const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const pg = await (await b.newContext({ viewport: { width: 1920, height: 960 }, deviceScaleFactor: 1 })).newPage();
+  await pg.goto(`http://localhost:${PORT}/index.html`); await pg.waitForTimeout(3000); await pg.evaluate(() => document.getElementById('opening')?.click()); await pg.waitForTimeout(1500);
+  await pg.evaluate(() => { st.stage = st.best = 12; st.daysPlayed = 14; st.up.summon = 8; for (const h of JB.HEROES.slice(0, 2)) { st.heroes = st.heroes || {}; } UI.closeModal(); setInterval(() => { if (document.getElementById('modal').style.display === 'flex') UI.closeModal(); }, 100); });
+  await pg.waitForTimeout(9000);
+  const info = await pg.evaluate(() => ({ cls: document.getElementById('app').className, VW: { ...VW }, army: S.army.filter(a => !a.fly).map(a => Math.round(a.y)), foes: S.foes.filter(f => !f.dead).map(f => Math.round(f.y)), heroes: (S.heroes || []).map(h => Math.round(h.y)) }));
+  info.GYk = await pg.evaluate(() => typeof GYk === 'undefined' ? null : GYk); console.log(JSON.stringify(info)); await pg.screenshot({ path: out }); await b.close(); srv.close(); })();

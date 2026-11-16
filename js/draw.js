@@ -28,12 +28,14 @@ function draw() {
   // 깊이 순서로 군단·적
   const list = [];
   for (const a of S.army) list.push(['a', a.y, a]);
+  if (typeof MN !== 'undefined') for (const m of MN.list) list.push(['m', m.y, m]);   /* 11-16 망자병 떼 */
   for (const f of S.foes) list.push(['f', f.y, f]);
   for (const c of (S.corpses || [])) list.push(['c', c.y - 1, c]);
   for (const c of (S.fallen || [])) list.push(['d', c.y - 2, c]);   /* A판 03:23: 쓰러지는 적(뒤로 넘어지며 밀려나고 사라짐) */
   for (const h of HF.list) list.push(['h', h.y + 400, h]);   /* 00:35 영웅(모르데 y540)이 병사 뒤에 그려져 묻힘 → 영웅은 늘 병사 · 적 위에 */
   list.sort((p, q) => p[1] - q[1]);
-  for (const [k, , o] of list) k === 'a' ? drawSkel(o) : k === 'h' ? HF.draw(o) : k === 'c' ? drawCorpse(o) : k === 'd' ? drawFallen(o) : drawFoe(o);
+  if (typeof MN !== 'undefined') MN.drawCracks();
+  for (const [k, , o] of list) k === 'm' ? MN.draw(o) : k === 'a' ? drawSkel(o) : k === 'h' ? HF.draw(o) : k === 'c' ? drawCorpse(o) : k === 'd' ? drawFallen(o) : drawFoe(o);
   if (typeof TH !== 'undefined') TH.draw(); if (typeof BC !== 'undefined') BC.tick(); if (typeof BV !== 'undefined') BV.tick(1 / 60); if (typeof FFX !== 'undefined') FFX.draw();   /* 11-16 망자 거인은 군단 · 적 위에(앞으로 솟아 내려찍음) */
   for (const f of S.foes) HF.drawFoeBar(f);   /* 적 체력 막대는 맨 위에 */
   HF.drawArmyBars();
@@ -653,7 +655,7 @@ function drawBanners() {
 function drawLordTag() {   /* 주인공 이름표: 지배자 머리 위 금빛 패 */
   if (TRAILER || S.phase === 'cast') return;   /* 11-16 11:35 대표님 「표기도 없어」: 15판부터 숨기던 것 되돌림 — 늘 보임 */ const x = 222 + LDX() + 8, y = 614;   /* 11-16 15판부터 지배자 이름표 숨김(화면 난리) */   /* 19:22 머리 위 패가 왼쪽 위 「빠른 보상 · 상점」과 겹침 → 영웅처럼 발밑 이름표 */   /* 세로 화면: 위 아이콘에 가려서 지배자 오른쪽 어깨 옆으로 */
   const vl = JB.vipLv(st), ttl = vl >= 12 ? L.vip.title12 : vl >= 10 ? L.vip.title10 : '', tc = vl >= 4 ? '#ffd76a' : vl >= 1 ? '#e4ecf8' : '#c9a96a';   /* 11-14 귀빈 이름표: 0 낡은 금 · 1 은빛 · 4 금빛 · 10 칭호 · 11 빛나는 금 · 12 천년의 군주 */
-  const fz = Math.round(13 * Math.min(WK(), 2.2)); ctx.save(); ctx.font = `900 ${fz}px ${SERIF}`; const t = '♛ ' + (ttl || (st.myName || L.ui.lordTag)), w = ctx.measureText(t).width + fz * 1.1;
+  const fz = Math.round(17 * Math.min(WK(), 2.2)); ctx.save(); ctx.font = `900 ${fz}px ${SERIF}`; const t = '♛ ' + (ttl || (st.myName || L.ui.lordTag)), w = ctx.measureText(t).width + fz * 1.1;
   if (vl >= 11) { ctx.shadowColor = '#ffcf5a'; ctx.shadowBlur = 16 + 8 * Math.sin(S.t * 3); }
   ctx.fillStyle = vl >= 10 ? 'rgba(40,20,4,.9)' : 'rgba(20,8,34,.85)'; ctx.strokeStyle = tc; ctx.lineWidth = vl >= 10 ? 3.5 : 2.5; ctx.beginPath(); ctx.roundRect(x - w / 2, y - fz * 0.75, w, fz * 1.5, fz * 0.75); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
   ctx.fillStyle = tc; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y + 1); ctx.restore();
@@ -809,7 +811,7 @@ function drawRises() {
     for (const r of S.riseGhosts) { r.t += 1 / 60; const FV = 'foev' + (r.rt || 0); if (!VS[FV] || !need(FV + '_idle')) continue;
       const up = Math.min(1, r.t / 0.55), fl = clamp((r.t - 0.65) / 0.75, 0, 1), e2 = ease(fl), x = lerp(r.x, ax.x, e2), y = lerp(r.y, ax.y - 30, e2) - Math.sin(fl * Math.PI) * 90, sc = (0.6 + 0.4 * up) * (1 - 0.6 * e2);
       ctx.save(); ctx.globalAlpha = (r.t < 0.65 ? up : 1 - fl * 0.8); ctx.translate(x, y); if (r.t < 0.65) { ctx.beginPath(); ctx.rect(-80, -200, 160, 200); ctx.clip(); ctx.translate(0, (1 - up) * 70); }
-      ctx.scale(-1, 1); vsDraw(FV, 'idle', 0, 82 * sc, 'hue-rotate(235deg) saturate(1.25) brightness(0.85) drop-shadow(0 0 6px rgba(185,95,255,.95))', 0, false); ctx.restore();
+      if (r.t < 0.65) { ctx.scale(-1, 1); vsDraw(FV, 'idle', 0, 82 * sc, 'hue-rotate(235deg) saturate(1.25) brightness(0.85) drop-shadow(0 0 6px rgba(185,95,255,.95))', 0, false); } else { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 1 - fl * 0.5; const R0 = 26 * (1 - 0.4 * e2), g = ctx.createRadialGradient(0, -40, 2, 0, -40, R0); g.addColorStop(0, 'rgba(255,240,255,1)'); g.addColorStop(0.35, 'rgba(200,140,255,.9)'); g.addColorStop(1, 'rgba(120,40,220,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -40, R0, 0, 7); ctx.fill(); }   /* 11-16 16:18 대표님 「잔상」: 군단 쪽으로 날아가며 반투명 몸이 지배자 옆에 남아 보였음 → 솟은 뒤엔 영혼 구슬로 바뀌어 날아감 */ ctx.restore();
       if (fl >= 1 && !r.done) { r.done = 1; burst(ax.x, ax.y - 40, 12, { col: ['#c99bff', '#8a3cff', '#ffffff'], vmin: 40, vmax: 180, up: 80, lmax: 0.6, add: true }); say('+1', ax.x, ax.y - 90, { size: 22, col: '#e8d4ff', glow: '#8a3cff', life: 0.6, vy: -60 }); S.risenTot = (S.risenTot || 0) + 1; } }
     S.riseGhosts = S.riseGhosts.filter(r => r.t < 1.45); }
   if (S.riseRings && S.riseRings.length) { for (const r of S.riseRings) { r.t += 1 / 60; const k = r.t / 0.9; if (k >= 1) continue; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = (1 - k) * 0.9; ctx.strokeStyle = '#b87cff'; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(r.x, r.y - 2, 22 + 30 * k, 7 + 9 * k, 0, 0, 7); ctx.stroke(); ctx.fillStyle = 'rgba(140,60,255,.35)'; ctx.fill(); ctx.restore(); } S.riseRings = S.riseRings.filter(r => r.t < 0.9); }   /* 11-16 #15 망자가 솟는 보라 고리 */   /* 11-15 일으켜라 한 번 = 땅이 갈라지며 뼈 손이 쑥 솟았다 가라앉음(0.8초) */
@@ -877,7 +879,7 @@ function drawGiant() {
     else if (g.raise > 0.15) { an = 'raise'; loop = false; fi = Math.min(1, g.raise * 1.5) * 11; }   /* 지역 기술 외칠 때 망치 치켜듦 */
     else if (S.warn && S.warn.t < 2.2) { an = 'raise'; loop = false; fi = Math.min(1, (2.2 - S.warn.t) / 1.2) * 6; }
     if (g.rage > 0) { ctx.shadowColor = `rgba(255,30,20,${0.85 * g.rage})`; ctx.shadowBlur = 40 * g.rage * (0.75 + 0.25 * Math.sin(S.t * 9)); }
-    vsDraw('gv', an, fi, 360, 'brightness(1.12) contrast(1.06) drop-shadow(0 0 3px rgba(255,120,80,.8))', rot, loop);
+    vsDraw('gv', an, fi, NARROW() ? 315 : 360, 'brightness(1.12) contrast(1.06) drop-shadow(0 0 3px rgba(255,120,80,.8))', rot, loop);
     if (g.hitFl > 0) { g.hitFl -= 1 / 60; ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, g.hitFl * 2.5); vsDraw('gv', an, fi, 360, 'brightness(1.6) saturate(0.5)', rot, loop); ctx.globalCompositeOperation = 'source-over'; }   /* 19:02 맞는 순간 하얗게 */
     ctx.restore(); ctx.globalAlpha = 1; return;
   }
@@ -1051,7 +1053,7 @@ function drawText(x, m = 1, maxW = W - 40) {
   ctx.restore();
 }
 function drawWorldTexts() { for (const x of S.texts) if (!x.screen) drawText(x); }
-function drawScreenTexts() { if (S.t < (S.calmUntil || 0)) { const k = Math.min(1, (S.calmUntil - S.t) / 1.2) * 0.55; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = `rgba(6,0,14,${k})`; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); }   /* 각성 이름이 또렷하게: 뒤를 어둡게 */ const css = view.s / (view.dpr || 1), m = clamp(0.55 / css, 1, 1.9), x0 = -view.ox / view.s, x1 = (cv.width - view.ox) / view.s; const pad = 66 / css, y0v = -view.oy / view.s; for (const x of S.texts) if (x.screen) { { const ym = y0v + (x.top ? 30 : 118) / css; if (x.y < ym) x.y = ym; }   /* 11-15 눈 확인(돌파보기): 폰 「군단 힘 10 돌파!」가 118 밑이라 군단 한가운데 → top이면 판 제목 자리(큰 글자 뜨는 동안 제목은 숨음) */ drawText(x, m, 2 * Math.min(x.x - x0 - pad, x1 - x.x - pad) - 30); } }   /* 00:22 대표님 폰 크기 · 실제 흐름으로 재니 「부활!」 「묘지의 주인」이 위 단추 · 판 표시를 100% 덮음 → 판 표시 아래로, 좌우 단추 기둥 안쪽 폭으로 */   /* 최대 폭 = 실제로 보이는 화면 폭(휴대폰은 80~1160) 안 */   /* 휴대폰 세로처럼 전장이 작으면 화면 큰 글자를 키움(390 너비에서 약 1.8배) */
+function drawScreenTexts() { if (S.redFlash > 0) { S.redFlash = Math.max(0, S.redFlash - 1 / 60); const w = cv.width, h = cv.height, g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.25, w / 2, h / 2, Math.max(w, h) * 0.75); g.addColorStop(0, 'rgba(255,0,0,0)'); g.addColorStop(1, `rgba(200,0,10,${Math.min(0.55, S.redFlash)})`); ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); ctx.restore(); }   /* 11-16 보스에게 맞으면 화면 가장자리가 붉게 번쩍 */ if (S.t < (S.calmUntil || 0)) { const k = Math.min(1, (S.calmUntil - S.t) / 1.2) * 0.55; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = `rgba(6,0,14,${k})`; ctx.fillRect(0, 0, cv.width, cv.height); ctx.restore(); }   /* 각성 이름이 또렷하게: 뒤를 어둡게 */ const css = view.s / (view.dpr || 1), m = clamp(0.55 / css, 1, 1.9), x0 = -view.ox / view.s, x1 = (cv.width - view.ox) / view.s; const pad = 66 / css, y0v = -view.oy / view.s; for (const x of S.texts) if (x.screen) { { const ym = y0v + (x.top ? 30 : 118) / css; if (x.y < ym) x.y = ym; }   /* 11-15 눈 확인(돌파보기): 폰 「군단 힘 10 돌파!」가 118 밑이라 군단 한가운데 → top이면 판 제목 자리(큰 글자 뜨는 동안 제목은 숨음) */ drawText(x, m, 2 * Math.min(x.x - x0 - pad, x1 - x.x - pad) - 30); } }   /* 00:22 대표님 폰 크기 · 실제 흐름으로 재니 「부활!」 「묘지의 주인」이 위 단추 · 판 표시를 100% 덮음 → 판 표시 아래로, 좌우 단추 기둥 안쪽 폭으로 */   /* 최대 폭 = 실제로 보이는 화면 폭(휴대폰은 80~1160) 안 */   /* 휴대폰 세로처럼 전장이 작으면 화면 큰 글자를 키움(390 너비에서 약 1.8배) */
 function drawBubble() {   // 수하 말풍선: 이름 + 대사, 길이에 맞춰 오래 보임
   if (document.querySelector('#toast .toast') || S.texts.some(t => t.screen && t.size >= 40 && t.age < t.life)) { if (S.bubble) S.bubble.box = null; return; }   /* 11-15 관문⑤: 말풍선 × 보스 이름 큰 글자 86% → 화면 큰 글자가 떠 있는 동안도 말풍선은 숨김 */   /* 11-15 숨긴 동안 옛 자리(box)가 남아 겹침 관문이 「알림 × 말풍선 31%」로 잘못 셈 → 숨기면 자리도 지움   /* 20:44 알림 · 영웅 말풍선 · 「일으켜라」 표가 왼쪽 위에 겹쳐 쌓임 → 알림이 있으면 말풍선은 잠깐 숨김 */
   const b = S.bubble; if (!b) return; const life = b.life || 3.2; const a = clamp(b.age * 3, 0, 1) * clamp((life - b.age) * 2, 0, 1); if (a <= 0) return;

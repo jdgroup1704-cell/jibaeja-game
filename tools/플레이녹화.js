@@ -21,6 +21,6 @@ const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComp
   fs.writeFileSync(V + '/a.wav', Buffer.from(snd.wav, 'base64')); fs.writeFileSync(`/home/claude/rec/영상/영상_${name}.소리.json`, JSON.stringify({ 강화띵: snd.up, 배경음켜짐: snd.bgm, 곡수: snd.곡, 녹음길이: pend }));
   await ctx.close(); await b.close(); srv.close();
   const wb = fs.readdirSync(V).find(f => f.endsWith('.webm')); const out = `/home/claude/rec/영상/영상_${name}.mp4`;
-  execSync(`ffmpeg -loglevel error -y -i ${V}/${wb} -i ${V}/a.wav -map 0:v -map 1:a -af apad -c:a aac -b:a 128k -t ${pend.toFixed(2)} -vf "fps=30,scale=720:-2:flags=lanczos,drawtext=fontfile=/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc:text='%{pts\\:hms}':x=8:y=h-28:fontsize=18:fontcolor=white:box=1:boxcolor=black@0.5" -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p ${out}`);
-  fs.writeFileSync(out.replace('.mp4', '.오류.txt'), errs.join('\n')); console.log(JSON.stringify({ 영상: out, 크기: fs.statSync(out).size, 오류: errs.length, 오류글: errs.slice(0, 3), ...info }));
+  execSync(`ffmpeg -loglevel error -y -i ${V}/${wb} -i ${V}/a.wav -map 0:v -map 1:a -af apad -c:a aac -b:a 128k -t ${pend.toFixed(2)} -vf "fps=30,scale=720:-2:flags=lanczos${process.env.NOTS ? '' : ",drawtext=fontfile=/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc:text='%{pts\\:hms}':x=8:y=h-28:fontsize=18:fontcolor=white:box=1:boxcolor=black@0.5"}" -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p ${out}`);
+  fs.writeFileSync(out.replace('.mp4', '.오류.txt'), errs.join('\n')); if (process.env.NOTS) fs.writeFileSync(out + '.nots', '녹화 시간 글자 없음'); else try { fs.unlinkSync(out + '.nots'); } catch (e) {} console.log(JSON.stringify({ 영상: out, 크기: fs.statSync(out).size, 오류: errs.length, 오류글: errs.slice(0, 3), ...info }));
 })();

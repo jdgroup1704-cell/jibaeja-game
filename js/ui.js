@@ -27,7 +27,7 @@ const UI = {
         const fx = 300 + (typeof LDX === 'function' ? LDX() : 0) + (n % 3) * 70 + rnd(-15, 15), fy = 610 + ((n * 37) % 3) * 40;   /* 지배자 바로 앞에서 차례로 솟음(적 쪽에서 솟아 적이 일으킨 것처럼 보였음) */
         burst(fx, fy - 10, 22, { col: ['#5dff8f', '#e8dcc0', '#ffffff'], vmin: 60, vmax: 260, up: 220, g: 500, lmax: 0.8, smin: 2, smax: 5 });
         if (typeof LM !== 'undefined' && LM.fx) LM.fx.push({ kind: 'nova', hit: true, x: fx, y: fy - 40, age: 0, life: last ? 0.9 : 0.45, col: '#b87cff', big: last });   /* 11-16 옛 초록 → 보랏빛 */
-        (S.rises = S.rises || []).push({ x: fx, y: fy, t: 0 }); S.shake = Math.max(S.shake || 0, last ? 9 : 3.5); S.hitstop = Math.max(S.hitstop || 0, 0.035);
+        if (typeof MN !== 'undefined') MN.spawn(2, fx, fy);   /* 11-16 19:50 「초반 어색」: 유리관 같은 뼈 손 기둥 → 땅을 뚫고 망자병 둘이 솟음 */ S.shake = Math.max(S.shake || 0, last ? 9 : 3.5); S.hitstop = Math.max(S.hitstop || 0, 0.035);
         say('+1', fx, fy - 90, { size: 24, col: '#e8d4ff', glow: '#8a3cff', life: 0.6, vy: -70 }); if (last) say(L.raiseDone || '군단이 깨어났다!', W / 2, 230, { size: 40, col: '#f0e4ff', glow: '#8a3cff', life: 1.4, vy: 0, stamp: true, screen: true });
         rb.classList.remove('pop'); void rb.offsetWidth; rb.classList.add('pop'); this.render(); };
       rb.addEventListener('pointerdown', tap); rb.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); }); }
@@ -90,7 +90,22 @@ const UI = {
     st.seen.curTip = 1;
   },
   vsCustom(img, name, sub, then) {   /* 05:05 던전 · 길드 보스 도전도 결과 창만 뜨던 것 → 대결 띠 1.6초 뒤 결과(대표님 「현질하면 확실한 효과 · 몰입」) */
-    this.closeModal(); const el = this.vsBuild(img, st.myName ? '지배자 ' + st.myName : L.vs.me, name, sub, ''); this.vsDone = then; clearTimeout(this.vsT); this.vsT = setTimeout(() => { el.classList.remove('go'); const f = this.vsDone; this.vsDone = null; f && f(); }, 2400);
+    this.closeModal(); const el = this.vsBuild(img, st.myName ? '지배자 ' + st.myName : L.vs.me, name, sub, ''); const go = () => this.miniFight(img, name, then); this.vsDone = go; clearTimeout(this.vsT); this.vsT = setTimeout(() => { el.classList.remove('go'); const f = this.vsDone; this.vsDone = null; f && f(); }, 2400);
+  },
+  /* 11-16 15:57 대표님 「모험은 보스같이 나오고 싸움도 없이 클리어되어 버리고」: 대결 띠 뒤 6초 동안 실제로 싸우는 장면 — 지배자 · 소환수 · 영웅이 번갈아 영혼탄 · 검기를 날리고, 보스는 맞을 때마다 움찔 · 숫자 · 체력이 깎이다 쓰러짐 → 결과. 누르면 넘어감 */
+  miniFight(img, name, then) {
+    let el = $('mfx'); if (!el) { el = document.createElement('div'); el.id = 'mfx'; $('stagewrap').appendChild(el); }
+    const sq = (st.squad || []).filter(Boolean).slice(0, 3), al = ['sumv1_still', 'sumv3_still'].filter(k => ART[k]).map(k => `art/${k}.webp`), us = [`art/lordA.webp`, ...sq.map(id => `art/heroA_${id}.webp`)];
+    el.innerHTML = `<div class="mbg"></div><div class="mus">${us.map((u, i) => `<img class="mu u${i}" src="${u}" alt="" onerror="this.remove()">`).join('')}</div><div class="mboss"><img src="art/${img}.webp" alt=""></div><div class="mhp"><b>${name}</b><i><i></i></i></div><div class="mlayer"></div>`;
+    el.classList.add('on'); const lay = el.querySelector('.mlayer'), bar = el.querySelector('.mhp i i'), boss = el.querySelector('.mboss'), T0 = performance.now(), DUR = 6000; let hp = 1, done = false, n = 0;
+    const fin = () => { if (done) return; done = true; clearInterval(tm); bar.style.width = '0%'; boss.classList.add('down'); Snd.slam && Snd.slam(0.8); if (typeof S !== 'undefined') S.shake = Math.max(S.shake || 0, 14); const st2 = document.createElement('b'); st2.className = 'mwin'; st2.textContent = L.rw && L.rw.title ? L.rw.title : '격파!'; el.appendChild(st2); setTimeout(() => { el.classList.remove('on'); el.innerHTML = ''; then && then(); }, 1300); };
+    el.onclick = fin;
+    const tm = setInterval(() => { const t = performance.now() - T0; if (t > DUR) return fin(); const k = n++ % (us.length + 1), from = el.querySelector('.mu.u' + (k % us.length)), r0 = (from || el).getBoundingClientRect(), rb = boss.getBoundingClientRect(), re = el.getBoundingClientRect();
+      const p = document.createElement('i'); p.className = 'mshot s' + (k % 3); p.style.left = (r0.right - re.left - 10) + 'px'; p.style.top = (r0.top - re.top + r0.height * 0.35) + 'px'; p.style.setProperty('--dx', (rb.left - r0.right + rb.width * 0.4) + 'px'); p.style.setProperty('--dy', (rb.top + rb.height * 0.45 - r0.top - r0.height * 0.35) + 'px'); lay.appendChild(p);
+      if (from) { from.classList.remove('atk'); void from.offsetWidth; from.classList.add('atk'); }
+      setTimeout(() => { p.remove(); if (done) return; const big = Math.random() < 0.2, d = (big ? 0.11 : 0.055) * (0.85 + Math.random() * 0.3); hp = Math.max(0.03, hp - d);   /* 6초에 15번쯤 맞아 끝에 거의 바닥 */ bar.style.width = (hp * 100) + '%'; boss.classList.remove('hit'); void boss.offsetWidth; boss.classList.add('hit');
+        const nb = document.createElement('b'); nb.className = 'mnum' + (big ? ' big' : ''); nb.textContent = fmtD(JB.dps(st) * (big ? 6 : 2.5) * (0.8 + Math.random() * 0.4)); nb.style.left = (rb.left - re.left + rb.width * (0.25 + Math.random() * 0.5)) + 'px'; nb.style.top = (rb.top - re.top + rb.height * (0.2 + Math.random() * 0.3)) + 'px'; lay.appendChild(nb); setTimeout(() => nb.remove(), 800);
+        Snd.smp && Snd.smp('hit', big ? 0.5 : 0.3, 0, big ? 0.7 : 0.9 + Math.random() * 0.3); if (big && typeof S !== 'undefined') S.shake = Math.max(S.shake || 0, 7); }, 330); }, 380);
   },
   vsBuild(img, myName, name, sub, line) {   /* 11-16 11:39 대표님 「보스 VS 너무 허접해 · 등장이 · 좀 멋있게」: 어두워짐 → 붉은 번개 → 지배자 밀려 들어옴 → 보스가 위에서 쿵(흔들림 · 땅 갈라짐 · 먼지) → 금속 VS 박힘 + 불꽃 → 이름판 찍힘 → 보스 한마디 → 둘로 갈라지며 사라짐(2.5초 · 누르면 넘어감) */
     let el = $('vsfx'); if (!el) { el = document.createElement('div'); el.id = 'vsfx'; $('stagewrap').appendChild(el); }

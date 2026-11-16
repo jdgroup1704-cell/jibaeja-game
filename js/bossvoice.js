@@ -12,7 +12,7 @@ const BV = {
   place() {
     const e = document.getElementById('bvb'); if (!e || !e.classList.contains('on')) return;
     const g = S.giant, r = cv.getBoundingClientRect(), k = r.width / cv.width, M = ctx.getTransform ? null : null;
-    const wx = Math.min(g.x - 40, VW.x + VW.w * 0.62), wy = g.y - 330;   /* 보스 체력 막대 · 남은 시간 아래(덮었음) */
+    const wx = NARROW() ? g.x - 230 : Math.min(g.x - 40, VW.x + VW.w * 0.62), wy = NARROW() ? g.y - 250 : g.y - 330;   /* 16:12 폰: 말풍선이 보스 몸 · 얼굴을 덮었음 → 보스 왼쪽 옆 */   /* 보스 체력 막대 · 남은 시간 아래(덮었음) */
     const sx = r.left + (wx * view.s + view.ox) * k, sy = r.top + (wy * view.s + view.oy) * k;
     e.style.left = Math.max(r.left + 90, Math.min(r.right - 110, sx)) + 'px'; e.style.top = Math.max(r.top + 150, sy) + 'px';
   },
