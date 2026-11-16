@@ -287,10 +287,10 @@
   const ATT = [10, 10, 15, 15, 20, 20, 60];
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
   let attPop = meta.att.day !== today();
-  function claimAtt() { meta.att.n = (meta.att.n % 7) + 1; meta.att.day = today(); const v = ATT[meta.att.n - 1] + 5 * vipLv() + (meta.monthUntil && Date.now() < meta.monthUntil ? 50 : 0); meta.dia += v; if (meta.att.n === 7) meta.stone += 10; saveMeta(); attPop = false; sfx.chest(); townPop = { txt: '📅 출석 ' + meta.att.n + '일째!', sub: '💎 +' + v + (meta.att.n === 7 ? '   🔷 +10' : ''), t0: t }; if (meta.w30pop) { meta.w30pop = 0; saveMeta(); later2(130, () => { townPop = { txt: '🚩 시즌 2 · 모두 30층부터!', sub: '밸런스를 새로 맞췄어요 · 선물 💎230 · 🔷5 · 💰1.5만', t0: t }; }); } }
+  function claimAtt() { meta.att.n = (meta.att.n % 7) + 1; meta.att.day = today(); const v = ATT[meta.att.n - 1] + 5 * vipLv() + (meta.monthUntil && Date.now() < meta.monthUntil ? 50 : 0); meta.dia += v; if (meta.att.n === 7) meta.stone += 10; saveMeta(); attPop = false; sfx.chest(); townPop = { txt: '📅 출석 ' + meta.att.n + '일째!', sub: '💎 +' + v + (meta.att.n === 7 ? '   🔷 +10' : ''), t0: t }; if (meta.w30pop) { meta.w30pop = 0; saveMeta(); later2(130, () => { townPop = { txt: '🚩 시즌 2 · 모두 30층부터!', sub: '새 밸런스 · 선물 💎230 🔷5 💰1.5만', t0: t }; }); } }
   const later2 = (n, fn) => setTimeout(fn, n * 16);
   let townPop = null;
-  if (meta.w30pop && !attPop) { meta.w30pop = 0; townPop = { txt: '🚩 시즌 2 · 모두 30층부터!', sub: '밸런스를 새로 맞췄어요 · 선물 💎230 · 🔷5 · 💰1.5만', t0: 0 }; }
+  if (meta.w30pop && !attPop) { meta.w30pop = 0; townPop = { txt: '🚩 시즌 2 · 모두 30층부터!', sub: '새 밸런스 · 선물 💎230 🔷5 💰1.5만', t0: 0 }; }
   const DSHOP = [
     { e: '🔷', n: '강화석 10개', d: '장비 강화 재료', p: 50, f: () => { meta.stone += 10; } },
     { e: '🔨', n: '축복의 망치', d: '다음 강화 100% 성공', p: 60, f: () => { meta.hammer++; } },
@@ -790,7 +790,7 @@
       if (tg) {
         const n = 1 + Math.min(arrowLv, 2) + (arrowLv >= 5 ? 1 : 0) + (lvOf('star') ? 2 : 0), a0 = Math.atan2(tg.y - P.y, tg.x - P.x);
         for (let i = 0; i < n; i++) { const a = a0 + (i - (n - 1) / 2) * .14; shots.push({ k: 'arrow', x: P.x, y: P.y - 6, vx: Math.cos(a) * 8, vy: Math.sin(a) * 8, r: lvOf('star') ? 8 : 6, dmg: lvOf('star') ? 16 : 10, star: lvOf('star'), pierce: lvOf('star') ? 3 : arrowLv >= 4 ? 1 : 0, hit: new Set(), life: 70 }); }
-        sfx.shoot(); P.atkT = 34 * (arrowLv >= 3 ? .85 : 1); P.swing = 12; if (!P.moving || Math.abs(mx) < .1) P.face = tg.x > P.x ? 1 : -1; if (!P.moving) P.dirA = Math.atan2(tg.x - P.x, tg.y - P.y);
+        sfx.shoot(); P.atkT = 34 * (arrowLv >= 3 ? .85 : 1); P.swing = 12; P.swN = (P.swN || 0) + 1; fx.push({ k: 'slash', x: P.x, y: P.y, a: Math.atan2(tg.y - P.y, tg.x - P.x), life: 11, max: 11, alt: P.swN % 2 }); if (!P.moving || Math.abs(mx) < .1) P.face = tg.x > P.x ? 1 : -1; if (!P.moving) P.dirA = Math.atan2(tg.x - P.x, tg.y - P.y);
       } else P.atkT = 6;
     }
     if (lvOf('fire')) { P.fireT -= k; if (P.fireT <= 0) { const ts = targets().filter(e => dist(e, P) < 380); if (ts.length) { const tg = ts[Math.random() * ts.length | 0], a = Math.atan2(tg.y - P.y, tg.x - P.x); shots.push({ k: 'fire', x: P.x, y: P.y, vx: Math.cos(a) * 5.5, vy: Math.sin(a) * 5.5, r: lvOf('meteor') ? 15 : 9, met: lvOf('meteor'), dmg: (18 + lvOf('fire') * 10) * (lvOf('meteor') ? 2 : 1), life: 90, hit: new Set() }); P.fireT = Math.max(70, 150 - lvOf('fire') * 15) * (lvOf('meteor') ? .6 : 1); } else P.fireT = 10; } }
@@ -1228,7 +1228,8 @@
   function heroModel(X, Z, yaw, sc, flashW) {
     const tier = Math.min(GMAX, gearT() + [0, 1, 2, 3, 5, 99][vipLv()]), G = GEAR3[tier];
     const S1 = C(G.s1), S2 = C(G.s2), S3 = C(G.s3), CP = C(G.cp), CP2 = C(G.cp2), TR = C(G.tr);
-    const root = m4trs(X, 0, Z, yaw, 0, 0, sc, sc, sc);
+    const swing0 = state === 'play' && P.swing > 0 ? P.swing / 12 : 0, swAlt = (P.swN || 0) % 2, tw = swing0 ? Math.sin(swing0 * Math.PI) * (swAlt ? -.45 : .45) : 0;
+    const root = m4trs(X, 0, Z, yaw + tw, swing0 ? Math.sin(swing0 * Math.PI) * .12 : 0, 0, sc, sc, sc);
     const mv = P.moving && state === 'play', sw = mv ? Math.sin(P.walk * 1.4) * .6 : 0, br = mv ? 0 : Math.sin(t * .06) * .015;
     const em = flashW ? [.8, .8, .8] : EM0, o = { em }, temb = flashW ? em : tier >= 4 ? [.35, .15, .1] : [.15, .1, 0], tq = Math.min(tier, 6);
     [-1, 1].forEach(s => { const a = s * sw; part(root, 'box', s * .13, .3, Math.sin(a) * .1, .17, .42, .2, S3, { pitch: a, em }); part(root, 'box', s * .13, .07, Math.sin(a) * .2 + .03, .19, .14, .28, tier >= 2 ? S2 : LEATH, { em }); });
@@ -1252,12 +1253,31 @@
     else if (!G.horns) { part(root, 'box', 0, 1.56 + br, -.04, .07, .14 + (G.plumeTr ? .06 : 0), .34, G.plumeTr ? TR : CP, { pitch: .35 + Math.sin(t * .08) * .05, em: G.plumeTr ? temb : em });
       part(root, 'box', 0, 1.47 + br, -.28, .06, .1, .28, G.plumeTr ? TR : CP2, { pitch: .9, em }); }
     const swing = P.swing > 0 ? P.swing / 12 : 0;
-    const sp = state === 'play' ? (swing > 0 ? -1.9 + (1 - swing) * 2.6 : -.35) : -.2;
-    const sroot = m4mul(root, m4trs(.43, .66 + br, .1, 0, sp, 0)), bl = 1 + tq * .05;
-    part(sroot, 'box', 0, .55 * bl, 0, .07 + tq * .007, .86 * bl, .035, C(G.bl), { em: flashW ? em : G.be });
-    part(sroot, 'box', 0, .11, 0, .32 + tq * .025, .06, .08, TR, { em: [.1, .07, 0] });
+    const sp = state === 'play' ? (swing > 0 ? -2.1 + (1 - swing) * 2.9 : -.35) : -.2;
+    // 무기: 등급(색 · 장식) + 강화(길이 · 빛)
+    const wi = meta.item && meta.item.w, wg = wi ? wi.g : -1, wl = Math.min(50, meta.eq ? meta.eq.w : 0), pul = 1 + .25 * Math.sin(t * .15);
+    const gcw = wg >= 1 ? C(IG[wg][1]) : null, wem = gcw ? gcw.map(v => v * Math.min(1.15, .35 + wg * .18 + wl * .008) * pul) : G.be.map(v => v * (1 + wl * .03));
+    const sroot = m4mul(root, m4trs(.43, .66 + br, .1, swing > 0 ? Math.sin(swing * Math.PI) * (swAlt ? 1 : -1) * .9 : 0, sp, 0)), bl = (1 + tq * .05) * (1 + wl * .008) * (1 + Math.max(0, wg) * .06), bw = .07 + tq * .007 + Math.max(0, wg) * .012;
+    part(sroot, 'box', 0, .55 * bl, 0, bw, .86 * bl, .035, gcw ? gcw.map(v => .3 + v * .7) : C(G.bl), { em: flashW ? em : wem });
+    if (wg >= 3) part(sroot, 'box', 0, .55 * bl, 0, bw + .07, .9 * bl, .014, gcw, { em: gcw.map(v => v * 1.2 * pul), a: .4, noOut: 1 });
+    if (wg >= 2) part(sroot, 'cone', 0, 1.0 * bl, 0, bw * .9, .14, .035, gcw, { em: wem });
+    part(sroot, 'box', 0, .11, 0, .32 + tq * .025 + Math.max(0, wg) * .03, .06, .08, TR, { em: [.1, .07, 0] });
+    if (wg >= 2) part(sroot, 'oct', 0, .11, .06, .07, .07, .06, gcw, { em: gcw.map(v => v * 1.0) });
     part(sroot, 'box', 0, -.02, 0, .06, .2, .06, LEATH, o);
     part(sroot, 'sph', 0, -.13, 0, .05, .05, .05, TR, o);
+    if (wg >= 4) for (let i = 0; i < 3; i++) part(sroot, 'oct', Math.cos(t * .1 + i * 2.1) * .17, (.3 + i * .25) * bl, Math.sin(t * .1 + i * 2.1) * .17, .045, .09, .045, gcw, { em: gcw.map(v => v * 1.1), noOut: 1 });
+    if (wl >= 10) part(sroot, 'sph', 0, .98 * bl, 0, .1, .1, .1, gcw || TR, { em: [1.3, 1.2, .9], a: .55, noOut: 1 });
+    if (wl >= 20) part(sroot, 'sph', 0, .55 * bl, 0, .2, .5 * bl, .2, gcw || TR, { em: (gcw || [1, .9, .6]).map(v => v * 1.2 * pul), a: .16, noOut: 1 });
+    // 방패 (갑옷 칸): 등급(색 · 문장 · 가시) + 강화(크기)
+    const ai = meta.item && meta.item.a, ag = ai ? ai.g : -1, al = Math.min(50, meta.eq ? meta.eq.a : 0), gca = ag >= 1 ? C(IG[ag][1]) : null, shs = 1 + al * .006 + Math.max(0, ag) * .05, shy = .78 + br, sha = .55 - (mv ? Math.sin(P.walk * 1.4) * .08 : 0);
+    part(root, 'box', -.47, shy, .19, .46 * shs, .56 * shs, .04, TR, { yaw: sha, em: temb });
+    part(root, 'box', -.475, shy, .21, .4 * shs, .5 * shs, .05, gca ? gca.map(v => .12 + v * .8) : tier >= 1 ? S2 : C('#8a6a4a'), { yaw: sha, em: flashW ? em : gca ? gca.map(v => v * (.15 + ag * .12)) : EM0 });
+    part(root, 'oct', -.5, shy, .26, .1 * shs, .15 * shs, .05, gca || TR, { yaw: sha, em: gca ? gca.map(v => v * .9 * pul) : [.2, .15, 0] });
+    if (ag >= 3) [-1, 1].forEach(s => part(root, 'cone', -.47 + s * .17 * shs, shy + .3 * shs, .2, .04, .14, .04, TR, { em: temb }));
+    if (ag >= 4) part(root, 'sph', -.48, shy, .22, .34 * shs, .4 * shs, .1, gca, { em: gca.map(v => v * .9 * pul), a: .22, noOut: 1 });
+    // 반지: 떠다니는 보석
+    const ri = meta.item && meta.item.r, rg = ri ? ri.g : -1;
+    if (ri) { const gcr = C(IG[rg][1]), nr = rg >= 4 ? 3 : rg >= 2 ? 2 : 1; for (let i = 0; i < nr; i++) { const a = t * .05 + i * 6.28 / nr; part(root, 'oct', Math.cos(a) * .62, 1.1 + Math.sin(t * .08 + i) * .07 + br, Math.sin(a) * .62, .06 + rg * .008, .1 + rg * .012, .06 + rg * .008, gcr, { em: gcr.map(v => v * .85), noOut: 1 }); } }
   }
   function enemyModel(e) {
     const X = wx(e.x), Z = wz(e.y), yaw = Math.atan2(P.x - e.x, P.y - e.y), fl = e.flash > 0, em = fl ? [.9, .9, .9] : EM0;
@@ -2038,7 +2058,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116164332'; let updReady = null;
+  const BUILD = '1116165208'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2292,6 +2312,13 @@
   const _drawHUDab = drawHUD;
   drawHUD = function () { if (floor > 100 && (state === 'play' || state === 'levelup')) { const X0 = -ox / scale, Y0 = -oy / scale, FW = innerWidth / scale, FH = innerHeight / scale; ctx.fillStyle = 'rgba(70,10,120,.13)'; ctx.fillRect(X0, Y0, FW, FH); const g = ctx.createRadialGradient(W / 2, H / 2, 200, W / 2, H / 2, 520); g.addColorStop(0, 'rgba(20,0,40,0)'); g.addColorStop(1, 'rgba(30,0,60,.55)'); ctx.fillStyle = g; ctx.fillRect(X0, Y0, FW, FH); }
     _drawHUDab(); if (floor > 100 && state === 'play') txt('🌌 심연', W / 2 + 30, 68, 12, '#d8a8ff'); };
+
+  const _drawHUDsl = drawHUD;
+  drawHUD = function () { if (gl) for (const f of fx) if (f.k === 'slash') { const [cx, cy] = project(P.x, P.y, .9), q = 1 - f.life / f.max, wi = meta.item && meta.item.w, wg = wi ? wi.g : 0, col = wg >= 1 ? IG[wg][1] : '#e8f4ff', R0 = 44 + wg * 5 + Math.min(50, meta.eq.w) * .4, dir = f.alt ? 1 : -1, a0 = f.a - dir * 1.25 + dir * q * 1.3, a1 = a0 + dir * 1.25;
+      ctx.save(); ctx.translate(cx, cy); ctx.scale(1, .62); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+      for (let j = 0; j < (wg >= 3 ? 3 : 2); j++) { ctx.globalAlpha = (1 - q) * (j ? .55 : .9); ctx.strokeStyle = j === 0 ? '#ffffff' : col; ctx.lineWidth = j === 0 ? 3 : 11 * (1 - q * .5) + j * 4; ctx.beginPath(); ctx.arc(0, 0, R0 + j * 7 + q * 10, Math.min(a0, a1), Math.max(a0, a1)); ctx.stroke(); }
+      ctx.restore(); ctx.globalAlpha = 1; }
+    _drawHUDsl(); };
   const _drawHUDme = drawHUD;
   drawHUD = function () { if (gl && state === 'play' && (hazards.length > 2 || ebul.length > 10 || fx.some(f => f.k === 'vfx' || f.k === 'vfx2'))) { const [px, py] = project(P.x, P.y, 0), [, hy] = project(P.x, P.y, 2.2); ctx.save(); ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(px, py, 20, 11, 0, 0, 7); ctx.stroke(); ctx.strokeStyle = '#7dffb0'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(px, py, 20, 11, 0, 0, 7); ctx.stroke();
       const ay = hy - 16 + Math.sin(t * .2) * 3; ctx.fillStyle = '#7dffb0'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px, ay + 9); ctx.lineTo(px - 7, ay); ctx.lineTo(px + 7, ay); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
@@ -2403,7 +2430,7 @@
   })();
   window.__updCheck = updCheck;
 
-  window.__dh = { autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive, get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
+  window.__dh = { get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive, get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
 })();
 </script>
 </body>
