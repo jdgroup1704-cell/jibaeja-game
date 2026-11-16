@@ -55,6 +55,7 @@ const C = {
   FIRST_GIANT: 2,           // 처음 켠 사람이 대마법을 빨리 맛보게: 이 판에 딱 한 번 거대한 적(0이면 끔)
   GACHA_COST: 50, GACHA10_COST: 450, PITY: 80,
   GEM_BOSS_FIRST: 30, GEM_AWAKEN: 150,
+  DEX_REWARD: [[2, 30], [4, 60], [8, 120], [12, 200], [16, 400]],   // 11-16 순서 #14 망자 도감 모은 칸 수마다 마정석(받기 단추) — 전엔 공격 배수만 있고 모으는 맛이 없었음
   BONE_PER_STAGE: 1, BONE_BOSS: 4,
   GACHA_BLOCKED_COUNTRIES: ['BE', 'NL'],
   DIRECT_PRICE: { N: 60, R: 200, SR: 900, SSR: 4500 },
@@ -413,6 +414,9 @@ const regionIdx = s => Math.floor((Math.max(1, s) - 1) / 10) % C.RISE.regions;
 const dexOf = st => (st.dex = st.dex || { k: new Array(C.RISE.regions).fill(0), f: new Array(C.RISE.regions).fill(false), l: new Array(C.RISE.regions).fill(false), lt: new Array(C.RISE.regions).fill(0) });
 function riseFoe(st, ev) { const d = dexOf(st), r = regionIdx(st.stage); d.k[r]++; if (!d.f[r] && d.k[r] >= C.RISE.foe) { d.f[r] = true; ev.push({ e: 'riseFoe', r }); } }
 function riseLord(st, ev, stage, rnd = Math.random) { if (!isLord(stage)) return; const d = dexOf(st), r = regionIdx(stage); if (d.l[r]) return; d.lt[r]++; if (rnd() < C.RISE.lordP || d.lt[r] >= C.RISE.lordPity) { d.l[r] = true; ev.push({ e: 'riseLord', r }); } }
+const dexCount = st => { const d = dexOf(st); return d.f.filter(Boolean).length + d.l.filter(Boolean).length; };
+const dexClaimable = st => C.DEX_REWARD.filter(([n], i) => dexCount(st) >= n && !(st.dexGot || [])[i]).length;
+function dexClaim(st, i) { const R = C.DEX_REWARD[i]; if (!R) return 0; st.dexGot = st.dexGot || []; if (st.dexGot[i] || dexCount(st) < R[0]) return 0; st.dexGot[i] = 1; st.gems += R[1]; return R[1]; }
 const dexMul = st => { const d = st.dex; if (!d) return 1; return 1 + C.RISE.foeMul * d.f.filter(Boolean).length + C.RISE.lordMul * d.l.filter(Boolean).length; };
 const evoMul = st => { const e = st.evo || []; let m = 1; for (let L = 1; L <= C.EVO.max; L++) m += (e[L] || 0) * C.EVO.bonus[L]; return m; };
 function bossDown(st, ev) {
@@ -693,7 +697,7 @@ function shopBuy(st, id, now) {
   st.gems += g.gems; st.bones += g.bones; S.bought[id] = (S.bought[id] || 0) + 1; addVip(st, P.won / 10); return g;
 }
 const SHOP = [{ id: 'crown119', won: [119000] }, { id: 'abyss59', won: [59000] }, { id: 'vault33', won: [33000] }, { id: 'lordPack', won: [5900] }, { id: 'skinSera', won: [9900] }, { id: 'wpStone', won: [3300] }, { id: 'first', won: [1500] }, { id: 'day1', won: [1500, 5900, 12000] }, { id: 'monthGem', won: null }, { id: 'monthBone', won: null }, { id: 'fund', won: null }, { id: 'noAds', won: null }];
-root.JB = { thrallMul, trOpen, trCost, starMul, heroStar, transcend, chantMul, MAIL, mailOf, mailList, mailClaim, backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
+root.JB = { dexCount, dexClaimable, dexClaim, thrallMul, trOpen, trCost, starMul, heroStar, transcend, chantMul, MAIL, mailOf, mailList, mailClaim, backGift, WEEK, weekOf, weekReady, weekClaim, LOGIN, loginOf, loginCan, loginRow, loginClaim, regionIdx, dexOf, riseFoe, riseLord, dexMul, ROLE, TRAITS, bossTraits, matchMul, bestSquad, evoMul, evoGain, evoAd, skinOwned, wearSkin, skinMul, weaponUp, weaponCost, vipLv, addVip, SHOP, squadFit, C, RARITY, HEROES, BONDS, bondsOn, FIRST_HERO, HERO_MAX_LV, SQUAD, UPGRADES, CLASSES, GRADES, GRADE_POWER, ALTAR, SPELLS, RANKS, MISSIONS,
   isBoss, isLord, waveHp, waveSouls, upCost, unlocked, heroBonus, armyCap, armySize, unitAtk, graveMul, dps, spellDamage, spellCd, soulMul, sigilsFor, awakenStage, rankOf,
   newState, startWave, tick, retryBoss, canCast, beginCast, landSpell, spellUnlocked, buy, raiseTap,
   altarTable, raiseGrave, keepGrave, scrapGrave, altarUp, altarTick, heroById, country, gachaAllowed, probTable, grant, firstHero, pull, directBuy, setSquad,

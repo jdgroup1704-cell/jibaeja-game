@@ -99,7 +99,7 @@ const UI = {
     if (UI.awakening || document.getElementById('modal').style.display === 'flex') return false;
     let el = $('vsfx'); if (!el) { el = document.createElement('div'); el.id = 'vsfx'; $('stagewrap').appendChild(el); }
     const nm = L.boss.name(L.regions[regionOf(st.stage)], lord), lk = 'lordA';   /* 01:55 그림체 A 지배자(오른쪽을 봄 = 보스와 마주 봄) */
-    el.innerHTML = `<div class="vl"><img src="art/${lk}.webp" alt=""><span>${L.vs.me}</span></div><div class="vr"><img src="art/foeA4.webp" alt=""><span>${nm}</span></div><b class="vsx">${L.vs.x}</b><div class="vsw">${lord ? L.boss.lord : L.boss.arrive}</div>`;
+    el.innerHTML = `<div class="vl"><img src="art/${lk}.webp" alt=""><span>${L.vs.me}</span></div><div class="vr"><img src="art/bossV.webp" alt=""><span>${nm}</span></div><b class="vsx">${L.vs.x}</b><div class="vsw">${lord ? L.boss.lord : L.boss.arrive}</div>`;
     el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); clearTimeout(this.vsT); this.vsT = setTimeout(() => el.classList.remove('go'), 1750);
     Snd.slam && setTimeout(() => Snd.slam(0.5), 330); return true;
   },
@@ -154,6 +154,7 @@ const UI = {
       if (!r.sweep) Snd.smp('win', 0.9); if (r.sweep || !conquestFx(L.dun.win(r.L), '', arg === 'gem' ? '#bff4ff' : arg === 'bone' ? '#ffe9b8' : '#e9dcff', arg === 'gem' ? '#29c6ff' : arg === 'bone' ? '#d99a2b' : '#8a3cff', 'conquer')) { S.shake = Math.max(S.shake || 0, 6); Snd.chime && Snd.chime(1319); } Snd.smp('summon', 0.6); const R = r.r, t = R.souls ? `${L.souls} +${fmt(R.souls)}` : R.bones ? `${L.bones} +${R.bones}` : `${L.gems} +${R.gems}`;
       this.openModal(`<div class="dwin"><h3>${r.sweep ? L.dun.swept : L.dun.win(r.L)}</h3><img src="art/${r.r.souls ? 'i_soul' : r.r.bones ? 'i_bone' : 'i_gem'}.webp" alt=""><p class="big">${t}</p></div>`); this.render(true); return; }
     if (a === 'dunAd') { EX.ad(() => { JB.dunAd(st, arg); this.render(true); }); return; }
+    if (a === 'dex' && typeof DEX !== 'undefined') { DEX.open(); return; }   /* 11-16 #14 그림 카드 도감(dex.js) */
     if (a === 'dex') { const d = JB.dexOf(st), R = JB.C.RISE; this.openModal(`<h3>${L.rise.dex}</h3><p class="muted">${L.rise.hint}</p><table><tr>${L.rise.cols.map(c => `<th>${c}</th>`).join('')}</tr>${L.regions.map((n, i) => `<tr><td>${n}</td><td class="${d.f[i] ? 'good' : 'muted'}">${d.f[i] ? L.rise.done : L.rise.kills(Math.min(d.k[i], R.foe), R.foe)}</td><td class="${d.l[i] ? 'good' : 'muted'}">${d.l[i] ? L.rise.done : d.lt[i] ? L.rise.tries(d.lt[i], R.lordPity) : L.rise.locked}</td></tr>`).join('')}</table>`); return; }
     if (a === 'wpAll') { let n = 0; for (let k = 0; k < 200; k++) { const ids = st.squad.filter(id => id && st.heroes[id]).sort((x, y) => JB.weaponCost(st.heroes[x].wp || 0) - JB.weaponCost(st.heroes[y].wp || 0)); let ok = false; for (const id of ids) if (JB.weaponUp(st, id) === 'ok') { n++; ok = true; break; } if (!ok) break; }   /* 일괄 강화: 진형 수하 무기를 가장 싼 것부터 살 수 있는 만큼 */
       this.toast(L.weapon.allTitle, n ? L.weapon.allDone(n) : L.weapon.allNone); if (n) { Snd.stamp && Snd.stamp(0.5); Snd.chime(1175); } this.render(true); return; }
@@ -250,9 +251,9 @@ const UI = {
     setTimeout(() => heroSay('win'), 1500);
   },
 
-  finger() {   /* 03:58 처음 1분 손가락 안내(대표님 순서 목록): 첫 각성 전 12판까지, 지금 눌러야 할 단추 하나를 손가락이 톡톡 두드림. 창이 열리면 숨김 */
+  finger() {   /* 11-16 08:44 「화면 난리」: 대마법 영창 중에도 손가락이 「일으켜라」를 두드리고 있었음 → 영창 · 노려보기 땐 숨김 */   /* 03:58 처음 1분 손가락 안내(대표님 순서 목록): 첫 각성 전 12판까지, 지금 눌러야 할 단추 하나를 손가락이 톡톡 두드림. 창이 열리면 숨김 */
     let f = $('finger'); if (!f) { f = document.createElement('div'); f.id = 'finger'; f.innerHTML = '<i class="rp"></i><img src="art/finger.webp" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'b\'),{textContent:\'👆\'}))">'; document.body.appendChild(f); }
-    const early = !AUTO && !TRAILER && (!st.awakens && (st.best < 20 || JB.canAwaken(st)) || st.awakens === 1 && st.best < 8),   /* 첫 각성 바로 뒤 8판까지도: 강화가 처음으로 돌아간 걸 손가락으로 한 번 더(봇: 각성 뒤 3분 동안 강화 0) */   /* 05:30 첫 벽(15판)까지 */   /* 11-15 처음 10분 봇: 20판에 「각성할 수 있어요!」 글만 뜨고 손가락이 꺼져 3분 넘게 19↔20판을 오감(첫 각성을 못 찾음) → 첫 각성까지 각성 탭 · 각성 단추를 짚음 */ modal = $('modal') && $('modal').style.display === 'flex' || document.querySelector('.vsfx.on, #cutin.on');
+    const early = !AUTO && !TRAILER && S.phase !== 'cast' && S.phase !== 'stare' && (!st.awakens && (st.best < 20 || JB.canAwaken(st)) || st.awakens === 1 && st.best < 8),   /* 첫 각성 바로 뒤 8판까지도: 강화가 처음으로 돌아간 걸 손가락으로 한 번 더(봇: 각성 뒤 3분 동안 강화 0) */   /* 05:30 첫 벽(15판)까지 */   /* 11-15 처음 10분 봇: 20판에 「각성할 수 있어요!」 글만 뜨고 손가락이 꺼져 3분 넘게 19↔20판을 오감(첫 각성을 못 찾음) → 첫 각성까지 각성 탭 · 각성 단추를 짚음 */ modal = $('modal') && $('modal').style.display === 'flex' || document.querySelector('.vsfx.on, #cutin.on');
     let t = null; if (early && !modal && JB.canAwaken(st) && !this.awakening) t = this.tab === 'awaken' ? document.querySelector('#tabbody [data-act="awaken"]:not([disabled])') : document.querySelector('#tabs [data-tab="awaken"]');
     if (!t && early && !modal) { const rb = $('raiseBtn'); t = rb && rb.style.display === 'block' ? rb : S.phase === 'prompt' ? $('cast') : document.querySelector('#tabbody .btn.hint:not([disabled]), #tabbody .ucard.hint, #tabs button.hint, #tools .hint');
       if (!t) {   /* 05:25 처음 5분 따라 하기: 안내 글이 끝난 뒤(군단이 알아서…를 세 번 보여 준 뒤) 살 수 있는 강화가 있어도 손가락이 사라져 28초 멈춤 · 군단 탭에서 뼛조각 76개를 들고 멈춤 → 지금 할 수 있는 것 하나를 계속 짚음 */
@@ -392,7 +393,7 @@ const UI = {
     const dex = JB.dexOf(st), dn = dex.f.filter(Boolean).length + dex.l.filter(Boolean).length;
     const evo = JB.armySize(st) >= JB.C.EVO.minArmy ? `<div class="row ur"><img class="uic" src="art/cls0.webp" alt=""><div class="grow"><div class="nm">${L.evo.title} <span class="lvb">${L.evo.mul(JB.evoMul(st).toFixed(2))}</span></div><div class="bar2"><i style="width:${(st.evoXp || 0) / JB.C.EVO.waves * 100}%"></i></div><div class="ds">${L.evo.next(JB.C.EVO.waves - (st.evoXp || 0))}</div></div><button class="btn buy gold" data-act="evoAd" ${(st.evoAd || 0) >= JB.C.EVO.adMax ? 'disabled' : ''}>${L.ui.evoAdShort}<small>${st.evoAd || 0}/${JB.C.EVO.adMax}</small></button></div>` : '';
     const lsn = JB.LSKINS.filter(s => JB.lskinOwned(st, s.id)).length;
-    const chips = `<div class="chips"><button class="chip2 lsk" data-act="lskin">${L.lskin.chip(lsn, JB.LSKINS.length, Math.round(JB.lskinBonus(st) * 100))} ›</button><button class="chip2" data-act="dex">${L.ui.dexChip(dn, JB.C.RISE.regions * 2, JB.dexMul(st).toFixed(2))}</button><button class="chip2 pwr" data-act="power">${L.power.chip} ›</button></div>`;
+    const chips = `<div class="chips"><button class="chip2 lsk" data-act="lskin">${L.lskin.chip(lsn, JB.LSKINS.length, Math.round(JB.lskinBonus(st) * 100))} ›</button><button class="chip2${JB.dexClaimable && JB.dexClaimable(st) ? ' dot' : ''}" data-act="dex">${L.ui.dexChip(dn, JB.C.RISE.regions * 2, JB.dexMul(st).toFixed(2))}</button><button class="chip2 pwr" data-act="power">${L.power.chip} ›</button></div>`;
     return head + rows + this.gearBox() + evo + chips;
   },
   gearBox() {   /* 22:50 지배자 장비 6칸: 등급 색 테두리 · +강화 · 효과. 아래에 뽑기 · 광고 · 모두 강화 */

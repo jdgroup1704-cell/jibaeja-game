@@ -396,11 +396,11 @@ const LM = {
     if (this.bN % 4 === 0 && !UI.awakening) { this.bigSlash(bossOn); return; }   /* 09:20 대표님 갓깨비 사진: 화면을 가로지르는 큰 칼 궤적 · 쌓이는 큰 숫자 */
     const shots = this.bN % 3 === 0 ? 2 : 1;
     for (let j = 0; j < shots; j++) {
-      const vw = !window.LORDV_OK && need('lordw_attack') && JB.vipLv(st) < 5 && this.bN % 2 === 0 && !(S.lord.raise > 0.05), s = vw ? { x: 196 + LDX() + 10 + 239, y: 560 + 34 - 228 } : this.staff(), crit = Math.random() < 0.15, dy = rnd(-120, -40) - j * 40;   /* 10:05 영상 지배자: 내지른 보석 자리(줄그림 4번째 칸에서 잼)에서, 내지르는 순간(0.12초 뒤)에 발사 */
+      const vw = !window.LORDV_OK && window.LORDW_OK && need('lordw_attack') && JB.vipLv(st) < 5 && this.bN % 2 === 0 && !(S.lord.raise > 0.05), s = vw ? { x: 196 + LDX() + 10 + 239, y: 560 + 34 - 228 } : this.staff(), crit = Math.random() < 0.15, dy = rnd(-120, -40) - j * 40;   /* 10:05 영상 지배자: 내지른 보석 자리(줄그림 4번째 칸에서 잼)에서, 내지르는 순간(0.12초 뒤)에 발사 */
       this.fx.push({ kind: 'orb', x0: s.x, y0: s.y, t: tgt, dy, age: -j * 0.12 - (vw ? 0.12 : 0), life: 0.22 + 0.28, hitAt: 0.22, col: crit ? '#ffd76a' : '#c58bff', crit, land: () => this.orbHit(tgt, crit) });
     }
     S.lord.shotT = 0.28; S.lord.glow = Math.max(S.lord.glow || 0, 0.6);
-    if (!(!window.LORDV_OK && need('lordw_attack') && JB.vipLv(st) < 5 && this.bN % 2 === 0)) { const s = this.staff(); burst(s.x, s.y, 6, { col: ['#ffffff', '#c58bff'], vmin: 60, vmax: 200, up: 20, lmax: 0.25, smin: 2, smax: 4 }); }
+    if (!(!window.LORDV_OK && window.LORDW_OK && need('lordw_attack') && JB.vipLv(st) < 5 && this.bN % 2 === 0)) { const s = this.staff(); burst(s.x, s.y, 6, { col: ['#ffffff', '#c58bff'], vmin: 60, vmax: 200, up: 20, lmax: 0.25, smin: 2, smax: 4 }); }
     Snd.smp && Snd.smp('soul', 0.38, 0, rnd(1.5, 1.8));   /* 11-16 순서 #8 효과음재기: 지배자 지팡이 한 발 소리가 -46.6dB로 안 들렸음(초당 0.9번 나는 주인공 소리) → -36.6 */
   },
   bigSlash(bossOn) {   /* 지배자 앞에서 적 무리를 가로질러 큰 초승달 궤적(보라 → 흰빛), 맞은 적마다 숫자 3줄이 쌓임 · 쓰러지면 뼈 · 갑옷 조각이 사방으로 */

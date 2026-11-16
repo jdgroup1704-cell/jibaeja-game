@@ -621,6 +621,26 @@
   #tools button.lch .lbar{position:absolute;left:8px;right:8px;bottom:2px;height:3px;border-radius:2px;background:#0008;overflow:hidden}
   #tools button.lch .lbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#b58cff,#ffd76a)}
   #tools button.lch.ready img.ic{animation:lchb 1.6s ease-in-out infinite}
+  .dxtop{text-align:center;color:#e8dcff;margin:-4px 0 8px}.dxtop b{color:#ffd76a;font-size:20px}   /* 11-16 #14 망자 도감 그림 카드 */
+  .dxms{display:flex;gap:6px;justify-content:center;margin-bottom:8px}
+  .dxm{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px;border-radius:10px;border:1px solid #5b3a8a;background:#1c0d33;color:#bfa8e8;font:700 11px sans-serif}
+  .dxm b{font-size:15px;color:#e8dcff}.dxm span{display:flex;align-items:center;gap:2px;color:#fff3c4}.dxm span img{width:14px;height:14px}.dxm i{font-style:normal;font-size:10px}
+  .dxm.can{border-color:#ffd76a;background:linear-gradient(180deg,#5a3a10,#2a1a05);box-shadow:0 0 10px #ffb02088;animation:hintp 1s ease-in-out infinite;color:#ffe9a8}
+  .dxm.got{opacity:.5}
+  .dxg{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto}
+  .dxr h4{margin:0 0 3px;font-size:13px;color:#d9c8ff}
+  .dxp{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .dxc{position:relative;height:74px;border-radius:10px;background-size:cover;background-position:center;overflow:hidden;border:1px solid #3a2560;filter:grayscale(1) brightness(.45);display:flex;flex-direction:column;justify-content:flex-end;padding:4px 7px 9px;color:#fff}
+  .dxc.on{filter:none;border-color:#b87cff;box-shadow:0 0 10px #8a3cffaa inset,0 0 8px #8a3cff88}
+  .dxc::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(80,30,150,.42),rgba(40,10,80,.55) 45%,rgba(10,2,24,.9));mix-blend-mode:normal}   /* 지도 그림(밝은 유화풍)을 어두운 보랏빛에 맞춤 */
+  .dxc.on::before{background:linear-gradient(180deg,rgba(120,50,220,.38),rgba(50,15,100,.55) 45%,rgba(10,2,24,.88))}
+  .dxc>*{position:relative}
+  .dxc em{position:absolute;right:7px;top:3px;font-style:normal;font-size:20px;text-shadow:0 0 8px #b87cff}
+  .dxc b{font-size:14px}.dxc small{font-size:11px;color:#e8dcff}
+  .dxc s{position:absolute;left:7px;top:5px;text-decoration:none;font:800 11px sans-serif;color:#ffe9a8}
+  .dxc u{position:absolute;left:0;right:0;bottom:0;height:4px;background:#ffffff22}
+  .dxc u::after{content:"";position:absolute;left:0;top:0;bottom:0;width:calc(var(--p) * 100%);background:linear-gradient(90deg,#8a3cff,#d9a8ff)}
+  .chip2.dot{position:relative}.chip2.dot::after{content:"";position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:#ff4a4a;box-shadow:0 0 6px #ff4a4a}
   .rwban{position:fixed;z-index:9;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;text-align:center;padding:10px 22px 12px;border-radius:16px;background:linear-gradient(180deg,rgba(60,20,110,.94),rgba(22,6,44,.94));border:2px solid #ffd76a;box-shadow:0 0 24px rgba(255,180,60,.55),0 6px 18px rgba(0,0,0,.6);animation:rwin .35s cubic-bezier(.2,1.6,.4,1) forwards;transition:opacity .35s,transform .35s;white-space:nowrap}   /* 11-16 #12 보스 격파 받은 것 띠 */
   .rwban.out{opacity:0!important;transform:translate(-50%,-80%) scale(.9)!important}
   .rwban b{display:block;font:900 30px sans-serif;color:#ffe9a8;text-shadow:0 0 10px #ff9a2a,0 2px 2px #000;letter-spacing:1px}
@@ -815,7 +835,7 @@
     <!-- 11-14 17:55 「그림 비교 ①②③④」 시험 단추 지움: ③ 예전 개선 + 영상 장면으로 정함(16:30). 시험할 땐 주소에 ?style=2d 처럼 -->
     <button id="reraise"></button>
     <div id="testbar"></div>
-    <div id="ver">판 11-16 08:41</div>
+    <div id="ver">판 11-16 09:11</div>
   </div>
   <div id="grip"><i></i></div>
   <div id="skillbar"><button id="raiseBtn"></button><div id="slots"></div><button id="cast"></button></div>
@@ -829,23 +849,24 @@
 </div>
 <div id="modal"><div class="box"></div></div>
 <script>window.BUILD = '1115102811';</script>   <!-- 11-14 18:12 대표님 「바뀐 새 버전 줘, 저장된 거 주지 말고 첫 시작」: 판마다 저장 이름이 달라 새 판은 늘 1-1부터 -->
-<script src="lang_ko.js?v=1794786062"></script>
-<script src="balance.js?v=1794786062"></script>
-<script src="logic.js?v=1794786062"></script>
-<script src="js/base.js?v=1794786062"></script>
-<script src="js/sound.js?v=1794786062"></script>
-<script src="js/art.js?v=1794786062"></script>
-<script src="js/draw.js?v=1794786062"></script>
-<script src="js/director.js?v=1794786062"></script>
-<script src="js/field.js?v=1794786062"></script>
-<script src="js/thrall.js?v=1794786062"></script>
-<script src="js/brag.js?v=1794786062"></script>
-<script src="js/bosscharge.js?v=1794786062"></script>
-<script src="js/reward.js?v=1794786062"></script>
-<script src="js/ui.js?v=1794786062"></script>
-<script src="js/extra.js?v=1794786062"></script>
-<script src="js/social.js?v=1794786062"></script>
-<script src="js/legal.js?v=1794786062"></script>
-<script src="js/main.js?v=1794786062"></script>
+<script src="lang_ko.js?v=1794787900"></script>
+<script src="balance.js?v=1794787900"></script>
+<script src="logic.js?v=1794787900"></script>
+<script src="js/base.js?v=1794787900"></script>
+<script src="js/sound.js?v=1794787900"></script>
+<script src="js/art.js?v=1794787900"></script>
+<script src="js/draw.js?v=1794787900"></script>
+<script src="js/director.js?v=1794787900"></script>
+<script src="js/field.js?v=1794787900"></script>
+<script src="js/thrall.js?v=1794787900"></script>
+<script src="js/brag.js?v=1794787900"></script>
+<script src="js/bosscharge.js?v=1794787900"></script>
+<script src="js/reward.js?v=1794787900"></script>
+<script src="js/dex.js?v=1794787900"></script>
+<script src="js/ui.js?v=1794787900"></script>
+<script src="js/extra.js?v=1794787900"></script>
+<script src="js/social.js?v=1794787900"></script>
+<script src="js/legal.js?v=1794787900"></script>
+<script src="js/main.js?v=1794787900"></script>
 </body>
 </html>

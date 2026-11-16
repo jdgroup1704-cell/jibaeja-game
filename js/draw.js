@@ -680,7 +680,7 @@ function drawLordA(L) {   /* 01:58 그림체 A 지배자: 숨쉬기 · 영창 �
   if (L.shotT > 0) L.shotT = Math.max(0, L.shotT - 1 / 60);
   const sp = L.shotT > 0 ? 1 - L.shotT / 0.28 : 1, at = sp < 1 ? (sp < 0.3 ? -sp / 0.3 * 0.4 : sp < 0.45 ? -0.4 + 1.4 * (sp - 0.3) / 0.15 : (1 - (sp - 0.45) / 0.55)) : 0;   /* 09:58 기본 공격: 살짝 뒤로 젖혀 모았다(0.08초) → 앞으로 쿡 내밀며 지팡이 구슬에서 발사 → 천천히 돌아옴 */
   const br = 1 + 0.016 * Math.sin(S.t * 2.2), r = L.raise || 0, pk = Math.max(L.poke > 0 ? Math.sin(Math.min(1, L.poke / 0.25) * Math.PI) : 0, at), h = 330 * (1 + 0.05 * r), w = h * im.width / im.height;
-  const LW = need('lordw_attack'); if (LW && L.shotT > 0.2 && !(L.wA > 0) && r < 0.05 && (LM.bN || 0) % 2 === 0) L.wA = 0.6;   /* 두 번에 한 번만 크게 내지름(작게 쿡 → 크게 쭉, 박자) — 0.85초마다 큰 번쩍이면 화면이 덮임 */ if (L.wA > 0) L.wA -= 1 / 60;
+  const LW = window.LORDW_OK ? need('lordw_attack') : null;   /* 11-16 08:44 대표님 「지배자 뒤돌아 때리고」: 이 영상 2~5번째 장면에서 몸을 뒤로 돌림 · 지팡이 둘레 초록 얼룩 · 보라 불꽃이 칸 끝에서 잘림 → 안 씀(깨끗한 정지 그림을 앞으로 쿡 내지름) */ if (LW && L.shotT > 0.2 && !(L.wA > 0) && r < 0.05 && (LM.bN || 0) % 2 === 0) L.wA = 0.6;   /* 두 번에 한 번만 크게 내지름(작게 쿡 → 크게 쭉, 박자) — 0.85초마다 큰 번쩍이면 화면이 덮임 */ if (L.wA > 0) L.wA -= 1 / 60;
   if (LW && L.wA > 0) {   /* 영상 내지르기 0.6초: 모음 → 앞으로 쭉 내질러 보석 번쩍 → 돌아옴, 끝 2장은 정지 그림과 섞어 이음 */
     const fi = (1 - L.wA / 0.6) * 15, pf = ctx.filter; L.pkx = 0; ctx.save(); ctx.translate(10, 34);
     if (fi < 14) vsDraw('lordw', 'attack', fi, 330, st.lskin && typeof LSF !== 'undefined' && LSF[st.lskin] ? LSF[st.lskin] : '', 0, false);

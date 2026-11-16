@@ -2,7 +2,7 @@
 // 연출 감독: 게임 규칙(JB)에서 일어난 일을 받아 화면(S)과 소리로 보여 줌
 let st;                 // 게임 상태(규칙)
 let S;                  // 화면 상태
-const RC = { get x() { return BX; }, y: 220 };   // 마법진 가운데
+const RC = { get x() { return BX; }, get y() { return typeof VW !== 'undefined' && NARROW() ? Math.max(220, VW.y + 270) : 220; } };   /* 11-16 08:44 「영창 깨지고」: 휴대폰에선 마법진 위가 화면 밖으로 잘리고 안내 말풍선과 겹침 → 보이는 윗줄에서 270 아래로 */   // 마법진 가운데
 // 대마법 시간표: 긴 연출(첫 사용·지역의 주인)과 짧은 연출(평소)
 const TC_LONG = { l1: 0.4, l2: 3.75, r1: 3.85, r2: 4.55, r3: 5.5, name: 6.4, kou: 8.05, flash: 8.55 };
 const TC_SHORT = { l1: -1, l2: -1, r1: 0.15, r2: 0.3, r3: 0.45, name: 0.1, kou: 1.75, flash: 2.6 };
@@ -39,7 +39,7 @@ function burst(x, y, n, o) {
   }
 }
 /* 11-14 17:45 휴대폰 세로에서 대마법 마법진이 오른쪽에서 잘리던 것(녹화로 확인): 좁은 화면이면 마법진 가운데(RC)가 화면 가운데 오게 카메라를 옮김 */
-function ringCam() { const narrow = cv.width / Math.max(1, cv.height) < 1.6; if (!narrow) return [820, 340]; const R = 310 * NS(), dx = Math.max(0, RC.x + R + 15 - (VW.x + VW.w)); return [W / 2 + dx, H / 2 + (Math.min(RC.y + 55, VW.y + VW.h / 2) - (VW.y + VW.h / 2))]; }   /* 18:22 마법진이 들어올 만큼만 옮김(전엔 마법진을 가운데로 → 지배자가 왼쪽 밖으로 잘림) */
+function ringCam() { const narrow = cv.width / Math.max(1, cv.height) < 1.6; if (!narrow) return [820, 340]; const R = 310 * NS(), dx = Math.min(Math.max(0, RC.x + R + 15 - (VW.x + VW.w)), Math.max(0, 196 + LDX() - 105 - VW.x));   /* 11-16 08:44 「영창 깨지고」: 마법진 쪽으로 옮기면 지배자가 왼쪽 끝에서 반쯤 잘림 → 지배자 몸이 화면 안에 남는 만큼만 */ return [W / 2 + dx, H / 2]; }   /* 11-16 위로 올리면 지배자가 아래 단추 뒤로 내려감 → 위아래는 그대로 */   /* 18:22 마법진이 들어올 만큼만 옮김(전엔 마법진을 가운데로 → 지배자가 왼쪽 밖으로 잘림) */
 function camTo(x, y, z, dur) { S.camT = { fx: S.cam.x, fy: S.cam.y, fz: S.cam.z, x, y, z, t: 0, dur }; }
 function say(text, x, y, o = {}) { const sz = o.size || 28; if (!o.screen && ((typeof UI !== 'undefined' && UI.awakening) || S.t < (S.calmUntil || 0) || S.t < (S.quietUntil || 0))) return;
   if (!o.screen && typeof L !== 'undefined' && L.field && text === L.field.crit) return;
@@ -399,7 +399,7 @@ function castUpdate(dt) {
   S.lord.raise = ease(c / 0.6); S.lord.glow = Math.max(S.lord.glow, Math.min(1, c * 1.5));
   if (c > 0.15 && c < TB) S.parts.push({ x: 250 + rnd(-14, 14), y: 300 + rnd(-20, 20), vx: rnd(-25, 25), vy: rnd(-70, -20), life: 1.0, age: 0, size: rnd(1.5, 3.5), col: '#c9a7ff', g: -10, add: true, kind: 'dot', rot: 0, vr: 0, real: true });
   const spellName = L.spell[st.spell].name;
-  if (TC.l1 >= 0 && c > TC.l1 && once('l1')) { say(L.spell.chant[0], W * 0.27, 150, { size: 42, col: '#e9dcff', life: 3.3, vy: 0, glow: '#8a3cff', reveal: 2.8, screen: true }); Snd.voice('vj_chant1'); if (TC === TC_LONG) camTo(FAR() ? 330 : 196 + LDX() + 60, FAR() ? 300 : 360, FAR() ? 1.0 : NARROW() ? 1.15 : 1.2, 1.0);   /* 18:41 대표님 「영창할 때 화면 끝 닿잖아, 내려」: 먼 화면은 지배자를 아래쪽 가운데로 */ }   /* 첫 영창: 카메라가 지배자에게 다가가 지팡이 치켜들고 구슬 모으는 영상을 크게 */
+  if (TC.l1 >= 0 && c > TC.l1 && once('l1')) { say(L.spell.chant[0], W * 0.27, 150, { size: 42, col: '#e9dcff', life: 3.3, vy: 0, glow: '#8a3cff', reveal: 2.8, screen: true }); Snd.voice('vj_chant1'); if (TC === TC_LONG && !NARROW()) camTo(FAR() ? 330 : 196 + LDX() + 60, FAR() ? 300 : 360, FAR() ? 1.0 : 1.2, 1.0);   /* 11-16 08:44 대표님 「영창 깨지고」: 휴대폰에선 1.15배로 당기면 지배자 몸이 아래 「일으켜라」 단추 뒤로 내려가 머리만 보였음(지배자찍기 사진) → 휴대폰은 당기지 않음 */   /* 18:41 대표님 「영창할 때 화면 끝 닿잖아, 내려」: 먼 화면은 지배자를 아래쪽 가운데로 */ }   /* 첫 영창: 카메라가 지배자에게 다가가 지팡이 치켜들고 구슬 모으는 영상을 크게 */
   if (TC.l2 >= 0 && c > TC.l2 && once('l2')) { say(L.spell.chant[1], W * 0.27, 212, { size: 42, col: '#e9dcff', life: 2.6, vy: 0, glow: '#8a3cff', reveal: 2.0, screen: true }); Snd.voice('vj_chant2'); camTo(...ringCam(), 1.0, 1.2); }
   if (c > TC.r1 && once('r1')) { S.rings.push({ r: 250, born: c, dir: 1 }); Snd.ring(0); }
   if (c > TC.r2 && once('r2')) { S.rings.push({ r: 178, born: c, dir: -1 }); Snd.ring(1); }

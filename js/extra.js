@@ -17,7 +17,8 @@ const EX = {
     UI.openModal(`<h3>${L.ad.title}</h3><p class="muted">${L.ad.body}</p><button class="btn big gold" data-x="adOk">${L.ad.ok}</button>`);
   },
   act(x, arg) {
-    if (typeof BRAG !== 'undefined' && BRAG.act(x)) return;   /* 11-16 #11 자랑 카드 */
+    if (typeof BRAG !== 'undefined' && BRAG.act(x)) return;
+    if (typeof DEX !== 'undefined' && DEX.act(x, arg)) return;   /* 11-16 #14 도감 보상 받기 */   /* 11-16 #11 자랑 카드 */
     if (typeof SO !== 'undefined' && SO.act(x, arg)) return;   /* 04:05 채팅 · 길드 */
     if (x === 'adOk') { UI.closeModal(); const f = this.adThen; this.adThen = null; if (f) f(); }
     if (x === 'evoAd') this.ad(() => { const ev = JB.evoAd(st); if (!ev) return; for (const e of ev) { if (e.e === 'evo') evoShow(1, false); if (e.e === 'merge') evoShow(e.lv, true); } UI.toast(L.evo.adDone, ''); UI.render(true); });
