@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head><script>try{if(top===window&&innerWidth/innerHeight>0.7&&!/nophone/.test(location.search))location.replace('pc.html');}catch(e){}</script><link rel="manifest" href="manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#0b0a10"><link rel="apple-touch-icon" href="icon-192.png">
+<head><script>try{if(top===window&&innerWidth/innerHeight>0.7&&!/nophone/.test(location.search)&&matchMedia('(hover: hover) and (pointer: fine)').matches)location.replace('pc.html');}catch(e){}</script><link rel="manifest" href="manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#0b0a10"><link rel="apple-touch-icon" href="icon-192.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>던전 히어로 · 직원판</title>
@@ -2007,7 +2007,7 @@
     if (state === 'town' && trial) endTrial();
     if (state === 'dshop') { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawDShop(); ctx.restore(); return; }
     if (state === 'town' && attPop) { drawTown(); buttons = []; drawAtt(); return; }
-    if (state === 'town') { drawTown(); if (acctPop) { buttons = []; drawAcct(); return; } if (offerPop) { buttons = []; drawOffer(); return; } drawPopups(TOWN2 ? 122 : 320); return; }
+    if (state === 'town') { drawTown(); if (rankPop) { buttons = []; drawRank(); return; } if (acctPop) { buttons = []; drawAcct(); return; } if (offerPop) { buttons = []; drawOffer(); return; } drawPopups(TOWN2 ? 122 : 320); return; }
     ctx.save();
     if (gl) overlayFX();
     drawComic();
@@ -2088,7 +2088,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1117002634'; let updReady = null;
+  const BUILD = '1117003321'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -3053,7 +3053,7 @@
   }
 
   // ---------- 새 소식(업데이트 내역) ----------
-  const NEWS = [["11월 17일 새벽 업데이트 2", ["☁️ 기록이 서버에 자동으로 저장돼요", "마을 오른쪽 ☁️ 계정 → 「구글로 이어하기」를 하면 폰을 바꿔도 이어져요 (처음 한 번 💎50)"]], ["11월 17일 새벽 업데이트", ["🚩 시즌 5: 모두 1층부터 새로 시작해요 (선물 💎100)", "용사가 조금 커졌어요 · 「층 체험」은 없앴어요", "아바타에 무료 · 유료 · 체험 딱지가 붙어요", "아바타 체험이 끝나면 🎁 첫 구매 특가(24시간)가 떠요 · 결제는 아직 준비 중", "마을에 📰 소식 · 📅 출석 버튼과 한 줄 팁이 생겼어요"]], ["11월 16일 자정 업데이트", ["첫 화면이 바뀌었어요: 맨 위 재화 한 줄, 큰 출발 버튼, 아래 메뉴 5칸", "👑 아바타 체험: 3층을 넘으면 「황금 기사」를 3판 입어 볼 수 있어요", "일반 몬스터가 조금 커졌어요"]], ["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]]];
+  const NEWS = [["11월 17일 새벽 업데이트 3", ["🏆 순위가 생겼어요: 최고 층 · 전투력 (마을 왼쪽 🏆)", "순위 창에서 ✏️ 이름을 바꿀 수 있어요", "첫 구매 특가 창에 황금 기사가 나와요"]], ["11월 17일 새벽 업데이트 2", ["☁️ 기록이 서버에 자동으로 저장돼요", "마을 오른쪽 ☁️ 계정 → 「구글로 이어하기」를 하면 폰을 바꿔도 이어져요 (처음 한 번 💎50)"]], ["11월 17일 새벽 업데이트", ["🚩 시즌 5: 모두 1층부터 새로 시작해요 (선물 💎100)", "용사가 조금 커졌어요 · 「층 체험」은 없앴어요", "아바타에 무료 · 유료 · 체험 딱지가 붙어요", "아바타 체험이 끝나면 🎁 첫 구매 특가(24시간)가 떠요 · 결제는 아직 준비 중", "마을에 📰 소식 · 📅 출석 버튼과 한 줄 팁이 생겼어요"]], ["11월 16일 자정 업데이트", ["첫 화면이 바뀌었어요: 맨 위 재화 한 줄, 큰 출발 버튼, 아래 메뉴 5칸", "👑 아바타 체험: 3층을 넘으면 「황금 기사」를 3판 입어 볼 수 있어요", "일반 몬스터가 조금 커졌어요"]], ["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]]];
   function drawNews() { let y = 166;
     NEWS.forEach((n, ni) => { ctx.fillStyle = ni ? 'rgba(30,26,40,.9)' : 'rgba(50,40,16,.95)'; const hh = 30 + n[1].length * 21 + 8; rrect(16, y, W - 32, hh, 12); ctx.fill(); ctx.strokeStyle = ni ? 'rgba(255,255,255,.15)' : '#ffc864'; ctx.lineWidth = 2; ctx.stroke();
       tfit((ni ? '' : '🆕 ') + n[0], 28, y + 18, 15, ni ? '#c8a888' : '#ffd27a', W - 56, FT); n[1].forEach((l, i) => tfit('· ' + l, 30, y + 42 + i * 21, 12.5, '#e8d8c0', W - 60)); y += hh + 8; });
@@ -3169,7 +3169,8 @@
     { const ig = idleGold(), is = idleStone(), ready = ig >= 50, m = Math.floor(idleMin()); let y = 216;
       if (offerOn()) { ibtn('🔥', '특가 ' + offerLeft(0), 10, y, () => { offerFirst = false; offerPop = true; }, true, '-89%'); y += 62; }
       ibtn('🎁', ready ? '방치 ' + ig.toLocaleString() : '방치 보상', 10, y, () => { if (idleGold() >= 50) claimIdle(1); else townPop = { txt: '🎁 방치 보상', sub: '밖에 있는 동안 쌓여요 · 최대 ' + (8 + vipLv()) + '시간', t0: t }; }, ready && m >= 30, ready && is ? '🔷' + is : ''); y += 62;
-      ibtn('📅', '출석 ' + meta.att.n + '/7', 10, y, () => { const nx = (meta.att.n % 7) + 1; townPop = { txt: '📅 출석 ' + meta.att.n + '일째 받았어요', sub: '내일 오면 💎' + ATT[nx - 1] + (nx === 7 ? ' + 🔷10' : ''), t0: t }; }, false); y += 62;
+      if (fbOK()) { ibtn('🏆', '순위', 10, y, () => { rankPop = true; rankPage = 0; if (fbState === 'off' || fbState === 'err') fbInit(); rankLoad(rankTab); }, false); y += 62; }
+      else { ibtn('📅', '출석 ' + meta.att.n + '/7', 10, y, () => { const nx = (meta.att.n % 7) + 1; townPop = { txt: '📅 출석 ' + meta.att.n + '일째 받았어요', sub: '내일 오면 💎' + ATT[nx - 1] + (nx === 7 ? ' + 🔷10' : ''), t0: t }; }, false); y += 62; }
       ibtn('📖', '비법 ' + meta.hid.length + '/' + HIDDEN.length, 10, y, () => { state = 'book'; }, false); y += 62;
       if (SKINS.length > 1) { ibtn('👑', skinPrev ? '미리 보기 중' : '아바타', 10, y, skinNext, !!skinPrev); y += 62; }
       y = 216; const nw = meta.newsSeen !== NEWS[0][0];
@@ -3232,9 +3233,11 @@
     const X = 28, Y = 150, CW = W - 56, CH = 492;
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(W / 2, Y + 150, 250, '255,190,70', .16 + .05 * Math.sin(t * .09)); ctx.restore();
     ctx.fillStyle = '#2a1c14'; rrect(X, Y, CW, CH, 22); ctx.fill(); ctx.strokeStyle = '#ffc864'; ctx.lineWidth = 3; ctx.stroke();
-    txt(offerFirst ? '👑 황금 기사 체험이 끝났어요' : '👑 황금 기사를 내 것으로', W / 2, Y + 30, 15, '#c8b8a0', FB);
-    txt('🎁 첫 구매 특가', W / 2, Y + 68, 32, '#ffd27a', FT);
-    ctx.fillStyle = '#7a1414'; rrect(W / 2 - 92, Y + 94, 184, 30, 15); ctx.fill(); txt('⏰ ' + offerLeft(1) + ' 남음', W / 2, Y + 109, 15, '#fff', FB);
+    const TX = W / 2 - 44;
+    txt(offerFirst ? '👑 황금 기사 체험이 끝났어요' : '👑 황금 기사를 내 것으로', TX, Y + 30, 15, '#c8b8a0', FB);
+    txt('🎁 첫 구매 특가', TX, Y + 68, 32, '#ffd27a', FT);
+    ctx.fillStyle = '#7a1414'; rrect(TX - 92, Y + 94, 184, 30, 15); ctx.fill(); txt('⏰ ' + offerLeft(1) + ' 남음', TX, Y + 109, 15, '#fff', FB);
+    if (RIGS.gold && RIG.torso.ok) { const sp = skinPrev, hc = hCast, g = 168 / 1000; ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(X + CW - 62, Y + 50, 90, '255,215,90', .28 + .08 * Math.sin(t * .1)); ctx.restore(); ctx.save(); ctx.translate(X + CW - 66, Y + 128); ctx.scale(-g, g); skinPrev = 'gold'; hCast = null; try { drawRigHero(false, -1, 0); } catch (e) {} skinPrev = sp; hCast = hc; ctx.restore(); ctx.filter = 'none'; ctx.globalAlpha = 1; }
     const it = [['👑', '황금 기사', '아바타 · 영구'], ['💎', '300', '다이아'], ['💰', '5,000', '골드']], bw = (CW - 40 - 16) / 3;
     it.forEach((o, i) => { const x = X + 20 + i * (bw + 8), y = Y + 140; ctx.fillStyle = i ? 'rgba(60,44,30,.95)' : 'rgba(96,68,10,.95)'; rrect(x, y, bw, 112, 14); ctx.fill(); ctx.strokeStyle = i ? 'rgba(255,210,140,.35)' : '#ffd34d'; ctx.lineWidth = 2; ctx.stroke();
       txt(o[0], x + bw / 2, y + 34, 34, '#fff', FB, 'center', 'rgba(0,0,0,0)'); tfit(o[1], x + bw / 2, y + 72, 17, '#ffe9b0', bw - 10, FT, 'center'); tfit(o[2], x + bw / 2, y + 94, 12, '#c8a888', bw - 10, FB, 'center'); });
@@ -3273,7 +3276,7 @@
   async function fbUpload(force) {
     if (!fb || !fbUser || !fbReady || fbHold || fbBusy || trial || window.__fbFreeze) return; if (window.__fbD) { fbDirty = true; window.__fbD = 0; } if (!fbDirty && !force) return;
     fbBusy = true; fbDirty = false;
-    try { const { S, db } = fb; await S.setDoc(S.doc(db, 'users', fbUser.uid), { save: JSON.stringify(meta), best: Math.max(0, Math.min(200, meta.best | 0)), power: Math.max(0, Math.min(99999999, Math.round(power()))), name: ('' + (meta.nick || '')).slice(0, 16), upd: S.serverTimestamp(), v: FB_SEASON + '|' + BUILD }); fbLastUp = Date.now(); fbErr = ''; }
+    try { const { S, db } = fb; await S.setDoc(S.doc(db, 'users', fbUser.uid), { save: JSON.stringify(meta), best: Math.max(0, Math.min(200, meta.best | 0)), power: Math.max(0, Math.min(99999999, Math.round(power()))), name: ('' + (meta.nick || '')).slice(0, 16), upd: S.serverTimestamp(), v: FB_SEASON + '|' + BUILD }); fbLastUp = Date.now(); fbErr = ''; rankPush(); }
     catch (e) { fbDirty = true; fbErr = e.code || 'write'; }
     fbBusy = false;
   }
@@ -3320,7 +3323,51 @@
     if (t - acctMsgT < 240) tfit(acctMsg, W / 2, Y + 350 + (fbAsk ? 34 : 0), 14, '#ffe14d', CW - 30, FB, 'center');
     button('닫기', X + 110, Y + CH - 54, CW - 220, 40, () => { acctPop = false; }, false);
   }
-  window.__dh = { get fbInfo() { return { state: fbState, ready: fbReady, hold: fbHold, linked: fbLinked(), anon: !!(fbUser && fbUser.isAnonymous), lastUp: fbLastUp, err: fbErr, dirty: fbDirty, cloudBest: fbCloud ? fbCloud.best : null }; }, fbUpload, set acctPop(v) { acctPop = v; }, get acctPop() { return acctPop; }, set fbAskTest(v) { fbAsk = v; fbHold = !!v; }, set fbStateTest(v) { fbState = v; }, set offerPop(v) { offerPop = v; }, get offerPop() { return offerPop; }, get offerOn() { return offerOn(); }, skinNext, get skinNow() { return curSkin(); }, set TOWN2(v) { TOWN2 = v; }, smartInstall, chromeUrl, get IS_CHROME() { return IS_CHROME; }, fsToggle, get fsOn() { return fsOn(); }, get FS_OK() { return FS_OK; }, set HSZ(v) { HSZ = v; }, get HSZ() { return HSZ; }, get tasksN() { return tasks.length; }, openHelp, IPCT, eqBase, saveCode, loadCode, giveAppGift, get isApp() { return isApp; }, set isApp(v) { isApp = v; }, get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive: () => diaRevive(), get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
+
+  // ===================== 빌드 65: 순위(층 · 전투력) =====================
+  const RK_SEASON = FB_SEASON.split('-').pop();
+  let rankPop = false, rankTab = 0, rankPage = 0, rankBusy = false, rankErr = '', rankKey = '', rankMsg = '', rankMsgT = -999; const rankData = [null, null], rankT = [0, 0];
+  const myNick = () => { const n = ('' + (meta.nick || '')).trim(); return n ? n.slice(0, 8) : '용사' + (fbUser ? fbUser.uid.replace(/[^0-9a-zA-Z]/g, '').slice(0, 4) : ''); };
+  async function rankPush(force) {
+    if (!fb || !fbUser || !fbReady || fbHold || trial) return; const best = Math.max(0, Math.min(200, meta.best | 0)); if (best < 1) return;
+    const pw = Math.max(0, Math.min(99999999, Math.round(power()))), nm = myNick(), key = nm + '|' + best + '|' + pw + '|' + (meta.skin || '');
+    if (key === rankKey && !force) return;
+    try { const { S, db } = fb; await S.setDoc(S.doc(db, 'rank', RK_SEASON, 'list', fbUser.uid), { name: nm, best, power: pw, upd: S.serverTimestamp(), skin: ('' + (meta.skin || '')).slice(0, 12) }); rankKey = key; } catch (e) {}
+  }
+  async function rankLoad(tab, force) {
+    if (!fb || !fbUser || !fbReady || rankBusy) return; if (!force && rankData[tab] && Date.now() - rankT[tab] < 120000) return;
+    rankBusy = true; rankErr = '';
+    try { const { S, db } = fb; await rankPush(); const sn = await S.getDocs(S.query(S.collection(db, 'rank', RK_SEASON, 'list'), S.orderBy(tab ? 'power' : 'best', 'desc'), S.limit(50))); const a = [];
+      sn.forEach(d => { const x = d.data() || {}; a.push({ id: d.id, name: ('' + (x.name || '용사')).slice(0, 16), best: x.best | 0, power: x.power | 0 }); });
+      a.sort((p, q) => tab ? (q.power - p.power) || (q.best - p.best) : (q.best - p.best) || (q.power - p.power)); rankData[tab] = a; rankT[tab] = Date.now(); }
+    catch (e) { rankErr = (e && e.code) || 'err'; }
+    rankBusy = false;
+  }
+  function rankRename() { let v = null; try { v = prompt('순위에 보일 이름 (8자까지)', myNick()); } catch (e) {} if (v == null) return; v = ('' + v).replace(/[\s<>&"']/g, '').slice(0, 8); if (!v) return; meta.nick = v; saveMeta(); rankKey = ''; rankMsg = '이름을 바꿨어요: ' + v; rankMsgT = t; rankPush(true).then(() => { rankT[0] = rankT[1] = 0; rankLoad(rankTab, true); }); }
+  function drawRank() {
+    ctx.fillStyle = 'rgba(5,3,8,.88)'; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
+    const X = 18, Y = 70, CW = W - 36, CH = 676, PER = 10;
+    ctx.fillStyle = '#231a12'; rrect(X, Y, CW, CH, 22); ctx.fill(); ctx.strokeStyle = '#ffc864'; ctx.lineWidth = 3; ctx.stroke();
+    txt('🏆 순위', W / 2, Y + 36, 30, '#ffd27a', FT);
+    const tw = (CW - 40 - 8) / 2; ['🗼 최고 층', '⚔️ 전투력'].forEach((n, i) => button(n, X + 20 + i * (tw + 8), Y + 62, tw, 40, () => { rankTab = i; rankPage = 0; rankLoad(i); }, rankTab === i));
+    const a = rankData[rankTab], ly = Y + 116;
+    if (fbState === 'on' && fbReady && !a && !rankBusy && !rankErr) rankLoad(rankTab);
+    if (!a) { txt(rankErr ? '순위를 불러오지 못했어요 · 잠시 뒤 다시 열어 주세요' : fbState === 'err' ? '서버에 연결하지 못했어요 · 인터넷을 확인해 주세요' : '순위를 불러오는 중…', W / 2, ly + 180, 15, rankErr || fbState === 'err' ? '#ff9a8a' : '#c8b8a0', FB); }
+    else if (!a.length) { txt('아직 아무도 없어요', W / 2, ly + 160, 18, '#ffe0b0', FT); txt('1층을 깨면 순위에 올라가요', W / 2, ly + 190, 14, '#c8b8a0', FB); }
+    else { const pages = Math.max(1, Math.ceil(a.length / PER)); rankPage = Math.max(0, Math.min(pages - 1, rankPage));
+      for (let i = 0; i < PER; i++) { const k = rankPage * PER + i, r = a[k]; if (!r) break; const y = ly + i * 42, me = fbUser && r.id === fbUser.uid;
+        ctx.fillStyle = me ? 'rgba(120,84,10,.95)' : i % 2 ? 'rgba(0,0,0,.28)' : 'rgba(0,0,0,.42)'; rrect(X + 14, y, CW - 28, 38, 10); ctx.fill(); if (me) { ctx.strokeStyle = '#ffd34d'; ctx.lineWidth = 2; ctx.stroke(); }
+        txt(k < 3 ? ['🥇', '🥈', '🥉'][k] : '' + (k + 1), X + 38, y + 19, k < 3 ? 22 : 16, '#ffe0b0', FB, 'center', k < 3 ? 'rgba(0,0,0,0)' : undefined);
+        tfit(r.name + (me ? ' (나)' : ''), X + 64, y + 19, 16, me ? '#fff' : '#ffe9c8', 150, FB, 'left');
+        tfit(rankTab ? r.power.toLocaleString() : r.best + '층', X + CW - 96, y + 19, 17, '#ffd34d', 96, FT, 'right');
+        tfit(rankTab ? r.best + '층' : '⚔ ' + r.power.toLocaleString(), X + CW - 22, y + 19, 12, '#c8a888', 68, FB, 'right'); }
+      const mi = fbUser ? a.findIndex(r => r.id === fbUser.uid) : -1, fy = ly + PER * 42 + 8;
+      tfit(mi >= 0 ? '내 순위: ' + (mi + 1) + '위' : (meta.best || 0) < 1 ? '1층을 깨면 순위에 올라가요' : '내 순위: 50위 밖', X + 24, fy + 17, 15, '#bfe6ff', 170, FB, 'left');
+      if (pages > 1) { button('◀', X + CW - 150, fy, 40, 34, () => { rankPage--; }, false, rankPage <= 0); txt((rankPage + 1) + ' / ' + pages, X + CW - 84, fy + 17, 14, '#ffe0b0', FB); button('▶', X + CW - 58, fy, 40, 34, () => { rankPage++; }, false, rankPage >= pages - 1); } }
+    if (t - rankMsgT < 200) tfit(rankMsg, W / 2, Y + CH - 74, 13, '#ffe14d', CW - 40, FB, 'center'); else tfit('순위는 2분마다 새로 불러와요 · 시즌마다 새로 시작해요', W / 2, Y + CH - 74, 12, '#8a7a6a', CW - 40, FB, 'center');
+    const bw = (CW - 40 - 10) / 2; button('✏️ 이름 바꾸기', X + 20, Y + CH - 56, bw, 42, rankRename, false, fbState !== 'on'); button('닫기', X + 20 + bw + 10, Y + CH - 56, bw, 42, () => { rankPop = false; }, false);
+  }
+  window.__dh = { set rankPop(v) { rankPop = v; }, set rankTest(v) { rankData[0] = v; rankData[1] = v; rankT[0] = rankT[1] = Date.now(); }, rankLoad, get rankInfo() { return { n0: rankData[0] ? rankData[0].length : -1, n1: rankData[1] ? rankData[1].length : -1, err: rankErr, busy: rankBusy, key: rankKey, season: RK_SEASON }; }, get fbInfo() { return { state: fbState, ready: fbReady, hold: fbHold, linked: fbLinked(), anon: !!(fbUser && fbUser.isAnonymous), lastUp: fbLastUp, err: fbErr, dirty: fbDirty, cloudBest: fbCloud ? fbCloud.best : null }; }, fbUpload, set acctPop(v) { acctPop = v; }, get acctPop() { return acctPop; }, set fbAskTest(v) { fbAsk = v; fbHold = !!v; }, set fbStateTest(v) { fbState = v; }, set offerPop(v) { offerPop = v; }, get offerPop() { return offerPop; }, get offerOn() { return offerOn(); }, skinNext, get skinNow() { return curSkin(); }, set TOWN2(v) { TOWN2 = v; }, smartInstall, chromeUrl, get IS_CHROME() { return IS_CHROME; }, fsToggle, get fsOn() { return fsOn(); }, get FS_OK() { return FS_OK; }, set HSZ(v) { HSZ = v; }, get HSZ() { return HSZ; }, get tasksN() { return tasks.length; }, openHelp, IPCT, eqBase, saveCode, loadCode, giveAppGift, get isApp() { return isApp; }, set isApp(v) { isApp = v; }, get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive: () => diaRevive(), get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
 })();
 </script>
 </body>
