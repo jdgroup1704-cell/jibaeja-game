@@ -410,7 +410,7 @@
   function hiddenReady() { return HIDDEN.filter(k => !lvOf(k) && lvOf(CARDS[k].need[0]) >= 5); }
   function recalc() {
     const u = meta.up;
-    const g = gearT(), sk = 1 + (meta.streak || 0) * .08;
+    const g = gearT(), sk = 1;
     P.dmgMul = Math.pow(1.07, u.atk) * (1 + lvOf('might') * .2) * Math.pow(1.08, g) * sk * eqWMul();
     const oldMax = P.maxHp; P.maxHp = Math.round((130 + lvOf('vital') * 25) * Math.pow(1.06, u.hp) * Math.pow(1.06, g) * sk * eqHMul()); if (P.maxHp > oldMax) P.hp += P.maxHp - oldMax;
     P.spd = 2.5 * (1 + u.spd * .04) * (1 + lvOf('swift') * .1) * (1 + itOpt('ms'));
@@ -457,7 +457,7 @@
     if (pendingLv > 8) { autoCards(pendingLv - 8); pendingLv = 8; }
     runBest0 = meta.best; meta.lastPow = power(); saveMeta();
     state = 'play'; startFloorRun(sf);
-    if (sf > 1 || (meta.streak || 0) > 0) { banner = '⚔️ 전투력 ' + power().toLocaleString(); bannerSub = (meta.streak ? '🔥 용기 +' + meta.streak * 8 + '% · ' : '') + sf + '층부터 출발!' + (fromBuild ? ' · 지난 판 카드 그대로 Lv ' + P.lv + (pendingLv ? ' · 모자란 카드 ' + pendingLv + '장 더 골라요' : '') : ''); bannerT = 160; }
+    if (sf > 1 || (meta.streak || 0) > 0) { banner = '⚔️ 전투력 ' + power().toLocaleString(); bannerSub = sf + '층부터 출발!' + (fromBuild ? ' · 지난 판 카드 그대로 Lv ' + P.lv + (pendingLv ? ' · 모자란 카드 ' + pendingLv + '장 더 골라요' : '') : ''); bannerT = 160; }
     if (pendingLv > 0) openLevelUp();
   }
   function startFloorRun(f, resumed) {
@@ -560,12 +560,12 @@
   function spawnBoss(idx) {
     const ty = bossTy(idx), c = bossLap(idx), d0 = BOSSDEF[ty - 1], d = Object.assign({}, d0, { n: bossName(idx) });
     const base = idx <= 4 ? d0.hp * (ty >= 3 ? 1.6 : 1) : 2536 * mult() * ([1.3, 1.4, .4, 1.1, 2, 2.2, 1.4, .9, 1, 1, 1.1, 1.3][ty - 1] || 1) * .625;
-    const expD = Math.pow(XH, over30()) * 1.6 * Math.pow(1.07, .55 * floor) * Math.pow(1.08, gearAt(Math.max(0, floor - 5))), myD = P.dmgMul / (1 + (meta.streak || 0) * .08) / eqWMul();
-    const tired = floor === (meta.cp || 1) ? Math.min(5, meta.streak || 0) * .08 : 0, hp = base * Math.pow(overP(), .6) * Math.max(1, Math.pow(myD / expD, .5)) * (BHK[idx - 1] || 1) * (1 - tired) * HARD.B, i = ty; if (tired) later(200, () => { banner = '😮‍💨 보스가 지쳤어요!'; bannerSub = '여러 번 도전해서 보스 체력 -' + Math.round(tired * 100) + '%'; bannerT = 120; });
+    const expD = Math.pow(XH, over30()) * 1.6 * Math.pow(1.07, .55 * floor) * Math.pow(1.08, gearAt(Math.max(0, floor - 5))), myD = P.dmgMul / (1) / eqWMul();
+    const tired = floor === (meta.cp || 1) ? 0 : 0, hp = base * Math.pow(overP(), .6) * Math.max(1, Math.pow(myD / expD, .5)) * (BHK[idx - 1] || 1) * (1 - tired) * HARD.B, i = ty; if (tired) later(200, () => { banner = '😮‍💨 보스가 지쳤어요!'; bannerSub = '여러 번 도전해서 보스 체력 -' + Math.round(tired * 100) + '%'; bannerT = 120; });
     boss = { i, lap: c, seg: 0, stun: 0, def: d, x: W / 2, y: R.y0 + 140, r: d.r, hp, maxHp: hp, t: 0, patT: 90, pi: 0, flash: 0, st: 'idle', stT: 0, alpha: 1, phase2: false };
     fx.push({ k: 'portal', x: boss.x, y: boss.y, life: 50, max: 50, big: 1 });
     if ((ty === 9 || ty === 10) && idx % 20 !== 0) { if (ty === 10) loadVox(); boss.clone = 1; boss.say = ty === 9 ? '진짜 나는 100층에서 기다려.' : '나는 그림자일 뿐. 진짜는 100층이다.'; boss.sayT = 260; }
-    if (idx % 20 === 0) { ['boss_intro', 'boss_rage', 'boss_death', 'sys_clear', 'bgm_final'].forEach(loadExt); loadVox(); boss.final = 1; boss.lap = 3; boss.hp0 = hp * .42; boss.hp = boss.maxHp = hp * .42; boss.def = Object.assign({}, boss.def, { n: '종말의 흑룡' });
+    if (idx % 20 === 0) { ['boss_intro', 'boss_rage', 'boss_death', 'sys_clear', 'bgm_final'].forEach(loadExt); loadVox(); boss.final = 1; boss.lap = 3; boss.hp0 = hp * .42 * FHP; boss.hp = boss.maxHp = hp * .42 * FHP; boss.def = Object.assign({}, boss.def, { n: '종말의 흑룡' });
       if ((meta.finalPh || 1) < 2) meta.finalSeg = 0; if ((meta.finalPh || 1) >= 2) { const ph = meta.finalPh; boss.final = ph - 1; boss.resumeOK = 1; later(10, () => { if (boss && boss.final === ph - 1) nextFinal(); }); } }
   }
   const FINALS = [null, null,
@@ -595,7 +595,7 @@
     slowM = 160; cardT = 260; finalCard = F; impactT = 30; shake = 22; flash = .45; flashC = n === 2 ? '255,160,230' : '255,40,40';
     sfx.horn(); sfx.awaken(); bannerT = 0; if (n === 3) { loadExt('bgm_final'); loadVox(); later(150, () => playVox('intro')); playExt('boss_intro', 1); later(40, () => playExt('boss_rage', .9)); }
     if (n > (meta.finalPh || 1)) { meta.finalPh = n; saveMeta(); }
-    const RES = boss.resumeOK; boss.resumeOK = 0; if (!RES) meta.finalSeg = 0;
+    const RES = 0; boss.resumeOK = 0; if (!RES) meta.finalSeg = 0;
     if (RES && n >= 2 && meta.finalSeg && Math.floor(meta.finalSeg / 10) === n) { const sg = Math.min(2, meta.finalSeg % 10); boss.seg = sg; boss.hp = boss.maxHp * (1 - sg / 3) - 1; if (n === 3 && MAOU_P[sg]) boss.def.pats = MAOU_P[sg]; later(175, () => { if (!boss) return; banner = '🚩 이어서 도전!'; bannerSub = (n === 3 ? '마왕' : '엄마') + ' 체력 ' + (3 - sg) + '칸 남은 데서 시작해요'; bannerT = 150; }); }
   }
 
@@ -621,6 +621,7 @@
     ['chain', 'blizzard', 'meteorBig', 'tornado', 'clones', 'homing', 'blackhole', 'tele', 'blizzard', 'meteor'],
     ['shadow', 'firewall', 'nova', 'swords', 'cross', 'chain', 'tornado', 'meteorBig', 'firewall', 'swords', 'slash3', 'blackhole']];
   const MAOU_FORM = [['', ''], ['2형태 · 대마법사', '블리자드 · 지옥 회오리 · 메테오!'], ['최종 형태 · 마왕 각성', '불의 벽 · 천 개의 검 · 지옥의 십자!']];
+  const FHP = .78;
   const BTM = () => Math.max(18, Math.min(34, 16 + floor * .6));
   const EBS = () => boss ? (boss.final ? 1 : .92 + .28 * Math.max(0, Math.min(1, (floor - 10) / 40))) : 1.2;
   const eb = (x, y, a, sp, o = {}) => ebul.push(Object.assign({ x, y, vx: Math.cos(a) * sp * EBS(), vy: Math.sin(a) * sp * EBS(), r: 7, dmg: Math.round((6 + FL() * .7) * DF()), life: 400 }, o));
@@ -694,7 +695,7 @@
     sfx.hit(crit);
     if (crit && t - lastComic > 26 && Math.random() < .35) { lastComic = t; comic(e.x, e.y - 20, ['쾅!', '퍽!', '빡!', '콰직!'][Math.random() * 4 | 0], e === boss ? 1.3 : 1); }
     if (e !== boss && e.hp <= 0 && e.type === 'ogre' && t - lastComic > 20) { lastComic = t; comic(e.x, e.y - 30, '쿠웅!', 1.2); }
-    if (e === boss && boss.hp > 0) { const sg = Math.floor((1 - boss.hp / boss.maxHp) * 3); if (sg > boss.seg) { boss.seg = sg; boss.stun = 150; if (boss.final >= 2) { meta.finalSeg = boss.final * 10 + sg; saveMeta(); } if (boss.final === 3 && MAOU_P[sg]) { playVox(sg === 1 ? 'form2' : 'form3'); boss.def.pats = MAOU_P[sg]; boss.pi = 0; banner = MAOU_FORM[sg][0]; bannerSub = MAOU_FORM[sg][1]; bannerT = 140; boss.say = sg === 1 ? '이제 마법을 보여 주지.' : '이게 진짜 마왕의 힘이다!'; boss.sayT = 200; boss.castT = 34; later(150, () => { if (boss) for (let i = 0; i < 3; i++) fx.push({ k: 'tp', x: boss.x, y: boss.y, life: 30 + i * 10, max: 30 + i * 10 }); }); } ebul = []; hazards = []; comic(boss.x, boss.y - 50, '그로기!!', 1.8); impactT = 16; shake = 12; sfx.slam(); for (let i = 0; i < 10; i++) gems.push({ k: 'gold', x: boss.x + rnd(-80, 80), y: boss.y + rnd(-40, 90), v: 5 + floor, t: 0 }); gems.push({ k: 'power', x: clamp(boss.x + rnd(-60, 60), R.x0 + 40, R.x1 - 40), y: clamp(boss.y + 140, R.y0 + 60, R.y1 - 60), v: 0, t: 0 }); banner = '그로기! ⚡ 파워 구슬을 먹어요!'; bannerSub = ''; bannerT = 90; } }
+    if (e === boss && boss.hp > 0) { const sg = Math.floor((1 - boss.hp / boss.maxHp) * 3); if (sg > boss.seg) { boss.seg = sg; boss.stun = 150;  if (boss.final === 3 && MAOU_P[sg]) { playVox(sg === 1 ? 'form2' : 'form3'); boss.def.pats = MAOU_P[sg]; boss.pi = 0; banner = MAOU_FORM[sg][0]; bannerSub = MAOU_FORM[sg][1]; bannerT = 140; boss.say = sg === 1 ? '이제 마법을 보여 주지.' : '이게 진짜 마왕의 힘이다!'; boss.sayT = 200; boss.castT = 34; later(150, () => { if (boss) for (let i = 0; i < 3; i++) fx.push({ k: 'tp', x: boss.x, y: boss.y, life: 30 + i * 10, max: 30 + i * 10 }); }); } ebul = []; hazards = []; comic(boss.x, boss.y - 50, '그로기!!', 1.8); impactT = 16; shake = 12; sfx.slam(); for (let i = 0; i < 10; i++) gems.push({ k: 'gold', x: boss.x + rnd(-80, 80), y: boss.y + rnd(-40, 90), v: 5 + floor, t: 0 }); gems.push({ k: 'power', x: clamp(boss.x + rnd(-60, 60), R.x0 + 40, R.x1 - 40), y: clamp(boss.y + 140, R.y0 + 60, R.y1 - 60), v: 0, t: 0 }); banner = '그로기! ⚡ 파워 구슬을 먹어요!'; bannerSub = ''; bannerT = 90; } }
     if (e === boss && boss.final && boss.final < 3 && boss.hp <= 0) { nextFinal(); return; }
     if (e === boss) { if (boss.hp <= 0 && !boss.dead) { impactT = 38; shake = 16; comic(boss.x, boss.y - 30, '격파!!', 2); sfx.slam(); if (boss.final) playExt('boss_death', 1); if (boss.final === 3) later(40, () => playVox('death')); boss.dead = 1; ebul = []; hazards = []; enemies.forEach(x => x.hp = 0); } return; }
     if (e.hp <= 0) killEnemy(e);
@@ -1662,7 +1663,7 @@
     const TOPF = meta.abyss ? 200 : 100, pb = Math.min(1, meta.best / TOPF); ctx.fillStyle = 'rgba(0,0,0,.6)'; rrect(40, 500, W - 80, 14, 7); ctx.fill(); ctx.fillStyle = '#ffb040'; rrect(40, 500, Math.max(14, (W - 80) * pb), 14, 7); ctx.fill();
     txt((meta.abyss ? '🌌 심연 · ' : '🏆 ') + '최고 ' + meta.best + '층 / ' + TOPF + '층', W / 2, 490, 15, meta.abyss ? '#d8a8ff' : '#ffe0b0');
     txt('⚔️ 전투력 ' + power().toLocaleString() + '   💰 ' + meta.gold.toLocaleString() + '   🔷 ' + meta.stone + '   💎 ' + meta.dia, W / 2, 532, 16, '#ffe0b0');
-    if (meta.streak) txt('🔥 포기하지 않는 용기! 다음 도전 공격·체력 +' + meta.streak * 8 + '%', W / 2, 554, 13, '#ff9a5a');
+    if (false) txt('🔥 포기하지 않는 용기! 다음 도전 공격·체력 +' + meta.streak * 8 + '%', W / 2, 554, 13, '#ff9a5a');
     let y = 566;
     const cp = meta.cp || 1;
     if (runSave) { button('▶ 이어하기 (' + runSave.floor + '층 · Lv ' + runSave.lv + ')', 40, y, W - 80, 54, resumeRun, true); y += 60; }
@@ -2038,7 +2039,7 @@
     txt('💰 이번 판 골드 +' + runGold, W / 2, 340, 24, '#ffd34d');
     txt('보유 골드 ' + meta.gold.toLocaleString(), W / 2, 372, 15, '#c8a888');
     if (!win && (meta.cp || 1) > 1) txt('🚩 ' + meta.cp + '층부터 바로 다시 시작할 수 있어요' + (meta.cp === 100 && (meta.finalPh || 1) >= 2 ? ' (' + ((meta.finalPh || 1) === 3 ? '마왕' : '엄마') + (meta.finalSeg && Math.floor(meta.finalSeg / 10) === meta.finalPh ? ' ' + (3 - meta.finalSeg % 10) + '칸 남은 데서' : '부터') + ')' : ''), W / 2, 398, 15, '#9fe0ff');
-    if (!win && streakUp && meta.streak) txt('🔥 포기하지 않는 용기 Lv ' + meta.streak + '! 다음 도전 공격·체력 +' + meta.streak * 8 + '%', W / 2, 424, 14, '#ff9a5a');
+    if (false) txt('🔥 포기하지 않는 용기 Lv ' + meta.streak + '! 다음 도전 공격·체력 +' + meta.streak * 8 + '%', W / 2, 424, 14, '#ff9a5a');
     else if (!win && meta.best > runBest0) txt('🎉 새 기록! 최고 ' + meta.best + '층', W / 2, 424, 16, '#ffd34d');
     if (overT > 50 && !win && lastDeath && !lastDeath.used && !trial) { const rc = Math.max(10, REVIVE_BASE - 6 * vipLv()), can = meta.dia >= rc; button(can ? '💎 ' + rc + ' · 이 자리에서 부활 (Lv ' + lastDeath.lv + ' 카드 그대로)' : '💎 ' + rc + ' 부활 · 다이아 충전하기', 30, 688, W - 60, 50, can ? diaRevive : () => openShop('over'), true, false); }
     if (overT > 50 && !win && !trial && (meta.streak || 0) >= 3) txt('💡 ' + (meta.streak) + '번째 도전… 상점의 성장 패키지로 벽을 넘을 수 있어요', W / 2, 752, 12, '#ffd34d');
@@ -2081,7 +2082,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116181016'; let updReady = null;
+  const BUILD = '1116183634'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2221,7 +2222,7 @@
   const HB = (x, y, a, len, w, warn, on, m, o) => hazards.push(Object.assign({ k: 'beam', x, y, a, len, w: w * BIG() * BIG(), warn, on, dmg: DM(m), fire: 1 }, o || {}));
   const HN = (x, y, a, spread, len, warn, on, m, o) => hazards.push(Object.assign({ k: 'cone', x, y, a, spread: spread * BIG(), len: len * BIG(), warn, on, dmg: DM(m), fire: 1 }, o || {}));
   const alive = b => boss === b && !b.dead;
-  function charge(b, a, spd, t, bn, warn) { hazards.push({ k: 'line', x: b.x, y: b.y, a, len: 620, w: b.r * 2, warn, on: 0 }); b.hld = warn; later(warn, () => { if (alive(b)) { b.chg = { vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, t, bn }; sfx.slam(); } }); }
+  function charge(b, a, spd, t, bn, warn) { if (spd > 8.5) { t = t * spd / 8.5; spd = 8.5; } warn = Math.max(warn, 36); hazards.push({ k: 'line', x: b.x, y: b.y, a, len: 620, w: b.r * 2, warn, on: 0 }); b.hld = warn; later(warn, () => { if (alive(b)) { b.chg = { vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, t, bn }; sfx.slam(); } }); }
   const K = {
     // 1 슬라임 킹
     slimeRain(b) { cutin('점액 폭우!'); for (let i = 0; i < 12; i++) later(i * 6, () => { const x = i % 3 ? rnd(R.x0 + 40, R.x1 - 40) : P.x, y = i % 3 ? rnd(R.y0 + 80, R.y1 - 40) : P.y; HC(x, y, 40, 40, 6, 1); if (i % 4 === 0) later(46, () => HC(x, y, 52, 6, 200, 0, { slow: 1, vx: 'blizzard' })); }); sfx.warn(); },
@@ -2400,11 +2401,11 @@
     P.spd = sp0;
     if (b && boss === b && b.hld > 0 && !b.chg && Math.hypot(b.x - bx, b.y - by) < 15) { b.x = bx; b.y = by; }
     if (b && boss === b && b.spm > 0) { b.spm -= k; const a = aim(b); b.x += Math.cos(a) * 1.3 * k; b.y += Math.sin(a) * 1.3 * k; }
-    if (b && boss === b && b.chg) { const m = b.chg; m.t -= k; b.x += m.vx * k; b.y += m.vy * k; b.patT = Math.max(b.patT, 25);
+    if (b && boss === b && b.chg) { const m = b.chg, wk = m.wait > 0 ? 0 : k; if (m.wait > 0) m.wait -= k; m.t -= wk; b.x += m.vx * wk; b.y += m.vy * wk; b.patT = Math.max(b.patT, 25);
       if (t % 3 === 0) burstFx(b.x, b.y, 3, '#ffb070');
       let hit = false; if (b.x < R.x0 + b.r) { b.x = R.x0 + b.r; m.vx = Math.abs(m.vx); hit = true; } if (b.x > R.x1 - b.r) { b.x = R.x1 - b.r; m.vx = -Math.abs(m.vx); hit = true; } if (b.y < R.y0 + b.r) { b.y = R.y0 + b.r; m.vy = Math.abs(m.vy); hit = true; } if (b.y > R.y1 - b.r) { b.y = R.y1 - b.r; m.vy = -Math.abs(m.vy); hit = true; }
       if (hit) { shake = 16; flash = Math.max(flash, .15); flashC = '255,160,80'; sfx.slam(); burstFx(b.x, b.y, 24, '#ffb070'); fx.push({ k: 'ring', x: b.x, y: b.y, r: 90, life: 22, c: '255,170,90' }); for (let j = 0; j < 8; j++) eb(b.x, b.y, j / 8 * 6.28, 2.4, { c: 'r' });
-        if (m.bn > 0) { m.bn--; const wl = b.x <= R.x0 + b.r + 1, wr = b.x >= R.x1 - b.r - 1, wt = b.y <= R.y0 + b.r + 1, wb = b.y >= R.y1 - b.r - 1; const a = aim(b) + rnd(-.3, .3), s = Math.hypot(m.vx, m.vy); m.vx = Math.cos(a) * s; m.vy = Math.sin(a) * s; if (wl) m.vx = Math.abs(m.vx) + 2; if (wr) m.vx = -Math.abs(m.vx) - 2; if (wt) m.vy = Math.abs(m.vy) + 2; if (wb) m.vy = -Math.abs(m.vy) - 2; b.x += m.vx * 2; b.y += m.vy * 2; } else m.t = 0; }
+        if (m.bn > 0) { m.bn--; const wl = b.x <= R.x0 + b.r + 1, wr = b.x >= R.x1 - b.r - 1, wt = b.y <= R.y0 + b.r + 1, wb = b.y >= R.y1 - b.r - 1; const a = aim(b) + rnd(-.3, .3), s = Math.hypot(m.vx, m.vy); m.vx = Math.cos(a) * s; m.vy = Math.sin(a) * s; if (wl) m.vx = Math.abs(m.vx); if (wr) m.vx = -Math.abs(m.vx); if (wt) m.vy = Math.abs(m.vy); if (wb) m.vy = -Math.abs(m.vy); b.x += m.vx * .5; b.y += m.vy * .5; m.wait = 26; hazards.push({ k: 'line', x: b.x, y: b.y, a: Math.atan2(m.vy, m.vx), len: 620, w: b.r * 2, warn: 26, on: 0 }); sfx.warn(); } else m.t = 0; }
       if (m.t <= 0) b.chg = null; }
     return r; };
 
