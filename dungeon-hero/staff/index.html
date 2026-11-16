@@ -2083,7 +2083,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116191435'; let updReady = null;
+  const BUILD = '1116192516'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2118,7 +2118,7 @@
   const NEW4 = ['dash3', 'wallshot', 'crossfire', 'chase'];
   FLASH.push(...NEW4);
   const flashN = idx => idx > 20 ? 6 : idx >= 18 ? 5 : idx >= 14 ? 4 : idx >= 10 ? 3 : idx >= 6 ? 2 : 0;
-  const GATES = [[30, '보스가 화려한 필살기를 쓰기 시작해요'], [50, '보스 필살기가 3개로 늘어나요'], [70, '보스 필살기 4개 · 훨씬 세져요'], [90, '보스 필살기 5개 · 마왕급 보스들'], [100, '최종 보스 3연전 · 흑룡 → 임예지 → 마왕'], [101, '🌌 심연 · 적이 훨씬 세지고 보스 필살기 6개'], [150, '심연 깊은 곳 · 신화 장비가 잘 나와요'], [200, '심연의 최종 보스 3연전']];
+  const GATES = [[30, '보스가 화려한 필살기를 쓰기 시작해요'], [50, '보스 필살기가 3개로 늘어나요'], [70, '보스 필살기 4개 · 훨씬 세져요'], [90, '보스 필살기 5개 · 마왕급 보스들'], [100, '최종 보스 3연전 · 흑룡 → 임예지 → 마왕'], [101, '🌌 심연 · 새 보스 기술 5종 · 공허 소용돌이 · 「심연」 등급 장비'], [150, '심연 깊은 곳 · 신화 장비가 잘 나와요'], [200, '심연의 최종 보스 3연전']];
   const nextGate = () => GATES.find(g => g[0] > Math.max(meta.best || 0, 1));
   const _spawnBoss = spawnBoss;
   spawnBoss = function (idx) {
@@ -2702,6 +2702,39 @@
         ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, D[1] * 1.3); g.addColorStop(0, heal ? 'rgba(120,255,150,.5)' : 'rgba(255,220,120,.5)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, D[1] * 1.3, 0, 6.283); ctx.fill(); ctx.restore();
         ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(gx, gy, 9, 4, 0, 0, 6.283); ctx.fill(); txt(D[0], cx, cy, D[1], '#fff', FB, 'center', 'rgba(0,0,0,0)'); } }
     _drawComicIt(); };
+
+  // ===================== 심연 전용 (101층~) =====================
+  IG.push(['심연', '#5ff0e0']); IGM.push(1.75); IDIS.push(32); INAME.w.push('공허를 가르는 검'); INAME.a.push('심연의 갑주'); INAME.r.push('망자의 반지');
+  const _mkItemAb = mkItem;
+  mkItem = function (luck, slot) { const it = _mkItemAb(luck, slot); if (floor > 100 && state === 'play' && !trial && it.g >= 3 && Math.random() < .12 + Math.min(.2, (floor - 100) * .002)) it.g = 5; return it; };
+  let AB = [], abF = -1, abEnv = 0;
+  const abReg = (name, fn) => { BP[name] = b => { fn(b); later(1, () => { if (boss === b) b.patT = Math.max(b.patT, 120); }); }; };
+  const abWell = (x, y, m) => hazards.push({ k: 'circle', x: clamp(x, R.x0 + 60, R.x1 - 60), y: clamp(y, R.y0 + 90, R.y1 - 60), r: 105, warn: 85, on: 8, dmg: DM(m || 1.4), pullP: 1, vx: 'blizzard', sc: 1 });
+  abReg('voidRift', b => { cutin('공허의 균열!'); abWell(P.x + rnd(-60, 60), P.y + rnd(-60, 60), 1.5); for (let i = 0; i < 2; i++) later(26 + i * 26, () => { if (alive(b)) abWell(rnd(R.x0 + 80, R.x1 - 80), rnd(R.y0 + 140, R.y1 - 100), 1.3); }); sfx.warn(); });
+  abReg('abyssEye', b => { cutin('심연의 눈!'); HB(b.x, b.y, aim(b), 760, 26, 62, 150, 1.2, { fol: 1, trk: 1 }); b.hld = 200; sfx.warn(); });
+  abReg('nullField', b => { cutin('무의 영역!'); const x = clamp(P.x + rnd(-150, 150), R.x0 + 130, R.x1 - 130), y = clamp(P.y + rnd(-170, 170), R.y0 + 170, R.y1 - 130); AB.push({ k: 'null', x, y, r: 118, t: 120, max: 120, dmg: DM(1.7) }); b.hld = 110; sfx.warn(); });
+  abReg('starCollapse', b => { cutin('별의 붕괴!'); const cx = P.x, cy = P.y, a0 = Math.random() * 6.28; for (let i = 0; i < 5; i++) later(i * 9, () => HC(cx + Math.cos(a0 + i * 1.2566) * 125, cy + Math.sin(a0 + i * 1.2566) * 125, 62, 54, 8, 1.1, { met: 1, fire: 1 })); later(78, () => HC(cx, cy, 104, 46, 10, 1.6, { met: 1, fire: 1 })); sfx.warn(); });
+  abReg('cloneVolley', b => { cutin('그림자 분신!'); [[R.x0 + 50, .5], [R.x1 - 50, .5], [W / 2, .12]].forEach(([x, q], i) => { const y = R.y0 + (R.y1 - R.y0) * q + 40; later(i * 14, () => { fx.push({ k: 'portal', x, y, life: 46, max: 46 }); AB.push({ k: 'cl', x, y, t: 70, max: 70 }); later(34, () => { if (!alive(b)) return; for (let w = 0; w < 2; w++) later(w * 16, () => { const a = Math.atan2(P.y - y, P.x - x); for (let j = -3; j <= 3; j++) eb(x, y, a + j * .16, 3, { c: 'p' }); }); }); }); }); });
+  const ABSK = ['voidRift', 'abyssEye', 'nullField', 'starCollapse', 'cloneVolley'];
+  const abAdd = b => { if (!b || b.final || floor <= 100 || !b.def || !b.def.pats) return; const p = b.def.pats.filter(k => ABSK.indexOf(k) < 0), i0 = (Math.round(floor / 5) + (b.phaseN || 0) * 2) % 5, n = 2 + Math.min(1, b.phaseN || 0); for (let j = 0; j < n; j++) p.splice(Math.min(p.length, 1 + j * 3), 0, ABSK[(i0 + j * 2) % 5]); b.def = Object.assign({}, b.def, { pats: p }); };
+  const _spawnBossAb = spawnBoss; spawnBoss = function (idx) { _spawnBossAb(idx); abAdd(boss); };
+  const _bossPhaseAb = bossPhase; bossPhase = function (b) { const n0 = b.phaseN || 0; _bossPhaseAb(b); if ((b.phaseN || 0) !== n0) abAdd(b); };
+  const _updateAb = update;
+  update = function (k) { _updateAb(k);
+    if (abF !== floor) { abF = floor; AB = []; abEnv = 260; }
+    if (state !== 'play') return;
+    for (const h of hazards) { if (h.pullP && h.warn > 0) { const dx = h.x - P.x, dy = h.y - P.y, d = Math.hypot(dx, dy); if (d < 250 && d > 6) { const f = 1.15 * (1 - d / 320) * k; P.x += dx / d * f; P.y += dy / d * f; } }
+      if (h.trk && boss) { const want = Math.atan2(P.y - h.y, P.x - h.x); let df = want - h.a; while (df > Math.PI) df -= 6.283; while (df < -Math.PI) df += 6.283; const mx = (h.warn > 0 ? .035 : .0125) * k; h.a += Math.max(-mx, Math.min(mx, df)); } }
+    for (const o of AB) { o.t -= k; if (o.k === 'null' && o.t <= 0 && !o.done) { o.done = 1; flash = .5; flashC = '150,90,255'; shake = 16; try { sfx.slam(); } catch (e) {} if (Math.hypot(P.x - o.x, P.y - o.y) > o.r) hurt(o.dmg); else comic(P.x, P.y - 54, '버텼다!', 1); ebul = ebul.filter(q => Math.hypot(q.x - o.x, q.y - o.y) < o.r); } }
+    if (AB.length) AB = AB.filter(o => o.t > -12);
+    if (floor > 100 && !boss && floor % 5 !== 0 && !cleared && (enemies.length || spawnLeft > 0)) { abEnv -= k; if (abEnv <= 0) { abEnv = 300 + rnd(0, 80); comic(W / 2, R.y0 + 120, '🕳️ 공허 소용돌이!', 1); abWell(P.x + rnd(-90, 90), P.y + rnd(-90, 90), 1.1); if (floor > 150) later(40, () => abWell(rnd(R.x0 + 80, R.x1 - 80), rnd(R.y0 + 140, R.y1 - 100), 1.1)); sfx.warn(); } } };
+  const _drawComicAb = drawComic;
+  drawComic = function () {
+    if (gl && (state === 'play' || state === 'levelup')) { const gr = (x, y, r) => { const [cx, cy] = project(x, y, 0), [ex] = project(x + r, y, 0), [, ey] = project(x, y + r, 0); return [cx, cy, Math.abs(ex - cx), Math.abs(ey - cy)]; };
+      for (const h of hazards) if (h.pullP && h.warn > 0) { const [cx, cy, rx, ry] = gr(h.x, h.y, h.r), q = 1 - h.warn / 85; ctx.save(); ctx.strokeStyle = 'rgba(170,110,255,.75)'; ctx.lineWidth = 2.5; for (let i = 0; i < 3; i++) { const ph = (t * .02 + i / 3) % 1; ctx.globalAlpha = .7 * ph; ctx.beginPath(); ctx.ellipse(cx, cy, rx * (1.9 - ph * 1.7), ry * (1.9 - ph * 1.7), 0, 0, 6.283); ctx.stroke(); } ctx.globalAlpha = .55 + .4 * q; ctx.fillStyle = '#12061e'; ctx.beginPath(); ctx.ellipse(cx, cy, rx * (.25 + .3 * q), ry * (.25 + .3 * q), 0, 0, 6.283); ctx.fill(); ctx.restore(); }
+      for (const o of AB) { if (o.k === 'null') { const [cx, cy, rx, ry] = gr(o.x, o.y, o.r), q = 1 - Math.max(0, o.t) / o.max, X0 = -ox / scale, Y0 = -oy / scale, FW = innerWidth / scale, FH = innerHeight / scale; ctx.save(); ctx.fillStyle = 'rgba(40,10,70,' + (o.t > 0 ? .18 + .42 * q : .0).toFixed(3) + ')'; ctx.beginPath(); ctx.rect(X0, Y0, FW, FH); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.fill('evenodd'); ctx.strokeStyle = 'rgba(140,255,220,' + (.6 + .4 * Math.sin(t * .3)).toFixed(2) + ')'; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 6.283); ctx.stroke(); ctx.restore(); if (o.t > 0) txt('안전 지대 ' + Math.ceil(o.t / 60), cx, cy - ry - 14, 15, '#8fffdc'); }
+        else if (o.k === 'cl' && o.t > 0) { const [cx, cy] = project(o.x, o.y, 1.6), q = o.t / o.max; ctx.save(); ctx.globalAlpha = .75 * Math.min(1, q * 2); ctx.fillStyle = '#1a0828'; ctx.beginPath(); ctx.ellipse(cx, cy, 15, 24, 0, 0, 6.283); ctx.fill(); ctx.fillStyle = '#d07aff'; ctx.beginPath(); ctx.arc(cx - 5, cy - 8, 2.6, 0, 6.283); ctx.arc(cx + 5, cy - 8, 2.6, 0, 6.283); ctx.fill(); ctx.restore(); } } }
+    _drawComicAb(); };
   const _sfr2 = startFloorRun; startFloorRun = function (f, resumed) { _sfr2(f, resumed); if (updReady && !resumed && !trial && f !== startFloor) { writeRun(); updGo(); } };
   (function () {
     let flag = null; try { flag = localStorage.getItem('dh-upd'); localStorage.removeItem('dh-upd'); } catch (e) {}
