@@ -52,6 +52,7 @@ const HF = {
       const x0 = m.e - tw / 2 * m.a, y0 = m.f + (g.ty - g.fz * 0.68) * m.d, w = tw * m.a, hh = th * m.d; let dy = 0;
       const hitAt = (d, e = 0) => placed.find(p => x0 + e < p.x + p.w && x0 + e + w > p.x && y0 + d < p.y + p.h && y0 + d + hh > p.y); let dx = 0;
       if (hitAt(0)) { const st2 = hh + 1.5 * m.d, CAND = []; for (const k of [1, 2, 3, 4]) for (const e of [0, 0.55, -0.55]) for (const d of [k * st2, -k * st2]) CAND.push([d, e * w]); for (const e of [0.6, -0.6, 1.1, -1.1]) CAND.push([0, e * w]); CAND.sort((p, q) => Math.hypot(p[0], p[1] * 0.7) - Math.hypot(q[0], q[1] * 0.7)); const ok = CAND.find(([d, e]) => !hitAt(d, e)); if (ok) { dy = ok[0]; dx = ok[1]; } }   /* 11-15 눈 확인: 위아래로만 비키다 지배자 발밑까지 줄줄이 내려가 주인과 멀어짐 → 옆으로도 반 칸 비키며 가장 가까운 빈자리 */
+      { const mg = 4 * (view.dpr || 1); if (x0 + dx < mg) dx = mg - x0; else if (x0 + dx + w > cv.width - mg) dx = cv.width - mg - w - x0; }   /* 11-17 05:0x 눈 확인: 「리리와 라라」 이름표가 왼쪽 끝에서 반쯤 잘림 → 화면 안으로 */
       placed.push({ x: x0 + dx, y: y0 + dy, w, h: hh }); ctx.setTransform(m.a, 0, 0, m.d, m.e + dx, m.f + dy);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.globalAlpha = g.a; const y0b = g.ty - g.fz * 0.68;
       /* 11-16 11:38 등급마다 이름표가 화려해짐: N 수수 · R 파랑 테 · SR 보라 빛 · SSR 금빛 바탕 + 빛이 훑고 지나감 + 양옆 별 반짝 · 별이 오를수록 테가 굵어짐 · ☠7 붉은 불꽃 */

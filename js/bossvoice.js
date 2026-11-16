@@ -4,8 +4,9 @@
    - 2페이지: 보스 체력 50% 아래 → 화면 카드 「2페이지 · ○○ 분노!」 + 분노 대사 + 붉은 기운, 그 뒤로 큰 기술에 두 번째 기술이 섞이고 약점이 2번에 한 번
    - 쓰러짐: 마지막 대사 */
 const BV = {
-  bubble(text, life = 2.4) {
+  bubble(text, life = 2.4, k = 0) {
     const g = S.giant; if (!g || !text) return;
+    if (k < 16 && typeof UI !== 'undefined' && UI.busy && UI.busy()) { setTimeout(() => this.bubble(text, life, k + 1), 250); return; }   /* 11-17 04:24 「거대한 적이 나타났다」와 「드디어 왔구나」가 한 자리에 겹쳤음 */
     let e = document.getElementById('bvb'); if (!e) { e = document.createElement('div'); e.id = 'bvb'; document.body.appendChild(e); }
     e.textContent = text; e.classList.remove('on'); void e.offsetWidth; e.classList.add('on'); this.bT = life; this.place();
   },

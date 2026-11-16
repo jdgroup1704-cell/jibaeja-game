@@ -27,7 +27,8 @@ function resize() {
   let s = Math.min(cv.width / W, cv.height / H), ox = (cv.width - W * s) / 2;
   let oy = (cv.height - H * s) / 2; BX = 1030; VX1 = 1160;
   if (!TRAILER && cv.width / cv.height < 1.6) {   /* 좁은 전장(휴대폰 세로 틀 · 11-13 대표님 「게임이 너무 작아졌다」): 세계 중 싸움이 벌어지는 곳(가로 95~935 · 세로 100~710)만 꽉 차게 → 캐릭터가 약 1.3배 커짐. 거인은 왼쪽(800)에 멈춰 잘리지 않게 */
-    s = Math.min(cv.width / VW.w, cv.height / VW.h); ox = (cv.width - VW.w * s) / 2 - VW.x * s; oy = (cv.height - VW.h * s) / 2 - VW.y * s; VX1 = VW.x + VW.w; BX = VW.w > 1000 ? VX1 - (cv.width / Math.max(1, view0dpr()) < 500 ? 290 : 205) :   /* 16:12 폰: 보스가 오른쪽 ≡ 메뉴 밑 · 화면 끝에 반쯤 잘렸음 → 85 안쪽 */ Math.min(840, VX1 - 115);   /* 04:58 동작띠: 보스가 소환수와 겹침 → 보스를 오른쪽으로 조금 */   /* 거인이 화면 안에 다 들어오게 */
+    if (window.__VWP) Object.assign(VW, window.__VWP);
+    s = Math.min(cv.width / VW.w, cv.height / VW.h); ox = (cv.width - VW.w * s) / 2 - VW.x * s; oy = (cv.height - VW.h * s) / 2 - VW.y * s; VX1 = VW.x + VW.w; BX = VW.w >= 880 && VW.w < 1000 ? VX1 - (cv.width / Math.max(1, view0dpr()) < 500 ? 240 : 190) : VW.w > 1000 ? VX1 - (cv.width / Math.max(1, view0dpr()) < 500 ? 290 : 205) :   /* 11-17 폰 세계 창 920: 보스가 오른쪽 끝에 79%만 보였음 → 안쪽으로 */   /* 16:12 폰: 보스가 오른쪽 ≡ 메뉴 밑 · 화면 끝에 반쯤 잘렸음 → 85 안쪽 */ Math.min(840, VX1 - 115);   /* 04:58 동작띠: 보스가 소환수와 겹침 → 보스를 오른쪽으로 조금 */   /* 거인이 화면 안에 다 들어오게 */
   }
   view = { s, ox, oy, dpr };
 }

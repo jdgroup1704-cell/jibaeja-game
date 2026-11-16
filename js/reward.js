@@ -4,8 +4,9 @@
 const RW = {
   n: 0, arrived: 0,
   pos(wx, wy) { const r = cv.getBoundingClientRect(), k = r.width / cv.width; return { x: r.left + (wx * view.s + view.ox) * k, y: r.top + (wy * view.s + view.oy) * k, r }; },
-  show(de, gx, gy) {
-    if (!de) return; this.n++;
+  show(de, gx, gy, k = 0) {
+    if (!de) return; if (k < 60 && typeof UI !== 'undefined' && UI.busy && UI.busy()) { setTimeout(() => this.show(de, gx, gy, k + 1), 300); return; }   /* 11-17 04:24 「보스 격파!」가 자리 비움 창 · 대마법 이름 위에 겹쳤음 → 비면 띄움 */
+    this.n++;
     const p = this.pos(Math.min(gx, VW.x + VW.w * 0.6), gy - 160), r = p.r;
     const items = [['souls', 'i_soul', fmt(de.souls || 0), L.rw.souls]]; if (de.gems) items.push(['gems', 'i_gem', de.gems, L.rw.gems]); if (de.bones) items.push(['bones', 'i_bone', de.bones, L.rw.bones]);
     /* 가운데 큰 띠 */

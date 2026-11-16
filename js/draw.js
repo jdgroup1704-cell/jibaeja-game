@@ -1047,7 +1047,7 @@ function drawText(x, m = 1, maxW = W - 40) {
   const k = x.age / x.life;
   let a = k < 0.12 ? k / 0.12 : k > 0.75 ? (1 - k) / 0.25 : 1;
   let scale = 1; if (x.stamp) scale = 1 + Math.max(0, 0.5 - x.age * 3.5); else if (!x.screen && /^[-+]?[\d.,]+/.test(x.text)) { const q = x.age / 0.16; scale = q < 1 ? 1.75 - 0.95 * q : q < 1.6 ? 0.8 + 0.2 * (q - 1) / 0.6 : 1; }   /* 11-14 타격감: 피해 숫자가 크게 튀어나왔다 자리 잡음 */
-  if (!x.screen) scale *= 1 + (WK() - 1) * (/^[-+]?[\d.,]/.test(x.text) ? clamp(22 / x.size, 0.3, 1) : x.size <= 20 ? 0.8 : 0.35);   /* 19:23 글자(기술 이름 등)는 덜 키움 — 숫자만큼 키우니 「뼈의 돌격」이 화면을 덮었음 */   /* 18:42 휴대폰에서 피해 숫자가 5픽셀로 안 보였음 → 화면 크기에 맞춰 키움(작은 글자일수록 더) */
+  if (!x.screen) scale *= 1 + (WK() - 1) * (/^[-+]?[\d.,]/.test(x.text) ? clamp(22 / x.size, 0.3, 1) * (FAR() ? 0.62 : 1) : x.size <= 20 ? 0.8 : 0.35);   /* 19:23 글자(기술 이름 등)는 덜 키움 — 숫자만큼 키우니 「뼈의 돌격」이 화면을 덮었음 */   /* 18:42 휴대폰에서 피해 숫자가 5픽셀로 안 보였음 → 화면 크기에 맞춰 키움(작은 글자일수록 더) */
   ctx.save(); ctx.translate(x.x, x.y); ctx.scale(scale, scale); ctx.globalAlpha = clamp(a, 0, 1);
   ctx.font = `900 ${x.size}px ${x.font}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   if (x.screen) { const w = ctx.measureText(x.text).width; const mm = Math.min(m, Math.max(60, maxW) / Math.max(1, w * scale)); if (mm !== 1) ctx.scale(mm, mm); x.drawnW = w * scale * mm; } if (x.size >= 36) { x.tf = ctx.getTransform(); x.bw = ctx.measureText(x.text).width; }   /* 00:20 겹침재기용 */   /* 키워도(휴대폰 ×1.9) 보이는 화면 밖으로 넘치지 않게, 원래 크기가 넘쳐도 줄임 */
