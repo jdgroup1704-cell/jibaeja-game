@@ -681,7 +681,7 @@
     if (b.bh > 0) { b.bh -= k; const a = Math.atan2(b.bhy - P.y, b.bhx - P.x), d = Math.hypot(b.bhx - P.x, b.bhy - P.y); if (d > 20) { P.x += Math.cos(a) * .85 * k; P.y += Math.sin(a) * .85 * k; } if (b.bh <= 0) { for (let i = 0; i < 20; i++) eb(b.bhx, b.bhy, i / 20 * Math.PI * 2, 2.3, { c: 'p' }); sfx.slam(); shake = 10; } }
     if (b.spiral > 0) { b.spiral -= k; b.sang += .17 * k; if (Math.floor(b.spiral) % 6 === 0) for (let a = 0; a < (b.phase2 ? 3 : 2); a++) eb(b.x, b.y, b.sang + a / (b.phase2 ? 3 : 2) * Math.PI * 2, 2.6, { c: 'p' }); }
     b.x = clamp(b.x, R.x0 + b.r, R.x1 - b.r); b.y = clamp(b.y, R.y0 + b.r, R.y1 - b.r);
-    if (b.st !== 'jumpWarn' && b.alpha > .5 && dist(b, P) < b.r + P.r) { hurt((8 + FL() * .6) * DF(), b); const pa = Math.atan2(P.y - b.y, P.x - b.x); P.x = clamp(P.x + Math.cos(pa) * 6 * k, R.x0 + P.r, R.x1 - P.r); P.y = clamp(P.y + Math.sin(pa) * 6 * k, R.y0 + P.r, R.y1 - P.r); }
+    if (b.st !== 'jumpWarn' && b.alpha > .5 && dist(b, P) < b.r + P.r) { hurt((8 + FL() * .6) * DF(), b); const pa = Math.atan2(P.y - b.y, P.x - b.x); P.x = clamp(P.x + Math.cos(pa) * 6 * k, R.x0 + P.r, R.x1 - P.r); P.y = clamp(P.y + Math.sin(pa) * 6 * k, R.y0 + P.r, R.y1 - P.r); if (dist(b, P) < b.r + P.r - 1) { b.x = clamp(b.x - Math.cos(pa) * 7 * k, R.x0 + b.r, R.x1 - b.r); b.y = clamp(b.y - Math.sin(pa) * 7 * k, R.y0 + b.r, R.y1 - b.r); } }
   }
 
   // ===================== COMBAT =====================
@@ -2084,7 +2084,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116215907'; let updReady = null;
+  const BUILD = '1116215954'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
