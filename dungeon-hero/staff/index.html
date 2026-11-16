@@ -2088,7 +2088,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116235746'; let updReady = null;
+  const BUILD = '1117000055'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -3064,7 +3064,7 @@
   let freshSess = true; try { freshSess = !sessionStorage.getItem('dh-sess'); sessionStorage.setItem('dh-sess', '1'); } catch (e) {}
   let isApp = false; try { isApp = navigator.standalone === true || (top === window && !document.fullscreenElement && (matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches)); } catch (e) {}
   try { localStorage.removeItem('dh-app'); if (!isApp && /[?&]app=1/.test(location.search)) history.replaceState(null, '', location.pathname); } catch (e) {}
-  let instEvt = null, instMsg = '', instMsgT = 0; addEventListener('beforeinstallprompt', e => { e.preventDefault(); instEvt = e; }); addEventListener('appinstalled', () => { instEvt = null; instSay('설치됐어요! 홈 화면의 「던전 히어로」로 들어오면 선물을 받아요'); });
+  let instEvt = null, instMsg = '', instMsgT = 0; addEventListener('beforeinstallprompt', e => { e.preventDefault(); instEvt = e; }); addEventListener('appinstalled', () => { instEvt = null; try { meta.instDone = 1; saveMeta(); } catch (e) {} instSay('설치됐어요! 홈 화면의 「던전 히어로」로 들어오면 선물을 받아요'); });
   const instSay = m => { instMsg = m; instMsgT = t; };
   const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''), b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
   const saveCode = () => 'DH4.' + b64e(JSON.stringify(meta));
@@ -3122,7 +3122,7 @@
   MENU.push('help');
 
   // ===================== 빌드 55: 💎 부활 = 그 자리에서(보스 체력 그대로) · 용사 크기 =====================
-  let HSZ = 50;
+  let HSZ = 47;
   { const _die55 = die; die = function () { const n0 = tasks.length; _die55(); if (state === 'over') for (let i = n0; i < tasks.length; i++) tasks[i].ov = 1; }; }
   diaRevive = function () { const rc = Math.max(10, REVIVE_BASE - 6 * vipLv()); if (state !== 'over' || !lastDeath || lastDeath.used || trial || meta.dia < rc) return;
     meta.dia -= rc; lastDeath.used = 1; saveMeta();
@@ -3133,9 +3133,11 @@
 
   // ===================== 빌드 57: 꽉 찬 화면(주소창 없음) =====================
   const FS_EL = document.documentElement, FS_OK = (() => { try { return top === window && !!(FS_EL.requestFullscreen || FS_EL.webkitRequestFullscreen) && (document.fullscreenEnabled !== false) && !IS_IOS; } catch (e) { return false; } })();
-  const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const fsRaw = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const fsOn = () => { if (!fsRaw()) return false; try { const sh = Math.max(1, screen.height || 0), sw = Math.max(1, screen.width || 0), tall = innerHeight >= innerWidth ? Math.max(sh, sw) : Math.min(sh, sw); return innerHeight >= tall * 0.92; } catch (e) { return true; } };
   let fsTried = false, fsQuit = false; try { fsQuit = sessionStorage.getItem('dh-fs-no') === '1'; } catch (e) {}
-  function fsGo() { if (!FS_OK || fsOn()) return; try { const p = FS_EL.requestFullscreen ? FS_EL.requestFullscreen({ navigationUI: 'hide' }) : FS_EL.webkitRequestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+  function fsGo() { if (!FS_OK || fsOn()) return; const rq = () => { try { const p = FS_EL.requestFullscreen ? FS_EL.requestFullscreen({ navigationUI: 'hide' }) : FS_EL.webkitRequestFullscreen(); if (p && p.catch) p.catch(() => {}); } catch (e) {} };
+    if (fsRaw()) { try { const q = document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen(); if (q && q.then) q.then(rq, rq); else setTimeout(rq, 80); } catch (e) { rq(); } } else rq(); }
   function fsExit() { try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} }
   function fsToggle() { if (fsOn()) { fsQuit = true; try { sessionStorage.setItem('dh-fs-no', '1'); } catch (e) {} fsExit(); } else { fsQuit = false; try { sessionStorage.removeItem('dh-fs-no'); } catch (e) {} fsGo(); } }
   { let coarse = false; try { coarse = matchMedia('(pointer: coarse)').matches; } catch (e) {}
@@ -3170,7 +3172,8 @@
       if (SKINS.length > 1) { ibtn('👑', skinPrev ? '미리 보기 중' : '아바타', 10, y, skinNext, !!skinPrev); y += 62; }
       y = 216; const nw = !meta.help54;
       ibtn('❓', '도움말', W - 70, y, () => openHelp(0, 'town'), nw, nw ? 'N' : ''); y += 62;
-      if (!isApp && (!meta.pwaGift || instEvt || IS_AND)) { ibtn('📲', '앱 설치', W - 70, y, smartInstall, !meta.pwaGift, meta.pwaGift ? '' : '🎁'); y += 62; }
+      if (!isApp && meta.instDone && !instEvt) { ibtn('✅', '설치됨', W - 70, y, () => { townPop = { txt: '✅ 앱이 설치돼 있어요', sub: '홈 화면 「던전 히어로」 아이콘으로 여세요', t0: t }; }, false); y += 62; }
+      else if (!isApp && (!meta.pwaGift || instEvt || IS_AND)) { ibtn('📲', '앱 설치', W - 70, y, smartInstall, !meta.pwaGift, meta.pwaGift ? '' : '🎁'); y += 62; }
       if (FS_OK && !isApp) { ibtn('📱', fsOn() ? '화면 줄이기' : '꽉 찬 화면', W - 70, y, fsToggle, false); y += 62; }
       ibtn('💳', vipLv() ? 'VIP ' + vipLv() : '유료 상점', W - 70, y, () => openShop('town'), false, PAYLOCK ? '' : (meta.bought && meta.bought.starter ? '' : '5배')); }
     // 4) 내 옷 이름(용사 머리 위) · 다음 고비(용사 발밑)
