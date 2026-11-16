@@ -2083,7 +2083,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116211752'; let updReady = null;
+  const BUILD = '1116212153'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2853,7 +2853,7 @@
 
   const _drawTownSk = drawTown;
   drawTown = function () { _drawTownSk(); if (SKINS.length < 2) return; const i = Math.max(0, SKINS.findIndex(s => s[0] === (meta.skin || ''))), S = SKINS[i];
-    button('👑 아바타: ' + S[1] + (S[0] ? ' (체험)' : '') + ' ▸', 8, 12, 190, 32, () => { const n = SKINS[(i + 1) % SKINS.length]; meta.skin = n[0]; saveMeta(); townPop = { txt: '👑 아바타: ' + n[1], sub: n[0] ? '유료 아바타 · 지금은 시험 기간이라 체험할 수 있어요' : '기본 모습으로 돌아왔어요', t0: t }; try { n[0] ? sfx.fanfare() : sfx.pick(); } catch (e) {} }, !!S[0]); };
+    button('👑 아바타: ' + S[1] + (S[0] ? ' (체험)' : '') + ' ▸', 8, 12, 190, 32, () => { const n = SKINS[(i + 1) % SKINS.length]; meta.skin = n[0]; saveMeta(); townPop = { txt: '👑 아바타: ' + n[1], sub: n[0] ? '유료 아바타 ' + ({ gold: '₩9,900', dark: '₩14,900' }[n[0]] || '') + ' (출시 예정) · 지금은 무료 체험 중' : '기본 모습으로 돌아왔어요', t0: t }; try { n[0] ? sfx.fanfare() : sfx.pick(); } catch (e) {} }, !!S[0]); };
 
   // ===================== 보스 격파 연출 =====================
   let VK = null;
