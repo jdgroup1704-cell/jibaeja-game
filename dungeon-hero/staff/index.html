@@ -1984,13 +1984,15 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116151405'; let updReady = null;
-  function updGo() { try { localStorage.setItem('dh-upd', '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady); }
+  const BUILD = '1116152652'; let updReady = null;
+  const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel'];
+  function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
+    try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
   function updCheck() {
     if (BUILD.indexOf('BUILD') >= 0 || !/^https?:/.test(location.protocol)) return;
     fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => {
       if (!j || !j.v || j.v === BUILD) return; updReady = j.v;
-      if (state === 'town' || state === 'title' || (paused && state === 'play') || document.hidden) { if (state === 'play' || state === 'levelup') writeRun(); updGo(); }
+      if (trial) return; if (MENU.includes(state) || state === 'title' || (paused && state === 'play') || document.hidden) { if (state === 'play' || state === 'levelup') writeRun(); updGo(); }
     }).catch(() => {});
   }
   setInterval(updCheck, 60000); setTimeout(updCheck, 4000);
@@ -2094,7 +2096,7 @@
 
   let trial = null, trialRun = null;
   function startTrial(f) { trial = JSON.stringify(meta); trialRun = runSave; runSave = null; startRun(f); banner = '🎯 ' + f + '층 체험!'; bannerSub = '체험은 기록 · 골드가 저장 안 돼요 · 지난 판 카드 그대로'; bannerT = 170; }
-  function endTrial() { if (!trial) return; const m = JSON.parse(trial); trial = null; Object.keys(meta).forEach(k => delete meta[k]); Object.assign(meta, m); runSave = trialRun; trialRun = null; lastDeath = null; saveMeta(); }
+  function endTrial() { if (!trial) return; const m = JSON.parse(trial); trial = null; Object.keys(meta).forEach(k => delete meta[k]); Object.assign(meta, m); runSave = trialRun; trialRun = null; lastDeath = null; saveMeta(); try { if (runSave) localStorage.setItem('dh-run-staff', JSON.stringify(runSave)); } catch (e) {} }
   const _endRun = endRun;
   endRun = function (won) { const tr = !!trial; _endRun(won); if (tr) { const lb = meta.lastBuild; endTrial(); lastDeath = null; townPop = { txt: '🎯 체험 끝!', sub: '기록은 원래대로예요', t0: t }; } };
   function drawTrialSel() {
@@ -2312,15 +2314,15 @@
   drawHUD = function () { _drawHUDS(); if (subNow && t - subNow.t0 < 190 && (state === 'play' || state === 'victory' || state === 'over')) { const a = Math.min(1, (190 - (t - subNow.t0)) / 25, (t - subNow.t0) / 8), y = R.y0 + 92; ctx.globalAlpha = a;
       ctx.font = `17px ${FB}`; const w = Math.min(W - 24, Math.max(ctx.measureText(subNow.ko).width, ctx.measureText(subNow.jp).width * .72) + 34); ctx.fillStyle = 'rgba(8,2,4,.82)'; rrect(W / 2 - w / 2, y - 22, w, 50, 12); ctx.fill(); ctx.strokeStyle = 'rgba(255,90,70,.7)'; ctx.lineWidth = 1.5; ctx.stroke();
       txt(subNow.jp, W / 2, y - 9, 12, '#ffb4a8', FB); txt(subNow.ko, W / 2, y + 12, 17, '#fff', FB); ctx.globalAlpha = 1; } };
-  const _sfr2 = startFloorRun; startFloorRun = function (f, resumed) { _sfr2(f, resumed); if (updReady && !resumed) { writeRun(); updGo(); } };
+  const _sfr2 = startFloorRun; startFloorRun = function (f, resumed) { _sfr2(f, resumed); if (updReady && !resumed && !trial && f !== startFloor) { writeRun(); updGo(); } };
   (function () {
     let flag = null; try { flag = localStorage.getItem('dh-upd'); localStorage.removeItem('dh-upd'); } catch (e) {}
     if (!flag) return;
     const d = document.createElement('div');
     d.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(10,4,12,.82);color:#ffe9b0;font:900 26px system-ui,sans-serif;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent';
-    const go = runSave ? '▶ 눌러서 이어하기<div style="font-size:18px;color:#fff;font-weight:700;margin-top:10px">' + runSave.floor + '층 · Lv ' + runSave.lv + '</div>' : '▶ 눌러서 계속';
+    const wasPlay = flag === '1'; const go = runSave && wasPlay ? '▶ 눌러서 이어하기<div style="font-size:18px;color:#fff;font-weight:700;margin-top:10px">' + runSave.floor + '층 · Lv ' + runSave.lv + '</div>' : '▶ 눌러서 계속';
     d.innerHTML = '<div style="font-size:44px">✨</div><div>게임이 새로워졌어요!</div><div style="background:#8a3a12;border:3px solid #ffc864;border-radius:18px;padding:18px 34px;color:#fff">' + go + '</div>';
-    const done = e => { e.preventDefault(); e.stopPropagation(); d.remove(); if (runSave) resumeRun(); else ac(); };
+    const done = e => { e.preventDefault(); e.stopPropagation(); d.remove(); if (runSave && wasPlay) resumeRun(); else { ac(); if (MENU.includes(flag)) state = flag; } };
     d.addEventListener('pointerdown', done); d.addEventListener('click', done);
     document.body.appendChild(d);
   })();
