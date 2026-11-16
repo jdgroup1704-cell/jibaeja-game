@@ -28,7 +28,7 @@ const MN = {
       else tx = 360 + (i % 6) * 34 + Math.floor(i / 6) * 18 + (typeof LDX === 'function' ? LDX() : 0);
       const dx = tx - m.x, sp = line != null ? 270 : 90; m.px = m.x; m.x += Math.sign(dx) * Math.min(Math.abs(dx), sp * dt);
       if (tgt && Math.abs(dx) < 26 && m.cd <= 0) { m.sw = 0.5; m.cd = rnd(0.45, 0.75); m.tgt = tgt; m.hitAt = 0.22; }
-      if (m.hitAt != null && m.sw <= 0.5 - m.hitAt) { const t = m.tgt; m.hitAt = null; if (t && !t.dead) { t.flash = Math.max(t.flash || 0, 0.1); burst(t.x - 20, t.y - 50, 5, { col: ['#e8dcff', '#c58bff', '#ffffff'], vmin: 60, vmax: 200, up: 30, lmax: 0.25, smax: 3 }); MN.hits = (MN.hits || 0) + 1; if (Math.random() < 0.12) m.hurt = 0.25; } }
+      if (m.hitAt != null && m.sw <= 0.5 - m.hitAt) { const t = m.tgt; m.hitAt = null; if (t && !t.dead) { t.flash = Math.max(t.flash || 0, 0.1); burst(t.x - 20, t.y - 50, 3, { col: ['#e8dcff', '#c58bff', '#ffffff'], vmin: 60, vmax: 200, up: 30, lmax: 0.25, smax: 3 }); MN.hits = (MN.hits || 0) + 1; if (Math.random() < 0.12) m.hurt = 0.25; } }
     });
     if (S.cracks) { for (const c of S.cracks) c.t += dt; S.cracks = S.cracks.filter(c => c.t < 1.2); }
   },
