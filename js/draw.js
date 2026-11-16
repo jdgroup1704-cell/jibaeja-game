@@ -34,7 +34,7 @@ function draw() {
   for (const h of HF.list) list.push(['h', h.y + 400, h]);   /* 00:35 영웅(모르데 y540)이 병사 뒤에 그려져 묻힘 → 영웅은 늘 병사 · 적 위에 */
   list.sort((p, q) => p[1] - q[1]);
   for (const [k, , o] of list) k === 'a' ? drawSkel(o) : k === 'h' ? HF.draw(o) : k === 'c' ? drawCorpse(o) : k === 'd' ? drawFallen(o) : drawFoe(o);
-  if (typeof TH !== 'undefined') TH.draw(); if (typeof BC !== 'undefined') BC.tick(); if (typeof BV !== 'undefined') BV.tick(1 / 60);   /* 11-16 망자 거인은 군단 · 적 위에(앞으로 솟아 내려찍음) */
+  if (typeof TH !== 'undefined') TH.draw(); if (typeof BC !== 'undefined') BC.tick(); if (typeof BV !== 'undefined') BV.tick(1 / 60); if (typeof FFX !== 'undefined') FFX.draw();   /* 11-16 망자 거인은 군단 · 적 위에(앞으로 솟아 내려찍음) */
   for (const f of S.foes) HF.drawFoeBar(f);   /* 적 체력 막대는 맨 위에 */
   HF.drawArmyBars();
   drawArmyFx(); HF.drawFx(); LM.draw();
@@ -57,6 +57,9 @@ const REGION_TINT = [null, ['#ff2a3a', 0.45, 140], ['#808080', 0.75, 20, 'satura
 const regionOf = s => Math.floor((Math.max(1, (TRAILER && window.__lockStage) || s) - 1) / 10) % 8;   // 광고 영상은 지역을 고정할 수 있음
 // 지역 전용 배경 그림(드리미나, 11-13 04:57~): 있으면 그 그림, 없으면 기본 배경 + 색감
 const REGION_BG = [null, 'blood', 'ash', 'ice', 'royal', 'poison', 'temple', 'abyss'];
+/* 11-16 13:59 대표님 「캐릭터도 다양하고」: 지역마다 적 빛깔이 다름 + 셋 중 하나는 짙은 변종(조금 큼) · 기사단장은 붉은 갑옷 · 폭탄병은 주황 — 필터 종류를 고정해 두어 한 번만 구움 */
+const FOE_RT = ['', 'hue-rotate(-28deg) saturate(1.35) ', 'grayscale(.45) sepia(.35) brightness(.95) ', 'hue-rotate(170deg) saturate(.9) brightness(1.08) ', 'sepia(.45) saturate(1.6) hue-rotate(-12deg) ', 'hue-rotate(75deg) saturate(1.25) ', 'saturate(.55) brightness(1.15) ', 'hue-rotate(230deg) saturate(1.3) brightness(.92) '];
+function FOE_TINT(f) { const r = FOE_RT[regionOf(st.stage)] || ''; if (f.kind === 'captain') return 'hue-rotate(-40deg) saturate(1.8) contrast(1.1) drop-shadow(0 0 5px rgba(255,60,40,.9))'; if (f.kind === 'bomber') return 'sepia(.6) saturate(2.2) hue-rotate(-15deg) brightness(1.05)'; return (r + (f.vr ? 'brightness(.78) contrast(1.15) ' : '')).trim(); }
 function regionBg() { ensureRegion(st.stage); const k = REGION_BG[regionOf(st.stage)]; return k && ART['bg_' + k] ? ART['bg_' + k] : null; }
 function drawRegionTint() {
   if (regionBg()) return;
@@ -354,9 +357,9 @@ const BAKE = {};
 function baked(key, img, filt) {   /* 필터 입힌 줄그림을 한 번만 만들어 둠(같은 필터면 다시 씀) */
   if (!filt || filt === 'none') return img;
   const k = key + '|' + filt; if (BAKE[k]) return BAKE[k];
-  const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d');
+  const rs = img.width > 2000 ? 0.6 : 1, c = document.createElement('canvas'); c.width = Math.round(img.width * rs); c.height = Math.round(img.height * rs); const g = c.getContext('2d');   /* 11-16 큰 줄그림은 0.6배로 구움(메모리 1/3 · 화면엔 어차피 작게 그려짐) — 적 빛깔 변종이 늘어 */
   if (!('filter' in g)) return (BAKE[k] = img);   /* 필터를 못 쓰는 브라우저는 그림 그대로 */
-  g.filter = filt; g.drawImage(img, 0, 0); return (BAKE[k] = c);
+  g.filter = filt; g.drawImage(img, 0, 0, c.width, c.height); return (BAKE[k] = c);
 }
 /* fi는 소수: 정수 쪽 장을 그리고 다음 장을 소수만큼 겹쳐 그려 부드럽게. loop = 마지막 장 다음이 첫 장(대기) */
 /* 20:52 대표님 「군단 배치 있었지?」: 군단 탭 병과가 전장에선 다 같은 칼 망자병이라 안 보였음 → 병과마다 빛깔(방패병 은빛 · 조금 큼 앞줄, 궁병 초록 뒷줄, 주술사 분홍 보라 맨 뒷줄, 기병 구릿빛) */
@@ -368,7 +371,7 @@ function vsDraw(n, an, fi, h, filt, rot, loop) {
   if (rot) ctx.rotate(rot);
   const img = baked(key, src, filt); fi = loop ? ((fi % N) + N) % N : clamp(fi, 0, N - 1);
   const i0 = Math.floor(fi), fr = fi - i0, dw = M.cw * k, dh = M.ch * k, dx = -M.ax * k, dy = -M.ay * k;
-  const one = i => ctx.drawImage(img, (i % VS_COLS) * M.cw, Math.floor(i / VS_COLS) * M.ch, M.cw, M.ch, dx, dy, dw, dh);
+  const rs = img.width / src.width, one = i => ctx.drawImage(img, (i % VS_COLS) * M.cw * rs, Math.floor(i / VS_COLS) * M.ch * rs, M.cw * rs, M.ch * rs, dx, dy, dw, dh);
   one(i0);
   const i1 = loop ? (i0 + 1) % N : Math.min(N - 1, i0 + 1);
   if (loop && fr > 0.04 && i1 !== i0) {   /* 섞기는 대기(천천히 도는 동작)만 — 빠른 동작은 겹쳐 보임 */ const ga = ctx.globalAlpha; ctx.globalAlpha = ga * fr; one(i1); ctx.globalAlpha = ga; }
@@ -413,14 +416,17 @@ function drawSkel(a) {
   const SA = a.big && !a.fly ? need('sumA' + ({ '-1': 0, 1: 1, 2: 2, 3: 3 }[a.c] ?? 0)) : null;
   const SVN = a.big && !a.fly ? { '-1': 'sumv1', 1: 'sumv2', 2: 'sumv3', 3: 'sumv4' }[a.c] : null, SVok = SVN && VS[SVN] && need(SVN + '_idle');   /* 11-16 #13 숨쉬기 그림만 와도 새 그림으로(공격 그림은 오는 대로) — 전엔 공격까지 다 와야 해서 느린 망에서 옛 임시 그림이 8초 더 보였음 */
   if (SVok) {   /* 03:10 영상 움직임: 평소 숨쉬기(앞뒤로 돌림) · 공격 0.6초 동안 영상 공격 장면 전부 */
-    const atT = 0.6; if (a.sw > 0 && !(a.vT > 0)) a.vT = atT; if (a.vT > 0) a.vT -= 1 / 60; const at = a.vT > 0 && !!need(SVN + '_attack'), M = VS[SVN], h = 128 * sc * pop;   /* 11-16 11:35 대표님 「해골 · 궁수는 왜 이리 크고 지배자는 작고」: 150 → 128 */
+    const atT = 0.6; if (a.sw > 0 && !(a.vT > 0)) a.vT = atT; if (a.vT > 0) a.vT -= 1 / 60; const at = a.vT > 0 && !!need(SVN + '_attack'), M = VS[SVN], EV = EVO_OF(a), h = 128 * sc * pop * [1, 1.05, 1.1, 1.16, 1.24][EV];   /* 11-16 11:35 대표님 「해골 · 궁수는 왜 이리 크고 지배자는 작고」: 150 → 128 */
     const NI = M.n.idle, q = (S.t * 10 + a.ph * 7) % (2 * NI - 2), fi = at ? (1 - a.vT / atT) * (M.n.attack - 1) : (q < NI ? q : 2 * NI - 2 - q);
     const wk = !at && (a.wamp || 0) > 0.25 && need(SVN + '_walk'); a.wf = ((a.wf ?? a.ph * 9) + (wk ? (a.back ? -1 : 1) * Math.max(0.12, Math.min(mv, 8) * 16 / 75) : 0) + 16) % 16;   /* 움직인 거리만큼 발을 내딛음(75 걸으면 한 바퀴) · 뒤로 갈 땐 거꾸로 */
-    if (wk) { vsDraw(SVN + 'w', 'walk', a.wf, h, '', a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.06 : 0, true); if (a.flash > 0) a.flash -= 1 / 60; }
+    if (wk && EV) EVO_BACK(a, EV, h);
+    if (wk) { vsDraw(SVN + 'w', 'walk', a.wf, h, '', a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.06 : 0, true); if (EV >= 4) EVO_CROWN(h); if (a.flash > 0) a.flash -= 1 / 60; }
     else {
     if (a.wamp > 0.05) ctx.translate(0, -Math.abs(Math.sin(a.wph)) * 6 * a.wamp);
     if (at && a.c !== 3) { const p = 1 - a.vT / atT; ctx.translate(p < 0.25 ? -12 * p / 0.25 : p < 0.42 ? -12 + 52 * (p - 0.25) / 0.17 : 40 * Math.pow(1 - (p - 0.42) / 0.58, 2), 0); }   /* 09:40 대표님 「때리기 이상」: 근접은 살짝 물러섰다 → 맞는 순간(0.25초)에 앞으로 쑥 40 내디딤 → 천천히 제자리 */
+    if (EV) EVO_BACK(a, EV, h);
     vsDraw(SVN, at ? 'attack' : 'idle', fi, h, '', a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.06 : 0, false);
+    if (EV >= 4) EVO_CROWN(h);
     if (a.flash > 0) { a.flash -= 1 / 60; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, a.flash * 2.5); vsDraw(SVN, at ? 'attack' : 'idle', fi, h, 'brightness(1.7) saturate(0.5)', 0, false); ctx.restore(); }
     }
   } else if (SA) {   /* 01:45 새 그림체 A 소환수 + 「딱딱탁」: 0.08초 뒤로 젖힘 → 0.05초 확 내려침(앞으로 쏠림 · 살짝 커짐) → 제자리 */
@@ -474,19 +480,33 @@ function drawFoe(f) {   /* 01:35 「딱딱탁」: 맞으면 0.16초 뒤로 튕�
   const kp = f.kbT > 0 ? 1 - f.kbT / 0.16 : 1, kx = f.kbT > 0 ? (kp < 0.2 ? kp / 0.2 : 1 - (kp - 0.2) / 0.8) * 28 : 0; if (f.kbT > 0) f.kbT -= 1 / 60;   /* 09:40 맞는 순간 확 밀렸다(0.03초) 천천히 돌아옴 · 28 */
   if (kx) { ctx.save(); ctx.translate(f.x + kx, f.y); ctx.rotate(kx / 28 * 0.12); ctx.translate(-f.x, -f.y); } drawFoe0(f); if (kx) ctx.restore();   /* 밀리며 뒤로 젖혀짐 */
 }
+/* 11-16 #25 대표님 11:30 「강화 계속 별 높이면 모습도 바뀌는 거야?」: 큰 소환수도 승급 단계가 눈에 보이게 — 쌓인 승급(st.evo)을 높은 단계부터 소환수에게 나눠 줌(저장 · 다시 켜도 그대로)
+   1 구울 초록 발밑 문양 · 2 뼈 골렘 푸른 문양 + 영혼 알갱이 · 3 망령 기사 보라 이중 문양 + 뒤 기운 · 4 리치 금빛 + 떠 있는 왕관 — 그림을 다시 굽지 않고 겹쳐 그림(메모리 그대로) */
+const EVO_C = ['', '#5dff8f', '#6ab8ff', '#c58bff', '#ffd76a']; let EVO_K = -1, EVO_M = new Map();
+function EVO_OF(a) { if (EVO_K !== S.t) { EVO_K = S.t; EVO_M = new Map(); const e = st.evo || [], T = []; for (let L = 4; L >= 1; L--) for (let n = 0; n < (e[L] || 0); n++) T.push(L); const B = S.army.filter(o => o.big && !o.fly && !o.gone).sort((p, q) => (p.c - q.c) || (p.x - q.x)); B.forEach((o, i) => EVO_M.set(o, T[i] || 0)); } return EVO_M.get(a) || 0; }
+function EVO_BACK(a, ev, h) { const C = EVO_C[ev], t = S.t + (a.ph || 0); ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  if (ev >= 3) { const g = ctx.createRadialGradient(0, -h * 0.5, 6, 0, -h * 0.5, h * 0.62); g.addColorStop(0, C + '55'); g.addColorStop(1, C + '00'); ctx.fillStyle = g; ctx.fillRect(-h * 0.7, -h * 1.15, h * 1.4, h * 1.2); }
+  ctx.save(); ctx.scale(1, 0.28); ctx.strokeStyle = C; ctx.globalAlpha = 0.85; ctx.lineWidth = 7; ctx.setLineDash([16, 10]); ctx.rotate(t * 0.9); ctx.beginPath(); ctx.arc(0, 0, h * 0.42, 0, 7); ctx.stroke();
+  if (ev >= 3) { ctx.rotate(-t * 1.8); ctx.setLineDash([6, 12]); ctx.beginPath(); ctx.arc(0, 0, h * 0.3, 0, 7); ctx.stroke(); } ctx.setLineDash([]); ctx.globalAlpha = 0.3; ctx.fillStyle = C; ctx.beginPath(); ctx.arc(0, 0, h * 0.4, 0, 7); ctx.fill(); ctx.restore();
+  if (ev >= 2 && Math.random() < 0.12 + ev * 0.05) S.parts.push({ x: a.x + rnd(-h * 0.3, h * 0.3), y: a.y - rnd(0, h * 0.6), vx: rnd(-8, 8), vy: rnd(-90, -40), life: 0.9, age: 0, size: rnd(2, 4), col: C, g: -20, add: true, kind: 'dot', rot: 0, vr: 0 });
+  ctx.restore(); }
+function EVO_CROWN(h) { const y = -h * 0.98 + Math.sin(S.t * 2.4) * 4, w = h * 0.24; ctx.save(); ctx.translate(0, y); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35; ctx.fillStyle = '#ffcf5a'; ctx.beginPath(); ctx.ellipse(0, -w * 0.15, w * 1.5, w * 0.95, 0, 0, 7); ctx.fill(); ctx.restore(); const g = ctx.createLinearGradient(0, -w * 0.7, 0, w * 0.2); g.addColorStop(0, '#fff3b0'); g.addColorStop(1, '#c98a1a'); ctx.fillStyle = g;
+  ctx.beginPath(); ctx.moveTo(-w, w * 0.2); ctx.lineTo(-w, -w * 0.3); ctx.lineTo(-w * 0.5, 0); ctx.lineTo(0, -w * 0.7); ctx.lineTo(w * 0.5, 0); ctx.lineTo(w, -w * 0.3); ctx.lineTo(w, w * 0.2); ctx.closePath(); ctx.fill(); ctx.strokeStyle = '#5a3a06'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#c070ff'; ctx.beginPath(); ctx.arc(0, -w * 0.12, w * 0.16, 0, 7); ctx.fill(); ctx.restore(); }
 function drawFoe0(f) {
   const sc = 1.9 * lerp(0.85, 1.1, f.d) * (f.kind === 'shield' ? 1.18 : f.kind === 'archer' ? 0.92 : 1), mv = f.px === undefined ? 0 : Math.abs(f.x - f.px);
   f.px = f.x; f.wph = (f.wph ?? f.ph) + Math.min(mv, 6) * 0.1; f.wamp = lerp(f.wamp || 0, mv > 0.15 ? 1 : 0, 0.2);   /* 적도 걸을 때만 다리를 번갈아 내딛음(전엔 서 있어도 늘 통통 튐) */
   const bob = (1 - f.wamp) * Math.sin(S.t * 2.6 + f.ph) * 0.8 - f.wamp * Math.abs(Math.sin(f.wph)) * 3.5 + (f.fly ? -150 + Math.sin(S.t * 5 + f.ph) * 10 : 0);
   ctx.save(); if (!f.flee) { ctx.globalCompositeOperation = 'lighter'; const rg = ctx.createRadialGradient(f.x, f.y - 40 * sc, 4, f.x, f.y - 40 * sc, 48 * sc); rg.addColorStop(0, 'rgba(255,40,60,.32)'); rg.addColorStop(1, 'rgba(255,40,60,0)'); ctx.fillStyle = rg; ctx.fillRect(f.x - 50 * sc, f.y - 92 * sc, 100 * sc, 100 * sc); ctx.globalCompositeOperation = 'source-over'; }   /* A판: 적 뒤 붉은 빛(우리 편과 한눈에 구분) */ ctx.globalAlpha = 0.5; ctx.fillStyle = '#05000c'; ctx.beginPath(); ctx.ellipse(f.x, f.y, 22 * sc, 6 * sc, 0, 0, 7); ctx.fill(); if (!f.flee) { ctx.globalAlpha = 0.75; ctx.strokeStyle = '#ff3a4a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(f.x, f.y - 1, 24 * sc, 7 * sc, 0, 0, 7); ctx.stroke(); } ctx.restore();   /* 적 발밑 그림자 + 빨간 고리(적 편 표시 — 11-13 대표님 「상대는 보이지도 않네」) */
   const ak = f.atk > 0 ? -Math.sin((1 - f.atk / 0.32) * Math.PI) * 22 : 0; f.hk = Math.max(0, (f.hk || 0) - 1 / 60); if (f.flash > 0.12 && !(f.hk > 0)) f.hk = 0.16; const hq = f.hk > 0 ? Math.sin(f.hk / 0.16 * Math.PI) : 0;   /* 11-14 타격감: 맞으면 찌그러지고 뒤로 살짝 밀림 */
+  if (typeof FFX !== 'undefined') FFX.bless(f, sc);
   ctx.save(); ctx.translate(f.x + ak + hq * 9, f.y + bob); ctx.scale(1 + 0.1 * hq, 1 - 0.08 * hq); if (f.flee) ctx.scale(-1, 1); if (ak && !ART.kn_attack) ctx.rotate(-0.12 * Math.sin((1 - f.atk / 0.32) * Math.PI));
   const FAi = !f.fly ? need('foeA' + ({ foot: 0, archer: 1, shield: 2, priest: 3, captain: 2, lancer: 0, paladin: 2, leech: 2, pyro: 3, frost: 3, plague: 3, abyss: 3, bomber: 0 }[f.kind] ?? 0)) : null;
   const FVi = !f.fly ? 'foev' + ({ foot: 0, archer: 1, shield: 2, priest: 3, captain: 2, lancer: 0, paladin: 2, leech: 2, pyro: 3, frost: 3, plague: 3, abyss: 3, bomber: 0 }[f.kind] ?? 0) : null;
   if (FVi && VS[FVi] && need(FVi + '_idle')) {   /* 11-16 #13 숨쉬기만 와도 새 그림 */   /* 03:20 적 영상 동작: 평소 숨쉬기 · f.atk 동안 공격 장면 */
     const M = VS[FVi], h = (f.elite ? 104 : 90) * sc, at = f.atk > 0 && !!need(FVi + '_attack'), NI = M.n.idle, q = (S.t * 9 + f.ph * 5) % (2 * NI - 2), fi = at ? (1 - f.atk / 0.32) * (M.n.attack - 1) : (q < NI ? q : 2 * NI - 2 - q);
     if (f.elite && ELITE[f.kind]) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.5; ctx.fillStyle = ELITE[f.kind].col || '#ffcc33'; ctx.beginPath(); ctx.ellipse(0, -2, 46 * sc / 1.9, 9, 0, 0, 7); ctx.fill(); ctx.restore(); }
-    vsDraw(FVi, at ? 'attack' : 'idle', fi, h, f.elite && ELITE[f.kind] ? 'drop-shadow(0 0 6px ' + (ELITE[f.kind].col || '#ffcc33') + ')' : '', 0, false);
+    vsDraw(FVi, at ? 'attack' : 'idle', fi, h * (f.vr ? 1.06 : 1), f.elite && ELITE[f.kind] ? 'drop-shadow(0 0 6px ' + (ELITE[f.kind].col || '#ffcc33') + ')' : FOE_TINT(f), 0, false);
     if (f.flash > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, f.flash * 2.5); vsDraw(FVi, at ? 'attack' : 'idle', fi, h, 'brightness(1.7) saturate(0.5)', 0, false); ctx.restore(); }
     ctx.restore(); return;
   }

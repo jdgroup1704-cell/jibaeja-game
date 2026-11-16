@@ -155,6 +155,12 @@ const EVO_CAP = 12;
 function evoPick(L, n) { const c = S.army.filter(a => !a.fly && !a.mg && (a.evo || 0) === L && a.rise >= 1); c.sort((p, q) => q.x - p.x); return c.slice(0, n); }
 function evoShow(lv, merge) {
   const nm = L.evo.names[lv];
+  if (S.army.some(o => o.big && !o.fly)) {   /* 11-16 #25 큰 소환수 진형: 셋을 합치면 소환수가 사라졌음 → 합치지 않고, 그 단계를 받은 소환수가 빛기둥과 함께 모습이 바뀜(EVO_OF) */
+    EVO_K = -1; const tg = S.army.filter(o => o.big && !o.fly && !o.gone).find(o => EVO_OF(o) === lv); if (!tg) return; tg.evoFx = 1.2;
+    say((merge ? L.evo.merge : L.evo.up)(nm), tg.x, tg.y - 190, { size: 22 + lv * 3, col: '#ffffff', glow: EVO_COL[lv], life: 1.4, vy: -30, stamp: lv >= 2 });
+    burst(tg.x, tg.y - 60, 10 + lv * 4, { col: [EVO_COL[lv], '#ffffff'], vmin: 60, vmax: 240, up: 160, lmax: 0.7, add: true }); if (lv >= 3) S.shake = Math.max(S.shake, 6);
+    if (lv === 4 && !st.seen.evoLord) { st.seen.evoLord = 1; say(L.evo.lordBorn, W / 2, H * 0.3, { size: 56, col: '#fff3c4', glow: '#ffb020', life: 2.4, vy: 0, stamp: true, screen: true }); Snd.chime && Snd.chime(784); }
+    return; }
   if (merge) {
     const three = evoPick(lv - 1, 3); if (three.length < 3) { const one = evoPick(0, 1)[0]; if (one) { one.evo = lv; one.evoFx = 1.2; } return; }
     const tgt = three[0]; for (const a of three.slice(1)) a.mg = { to: tgt, t: 0 };
@@ -271,7 +277,7 @@ function foeKind(f, i) {
   { const rg = regionOf(st.stage), ek = ELITE_OF[rg]; if (ek && !cap && i === 1 && st.wave >= 1 && !S.foes.some(o => !o.dead && o.kind === ek)) { k = ek; f.kind = k; f.elite = 1; f.big = 1.15; f.off = ELITE[ek].off + rnd(0, 40); f.sp *= 0.85; f.actT = rnd(2, 3); } }   /* 11-14 대표님 「몬스터 · 마법 더 만들어 풍성하게」: 지역마다 고유 정예 1명(그 지역 둘째 무리부터) */
   if (k === 'captain') { f.off = 0; f.sp *= 0.7; f.big = 1.35; f.actT = 2.5; }
   if (k === 'priest') { f.off = 260 + rnd(0, 60); f.sp *= 0.8; f.actT = rnd(2, 3); }
-  if (k === 'foot') f.off = rnd(0, 120);   /* 11-14: 같은 자리에 세로로 쌓여 기둥처럼 보여서 앞뒤로 흩음 */   /* 근접 적은 쫄따구 줄에 바짝 붙음(21:51 「쫄따구가 허공을 친다」) */
+  if (k === 'foot') f.off = (f.off || 0) + rnd(0, 30);   /* 11-14: 같은 자리에 세로로 쌓여 기둥처럼 보여서 앞뒤로 흩음 */   /* 근접 적은 쫄따구 줄에 바짝 붙음(21:51 「쫄따구가 허공을 친다」) */
   if (k === 'archer') { f.off = 230 + rnd(0, 80); f.sp *= 0.9; } if (k === 'shield') { f.off = 0; f.sp *= 0.6; } if (k === 'flyer') { f.sp *= 1.2; f.fly = 1; } if (k === 'bomber') { f.sp *= 2.2; f.off = -10; }
   return f;
 }
@@ -279,17 +285,20 @@ function foeAct(f, dt, front) {   /* 종류별 행동 */
   if (f.stun > 0) { f.stun -= dt; f.hitT = Math.max(f.hitT || 0, 0.3); return; }   /* 군주의 일갈: 멈춤 */
   f.actT = (f.actT == null ? rnd(1, 2) : f.actT) - dt;
   if (f.kind === 'priest' && f.actT <= 0 && f.x < VX1 - 40) { f.actT = rnd(3.5, 4.5); f.cast = 0.6; f.castT = 1.3; const add = st.maxHp * 0.03; st.hp = Math.min(st.maxHp, st.hp + add);   /* 사제: 적 무리 회복 + 금빛 축복(공격 빨라짐) */
-    for (const o of S.foes) if (!o.dead && !o.flee) { o.bless = 2.5; } say(L.foes.heal, f.x, f.y - 150, { size: 24, col: '#fff2a8', glow: '#ffcf3a', life: 1.0, vy: -40 }); (S.slams = S.slams || []); }
+    for (const o of S.foes) if (!o.dead && !o.flee) { o.bless = 2.5; } FFX.heal(); say(L.foes.heal, f.x, f.y - 150, { size: 24, col: '#fff2a8', glow: '#ffcf3a', life: 1.0, vy: -40 }); (S.slams = S.slams || []); }
   if (f.kind === 'captain' && f.actT <= 0 && f.x < VX1 - 60 && !(st.frozen > 0)) { f.actT = rnd(4.5, 5.5);
-    if (Math.random() < 0.6) { f.atk = 0.32; f.charge = 0.5; S.shake = Math.max(S.shake, 12); say(L.foes.charge, f.x, f.y - 210, { size: 34, col: '#ffd0b0', glow: '#ff3a2a', life: 1.1, vy: -30, stamp: true });   /* 기사단장: 돌진 베기 — 앞줄 해골 4~6이 쓰러짐 */
+    if (Math.random() < 0.6) { f.atk = 0.32; f.charge = 0.5; FFX.dash(f); S.shake = Math.max(S.shake, 12); say(L.foes.charge, f.x, f.y - 210, { size: 34, col: '#ffd0b0', glow: '#ff3a2a', life: 1.1, vy: -30, stamp: true });   /* 기사단장: 돌진 베기 — 앞줄 해골 4~6이 쓰러짐 */
       let n = 0; for (const a of S.army.filter(a => !a.fly && a.rise >= 1 && !a.evo && (a.rf == null || a.rf === -1)).sort((a, b) => (b.rf === -1) - (a.rf === -1) || b.x - a.x)) { if (n++ >= 4 + (Math.random() * 3 | 0)) break; if (bigHold(a)) continue; a.gone = true; skelFall(a); burst(a.x, a.y - 40, 6, { col: ['#e8dcc0', '#ff5a3a'], vmin: 80, vmax: 260, up: 140, g: 600, lmax: 0.6, add: false }); }
       (S.slashes = S.slashes || []).push({ x: f.x - 160, y: f.y - 70, t: 0 }); Snd.smp && Snd.smp('slam', 0.3, 0, 1.4); }
-    else { f.cryT = 1.2; for (const o of S.foes) if (!o.dead && !o.flee) o.bless = 4; say(L.foes.cry, f.x, f.y - 210, { size: 34, col: '#ffe08a', glow: '#ff8a2a', life: 1.2, vy: -30, stamp: true }); S.shake = Math.max(S.shake, 8); } }
-  if (f.elite && ELITE[f.kind] && f.actT <= 0 && f.x < VX1 - 40 && !(st.frozen > 0)) { const E = ELITE[f.kind]; f.actT = rnd(E.cd[0], E.cd[1]); f.flash = 0.25; E.act(f); say(L.foes.elite[f.kind].skill, f.x, f.y - 190, { size: 28, col: E.col, glow: E.glow, life: 1.1, vy: -36, stamp: true }); }
+    else { f.cryT = 1.2; FFX.ring(f.x, f.y - 60, '#ff3a2a', 420, 0.8); for (const o of S.foes) if (!o.dead && !o.flee) o.bless = 4; say(L.foes.cry, f.x, f.y - 210, { size: 34, col: '#ffe08a', glow: '#ff8a2a', life: 1.2, vy: -30, stamp: true }); S.shake = Math.max(S.shake, 8); } }
+  if (f.elite && ELITE[f.kind] && f.actT <= 0 && f.x < VX1 - 40 && !(st.frozen > 0)) { const E = ELITE[f.kind]; f.actT = rnd(E.cd[0], E.cd[1]); f.flash = 0.25; FFX.ring(f.x, f.y - 60, E.col || '#ffcc33', 280, 0.6); E.act(f); say(L.foes.elite[f.kind].skill, f.x, f.y - 190, { size: 28, col: E.col, glow: E.glow, life: 1.1, vy: -36, stamp: true }); }
+  if (f.kind === 'shield' && !f.elite && f.actT <= 0 && f.x < VX1 - 60 && f.x <= front + 160 && !(st.frozen > 0) && S.t > (S.bashT || 0)) { S.bashT = S.t + 2.6;   /* 한꺼번에 여럿이 치면 정신없음 → 2.6초에 한 번 */ f.actT = rnd(3, 4.2); f.charge = 0.22; f.atk = 0.32; FFX.dash(f, '#9ac8ff'); FFX.ring(f.x - 70, f.y - 50, '#9ac8ff', 160, 0.45); S.shake = Math.max(S.shake, 6); say(L.foes.bash || '방패 치기!', f.x, f.y - 175, { size: 24, col: '#e0f0ff', glow: '#3a8aff', life: 0.9, vy: -36 }); for (const a of S.army) if (!a.fly && a.rise >= 1 && Math.abs(a.x - f.x) < 190 && Math.abs(a.y - f.y) < 120 * GYk) { a.hurt = 0.25; a.flash = 0.12; } }   /* 방패병: 방패 치기(푸른 파동 · 앞줄이 움찔) */
   if (f.bless > 0) { f.bless -= dt; if (f.hitT > 0) f.hitT -= dt * 0.8; }
   if (f.charge > 0) { f.charge -= dt; f.x -= dt * 260; }
-  if (f.kind === 'archer' && f.actT <= 0 && f.x < VX1) { f.actT = rnd(1.8, 2.6); const t = S.army.filter(a => !a.fly && a.rise >= 1).sort((a, b) => b.x - a.x)[Math.floor(rnd(0, 6))]; if (t) (S.fshots = S.fshots || []).push({ x: f.x - 20, y: f.y - 50, tx: t.x, ty: t.y - 40, age: 0, life: 0.6, t }); }
-  if (f.kind === 'bomber' && f.x <= front + 5 && !f.boom) { f.boom = 1; f.dead = true; S.shake = Math.max(S.shake, 9); burst(f.x, f.y - 30, 40, { col: ['#ffb020', '#ff4a2a', '#ffffff'], vmin: 80, vmax: 420, up: 120, lmax: 0.7 }); say(L.foes.boom, f.x, f.y - 90, { size: 26, col: '#ffcf5a', glow: '#ff4a2a', life: 0.9, vy: -40 });
+  if (f.kind === 'archer' && f.actT <= 0 && f.x < VX1 && (f.vol = (f.vol || 0) + 1) % 3 === 0 && !(st.frozen > 0)) { f.actT = rnd(2.6, 3.4); const tg = S.army.filter(a => !a.fly && a.rise >= 1).sort((a, b) => b.x - a.x)[0]; if (tg) { FFX.mark(tg.x, tg.y, 90, '#ff3a2a', 0.55); setTimeout(() => FFX.volley(f, tg.x, tg.y), 550); say(L.foes.volley || '화살비!', f.x, f.y - 170, { size: 26, col: '#ffd8c0', glow: '#ff4a2a', life: 1.0, vy: -36, stamp: true }); } }   /* 11-16 13:59 대표님 「적들도 화려한 스킬」: 넷째 쏠 때마다 화살비(붉은 표시 0.55초 → 화살 7개가 쏟아짐) */
+  else if (f.kind === 'archer' && f.actT <= 0 && f.x < VX1) { f.actT = rnd(1.8, 2.6); const t = S.army.filter(a => !a.fly && a.rise >= 1).sort((a, b) => b.x - a.x)[Math.floor(rnd(0, 6))]; if (t) (S.fshots = S.fshots || []).push({ x: f.x - 20, y: f.y - 50, tx: t.x, ty: t.y - 40, age: 0, life: 0.6, t }); }
+  if (f.kind === 'bomber' && !f.boom && f.x <= front + 170 && !f.mk) { f.mk = 1; FFX.mark(f.x - 60, f.y, 110, '#ff8a1a', 0.9, f); }   /* 터지기 전 주황 표시가 깜빡임 */
+  if (f.kind === 'bomber' && f.x <= front + 5 && !f.boom) { f.boom = 1; FFX.ring(f.x, f.y - 30, '#ffb020', 300, 0.55); FFX.ring(f.x, f.y - 30, '#ffffff', 180, 0.3); f.dead = true; S.shake = Math.max(S.shake, 9); burst(f.x, f.y - 30, 40, { col: ['#ffb020', '#ff4a2a', '#ffffff'], vmin: 80, vmax: 420, up: 120, lmax: 0.7 }); say(L.foes.boom, f.x, f.y - 90, { size: 26, col: '#ffcf5a', glow: '#ff4a2a', life: 0.9, vy: -40 });
     let n = 0; for (const a of S.army.filter(a => !a.fly && a.rise >= 1 && !a.evo && a.rf == null).sort((a, b) => Math.abs(a.x - f.x) + Math.abs(a.y - f.y) - Math.abs(b.x - f.x) - Math.abs(b.y - f.y))) { if (n++ >= 3) break; if (bigHold(a)) continue; a.gone = true; burst(a.x, a.y - 30, 8, { col: ['#e8dcc0'], vmin: 60, vmax: 260, up: 160, g: 600, lmax: 0.8, add: false }); } }
   if (f.kind === 'flyer') { const h = HF.list[0]; if (h && f.x < h.x + 260) { f.tx2 = h.x + 60; f.x += ((h.x + 60) - f.x) * Math.min(1, dt * 1.5); if (f.actT <= 0 && Math.abs(f.x - h.x) < 120) { f.actT = rnd(1.4, 2.2); HF.hurt(h, 1, false); } } }
 }
@@ -298,8 +307,8 @@ function syncFoes() {
   const key = st.stage * 10 + st.wave;
   if (S.foeWave !== key) {   // 새 무리
     S.foes.forEach(f => { if (!f.dead) { f.dead = true; killFx(f); } });
-    S.foeWave = key; S.foeN = clamp(4 + Math.floor(st.stage / 15), 4, 6);   /* 09:35 갓깨비 사진 「적이 빽빽」 → 4~6마리(간격 70 → 56) */   /* 02:55 큰 소환수 4 · 큰 적: 3~5마리(10마리면 오른쪽에 뭉쳐 체력 막대가 겹치고 단추 밑까지 밀림) */   /* A판: 적이 커져서 10마리까지 */   /* 적 무리도 우리 군단 크기를 따라 늘림(11-14 대표님 「우리 군단 대비 적이 너무 적다」: 전엔 3~8마리 고정, 우리는 최대 72) */
-    for (let i = 0; i < S.foeN; i++) { const d = Math.random(); S.foes.push(foeKind({ x: rnd(VX1 + 10, VX1 + 90) + i * 10, y: GY0(GROUND + 40, 680, d), d, ph: rnd(0, 7), sp: rnd(240, 310), born: S.t, dead: false, flee: false, off: i * 56 + rnd(0, 16) }, i));   /* 03:15 적이 한 자리에 겹쳐 섬 → 한 마리씩 뒤로 */   /* off: 맞서는 자리를 앞뒤로 흩음 — 한 줄로 몰려 숫자가 한곳에 쌓였음(16:55) */ }
+    S.foeWave = key; S.foeN = clamp(6 + Math.floor(st.stage / 10), 6, 10);   /* 11-16 13:58 대표님 「적은 너무 없는 거 아님?」: 4~6 → 6~10(세 줄 떼로) — 적 체력 합은 그대로(보이는 수만) */   /* 09:35 갓깨비 사진 「적이 빽빽」 → 4~6마리(간격 70 → 56) */   /* 02:55 큰 소환수 4 · 큰 적: 3~5마리(10마리면 오른쪽에 뭉쳐 체력 막대가 겹치고 단추 밑까지 밀림) */   /* A판: 적이 커져서 10마리까지 */   /* 적 무리도 우리 군단 크기를 따라 늘림(11-14 대표님 「우리 군단 대비 적이 너무 적다」: 전엔 3~8마리 고정, 우리는 최대 72) */
+    for (let i = 0; i < S.foeN; i++) { const row = i % 3, d = clamp((row + rnd(0.15, 0.85)) / 3, 0, 1); S.foes.push(foeKind({ x: rnd(VX1 + 10, VX1 + 90) + i * 14, y: GY0(GROUND + 40, 680, d), d, ph: rnd(0, 7), sp: rnd(240, 310), born: S.t, dead: false, flee: false, off: Math.floor(i / 3) * 150 + rnd(0, 30), vr: Math.random() < 0.35 ? 1 : 0 }, i));   /* 세 줄 떼: 줄마다 깊이 · 셋마다 한 걸음 뒤 · 셋 중 하나는 짙은 변종 */   /* 03:15 적이 한 자리에 겹쳐 섬 → 한 마리씩 뒤로 */   /* off: 맞서는 자리를 앞뒤로 흩음 — 한 줄로 몰려 숫자가 한곳에 쌓였음(16:55) */ }
   }
   const aliveWant = Math.ceil(S.foeN * clamp(st.hp / st.maxHp, 0, 1));
   const alive = S.foes.filter(f => !f.dead && !f.flee);
