@@ -568,7 +568,7 @@
   function hurt(d, src) {
     if (P.inv > 0 || state !== 'play') return;
     if (P.guard) { P.guard = false; P.guardT = 0; P.inv = 40; sfx.block(); fx.push({ k: 'ring', x: P.x, y: P.y, r: 20, life: 22, c: '120,200,255' }); nums.push({ x: P.x, y: P.y - 30, v: '막았다!', life: 40, txt: 1 }); return; }
-    if (boss && boss.final) d *= .75;
+    if (boss && boss.final) d = Math.max(d * .75, P.maxHp * [0, .12, .15, .18][boss.final] * (.9 + Math.random() * .2));
     d = Math.round(d); P.hp -= d; P.inv = 65; P.hurtT = 6; shake = 8; flash = .25; flashC = '255,40,40'; sfx.hurt();
     nums.push({ x: P.x, y: P.y - 30, v: '-' + d, life: 40, hurt: 1 });
     try { navigator.vibrate && navigator.vibrate(60); } catch (e) {}
@@ -691,7 +691,7 @@
         if (s.life <= 0) break; if (s.hit.has(e)) continue;
         if (Math.hypot(e.x - s.x, e.y - s.y) < e.r + s.r) {
           s.hit.add(e);
-          if (s.k === 'fire') { s.life = 0; } else { damage(e, s.dmg); if (s.ba) P.hp = Math.min(P.maxHp, P.hp + 1 + P.maxHp * .005); if (s.pierce > 0) s.pierce--; else s.life = 0; }
+          if (s.k === 'fire') { s.life = 0; } else { damage(e, s.dmg); if (s.ba && t - (P.baT || -99) > 12) { P.baT = t; P.hp = Math.min(P.maxHp, P.hp + 1 + P.maxHp * (boss ? .003 : .005)); } if (s.pierce > 0) s.pierce--; else s.life = 0; }
         }
       }
       if (s.k === 'fire' && s.life <= 0 && !s.boom) { s.boom = 1; const rr = (45 + lvOf('fire') * 9) * (s.met ? 1.6 : 1); fx.push({ k: 'boom', x: s.x, y: s.y, r: rr, life: 18, max: 18 }); sfx.fire(); shake = Math.max(shake, s.met ? 9 : 4); for (const e of targets()) if (Math.hypot(e.x - s.x, e.y - s.y) < rr + e.r) damage(e, s.dmg, { kb: 5 }); }
