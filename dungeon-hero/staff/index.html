@@ -363,7 +363,7 @@
     drawPopups(330);
   }
   function power() { const u = meta.up, g = gearT(); return Math.round(100 * Math.pow(1.07, u.atk) * Math.pow(1.08, g) * Math.sqrt(Math.pow(1.06, u.hp) * Math.pow(1.06, g) * eqHMul() / (1 - eqDR())) * (1 + u.spd * .02) * eqWMul() * (1 + meta.eq.r * .008)); }
-  const saveMeta = () => { if (trial) return; try { localStorage.setItem('dh-save-staff5', JSON.stringify(meta)); } catch (e) {} };
+  const saveMeta = () => { if (trial || window.__fbFreeze) return; try { localStorage.setItem('dh-save-staff5', JSON.stringify(meta)); } catch (e) {} window.__fbD = 1; };
   let runSave = null; try { runSave = JSON.parse(localStorage.getItem('dh-run-staff5') || 'null'); } catch (e) {}
   const writeRun = () => { if (trial) return; runSave = { floor, startFloor, skills, lv: P.lv, xp: P.xp, need: P.need, hp: P.hp, runGold, kills: P.kills, revive: P.revive }; try { localStorage.setItem('dh-run-staff5', JSON.stringify(runSave)); } catch (e) {} };
   const clearRun = () => { runSave = null; try { localStorage.removeItem('dh-run-staff5'); } catch (e) {} };
@@ -2007,7 +2007,7 @@
     if (state === 'town' && trial) endTrial();
     if (state === 'dshop') { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawDShop(); ctx.restore(); return; }
     if (state === 'town' && attPop) { drawTown(); buttons = []; drawAtt(); return; }
-    if (state === 'town') { drawTown(); if (offerPop) { buttons = []; drawOffer(); return; } drawPopups(TOWN2 ? 122 : 320); return; }
+    if (state === 'town') { drawTown(); if (acctPop) { buttons = []; drawAcct(); return; } if (offerPop) { buttons = []; drawOffer(); return; } drawPopups(TOWN2 ? 122 : 320); return; }
     ctx.save();
     if (gl) overlayFX();
     drawComic();
@@ -2088,7 +2088,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1117001318'; let updReady = null;
+  const BUILD = '1117002634'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -3053,7 +3053,7 @@
   }
 
   // ---------- 새 소식(업데이트 내역) ----------
-  const NEWS = [["11월 17일 새벽 업데이트", ["🚩 시즌 5: 모두 1층부터 새로 시작해요 (선물 💎100)", "용사가 조금 커졌어요 · 「층 체험」은 없앴어요", "아바타에 무료 · 유료 · 체험 딱지가 붙어요", "아바타 체험이 끝나면 🎁 첫 구매 특가(24시간)가 떠요 · 결제는 아직 준비 중", "마을에 📰 소식 · 📅 출석 버튼과 한 줄 팁이 생겼어요"]], ["11월 16일 자정 업데이트", ["첫 화면이 바뀌었어요: 맨 위 재화 한 줄, 큰 출발 버튼, 아래 메뉴 5칸", "👑 아바타 체험: 3층을 넘으면 「황금 기사」를 3판 입어 볼 수 있어요", "일반 몬스터가 조금 커졌어요"]], ["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]]];
+  const NEWS = [["11월 17일 새벽 업데이트 2", ["☁️ 기록이 서버에 자동으로 저장돼요", "마을 오른쪽 ☁️ 계정 → 「구글로 이어하기」를 하면 폰을 바꿔도 이어져요 (처음 한 번 💎50)"]], ["11월 17일 새벽 업데이트", ["🚩 시즌 5: 모두 1층부터 새로 시작해요 (선물 💎100)", "용사가 조금 커졌어요 · 「층 체험」은 없앴어요", "아바타에 무료 · 유료 · 체험 딱지가 붙어요", "아바타 체험이 끝나면 🎁 첫 구매 특가(24시간)가 떠요 · 결제는 아직 준비 중", "마을에 📰 소식 · 📅 출석 버튼과 한 줄 팁이 생겼어요"]], ["11월 16일 자정 업데이트", ["첫 화면이 바뀌었어요: 맨 위 재화 한 줄, 큰 출발 버튼, 아래 메뉴 5칸", "👑 아바타 체험: 3층을 넘으면 「황금 기사」를 3판 입어 볼 수 있어요", "일반 몬스터가 조금 커졌어요"]], ["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]]];
   function drawNews() { let y = 166;
     NEWS.forEach((n, ni) => { ctx.fillStyle = ni ? 'rgba(30,26,40,.9)' : 'rgba(50,40,16,.95)'; const hh = 30 + n[1].length * 21 + 8; rrect(16, y, W - 32, hh, 12); ctx.fill(); ctx.strokeStyle = ni ? 'rgba(255,255,255,.15)' : '#ffc864'; ctx.lineWidth = 2; ctx.stroke();
       tfit((ni ? '' : '🆕 ') + n[0], 28, y + 18, 15, ni ? '#c8a888' : '#ffd27a', W - 56, FT); n[1].forEach((l, i) => tfit('· ' + l, 30, y + 42 + i * 21, 12.5, '#e8d8c0', W - 60)); y += hh + 8; });
@@ -3174,6 +3174,7 @@
       if (SKINS.length > 1) { ibtn('👑', skinPrev ? '미리 보기 중' : '아바타', 10, y, skinNext, !!skinPrev); y += 62; }
       y = 216; const nw = meta.newsSeen !== NEWS[0][0];
       ibtn('📰', '소식', W - 70, y, () => { meta.newsSeen = NEWS[0][0]; saveMeta(); openHelp(3, 'town'); }, nw, nw ? 'N' : ''); y += 62;
+      if (fbOK()) { const lk = fbLinked(), hot = !lk && fbState === 'on' && (meta.best || 0) >= 5; ibtn('☁️', lk ? '연결됨' : '계정', W - 70, y, () => { acctPop = true; if (fbState === 'off' || fbState === 'err') fbInit(); }, hot, hot ? '💎' : ''); y += 62; }
       if (!isApp && meta.instDone && !instEvt) { ibtn('✅', '설치됨', W - 70, y, () => { townPop = { txt: '✅ 앱이 설치돼 있어요', sub: '홈 화면 「던전 히어로」 아이콘으로 여세요', t0: t }; }, false); y += 62; }
       else if (!isApp && (!meta.pwaGift || instEvt || IS_AND)) { ibtn('📲', '앱 설치', W - 70, y, smartInstall, !meta.pwaGift, meta.pwaGift ? '' : '🎁'); y += 62; }
       if (FS_OK && !isApp) { ibtn('📱', fsOn() ? '화면 줄이기' : '꽉 찬 화면', W - 70, y, fsToggle, false); y += 62; }
@@ -3245,7 +3246,81 @@
     button('닫기', X + 110, Y + 422, CW - 220, 40, () => { offerPop = false; offerFirst = false; }, false);
     txt('마을 왼쪽 「🔥 특가」에서 다시 볼 수 있어요', W / 2, Y + 476, 12, '#8a7a6a', FB);
   }
-  window.__dh = { set offerPop(v) { offerPop = v; }, get offerPop() { return offerPop; }, get offerOn() { return offerOn(); }, skinNext, get skinNow() { return curSkin(); }, set TOWN2(v) { TOWN2 = v; }, smartInstall, chromeUrl, get IS_CHROME() { return IS_CHROME; }, fsToggle, get fsOn() { return fsOn(); }, get FS_OK() { return FS_OK; }, set HSZ(v) { HSZ = v; }, get HSZ() { return HSZ; }, get tasksN() { return tasks.length; }, openHelp, IPCT, eqBase, saveCode, loadCode, giveAppGift, get isApp() { return isApp; }, set isApp(v) { isApp = v; }, get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive: () => diaRevive(), get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
+
+  // ===================== 빌드 64: 서버 저장 + 구글 로그인 =====================
+  const FB_CFG = {"apiKey": "AIzaSyAhMP7rb-v03_k63U3SwILkWYaRQJ1A1Jk", "authDomain": "dungeon-hero-jd.firebaseapp.com", "projectId": "dungeon-hero-jd", "storageBucket": "dungeon-hero-jd.firebasestorage.app", "messagingSenderId": "917108683360", "appId": "1:917108683360:web:0ec3033c33a522a30e8905"}, FB_BASE = 'https://www.gstatic.com/firebasejs/13.3.0/', FB_SEASON = 'dh-save-staff5', LINK_DIA = 50;
+  let fb = null, fbUser = null, fbState = 'off', fbErr = '', fbDirty = false, fbLastUp = 0, fbReady = false, fbHold = false, fbCloud = null, fbAsk = null, fbBusy = false, fbChk = 0, acctPop = false, acctMsg = '', acctMsgT = -999;
+  const fbOK = () => { try { return (location.protocol === 'https:' || !!window.__FBUI) && !window.__NO3D; } catch (e) { return false; } };
+  const fbLinked = () => !!(fbUser && !fbUser.isAnonymous);
+  const acctSay = s => { acctMsg = s; acctMsgT = t; };
+  async function fbInit() {
+    if (!fbOK() || fb || fbState === 'loading') return; fbState = 'loading'; fbErr = '';
+    try {
+      const [A, U, S] = await Promise.all([import(FB_BASE + 'firebase-app.js'), import(FB_BASE + 'firebase-auth.js'), import(FB_BASE + 'firebase-firestore-lite.js')]);
+      const app = A.initializeApp(FB_CFG), auth = U.getAuth(app), db = S.getFirestore(app);
+      fb = { A, U, S, app, auth, db };
+      U.onAuthStateChanged(auth, u => { fbUser = u; if (!u) { U.signInAnonymously(auth).catch(e => { fbState = 'err'; fbErr = e.code || 'login'; }); return; } fbState = 'on'; fbAfterLogin(); });
+    } catch (e) { fbState = 'err'; fbErr = 'load'; fb = null; }
+  }
+  async function fbAfterLogin() {
+    if (!fb || !fbUser) return; const my = ++fbChk, uid = fbUser.uid; fbReady = false; fbCloud = null; fbAsk = null; fbHold = false;
+    try { const { S, db } = fb, g = await S.getDoc(S.doc(db, 'users', uid)); if (my !== fbChk) return;
+      if (g.exists()) { const d = g.data(); if (d && typeof d.v === 'string' && d.v.split('|')[0] === FB_SEASON && typeof d.save === 'string') fbCloud = d; } }
+    catch (e) { if (my === fbChk) fbErr = e.code || 'read'; return; }
+    if (fbCloud && (fbCloud.best | 0) > (meta.best || 0)) { fbHold = true; fbAsk = { best: fbCloud.best | 0, power: fbCloud.power | 0 }; if (state === 'town') acctPop = true; }
+    fbErr = ''; fbReady = true; if (!fbHold) { fbDirty = true; fbUpload(true); }
+  }
+  async function fbUpload(force) {
+    if (!fb || !fbUser || !fbReady || fbHold || fbBusy || trial || window.__fbFreeze) return; if (window.__fbD) { fbDirty = true; window.__fbD = 0; } if (!fbDirty && !force) return;
+    fbBusy = true; fbDirty = false;
+    try { const { S, db } = fb; await S.setDoc(S.doc(db, 'users', fbUser.uid), { save: JSON.stringify(meta), best: Math.max(0, Math.min(200, meta.best | 0)), power: Math.max(0, Math.min(99999999, Math.round(power()))), name: ('' + (meta.nick || '')).slice(0, 16), upd: S.serverTimestamp(), v: FB_SEASON + '|' + BUILD }); fbLastUp = Date.now(); fbErr = ''; }
+    catch (e) { fbDirty = true; fbErr = e.code || 'write'; }
+    fbBusy = false;
+  }
+  function fbLoadCloud() { if (!fbCloud) return; try { const m = JSON.parse(fbCloud.save); if (!m || typeof m !== 'object' || !m.up) throw 0; window.__fbFreeze = 1; localStorage.setItem('dh-save-staff5', fbCloud.save); localStorage.removeItem('dh-run-staff5'); } catch (e) { window.__fbFreeze = 0; acctSay('불러오지 못했어요 · 다시 눌러 주세요'); return; } location.reload(); }
+  function fbKeepLocal() { fbHold = false; fbAsk = null; fbDirty = true; fbUpload(true); acctSay('이 폰 기록으로 계속해요'); }
+  async function fbGoogle() {
+    if (!fb || !fbUser) { acctSay('서버에 연결하는 중이에요 · 잠시 뒤 다시 눌러 주세요'); fbInit(); return; }
+    if (fbLinked()) { acctSay('이미 구글 계정에 연결돼 있어요'); return; }
+    const { U, auth } = fb, prov = new U.GoogleAuthProvider(); try { prov.setCustomParameters({ prompt: 'select_account' }); } catch (e) {}
+    try { await U.linkWithPopup(fbUser, prov); fbUser = auth.currentUser;
+      if (!meta.linkGift) { meta.linkGift = 1; meta.dia += LINK_DIA; saveMeta(); try { sfx.chest(); } catch (e) {} acctSay('✅ 구글 계정에 연결됐어요 · 선물 💎' + LINK_DIA); } else acctSay('✅ 구글 계정에 연결됐어요');
+      fbDirty = true; fbUpload(true); }
+    catch (e) { const c = (e && e.code) || '';
+      if (c === 'auth/credential-already-in-use') { try { const cred = U.GoogleAuthProvider.credentialFromError(e); await U.signInWithCredential(auth, cred); acctSay('✅ 구글 계정으로 로그인했어요'); } catch (e2) { acctSay('로그인하지 못했어요 (' + ((e2 && e2.code) || '') + ')'); } }
+      else if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request' || c === 'auth/user-cancelled') acctSay('로그인을 취소했어요');
+      else if (c === 'auth/popup-blocked') acctSay('로그인 창이 막혔어요 · 한 번 더 눌러 주세요');
+      else acctSay('로그인하지 못했어요 (' + c + ')'); }
+  }
+  if (fbOK()) { setTimeout(fbInit, 4000);
+    setInterval(() => { if (fbState === 'off' || fbState === 'loading') return; if (fbState === 'err' && !fb) { fbInit(); return; } if (fbState === 'on' && !fbReady && !fbHold) { fbAfterLogin(); return; } if (window.__fbD) { fbDirty = true; window.__fbD = 0; } if (fbDirty && Date.now() - fbLastUp > 90000) fbUpload(); }, 15000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') fbUpload(); }); }
+  function drawAcct() {
+    ctx.fillStyle = 'rgba(5,3,8,.84)'; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
+    const X = 28, Y = 170, CW = W - 56, CH = 440;
+    ctx.fillStyle = '#1c2236'; rrect(X, Y, CW, CH, 22); ctx.fill(); ctx.strokeStyle = '#8fd0ff'; ctx.lineWidth = 3; ctx.stroke();
+    txt('☁️ 내 계정', W / 2, Y + 40, 30, '#bfe6ff', FT);
+    const ago = fbLastUp ? Math.max(0, Math.floor((Date.now() - fbLastUp) / 60000)) : -1;
+    const st = fbState === 'on' ? (fbHold ? '서버 기록 확인 필요' : fbReady ? (ago < 0 ? '켜짐' : ago < 1 ? '켜짐 · 방금 저장했어요' : '켜짐 · ' + ago + '분 전 저장') : '기록 확인 중…') : fbState === 'loading' ? '연결하는 중…' : fbState === 'err' ? '연결하지 못했어요 · 인터넷을 확인해 주세요' : '준비 중';
+    const row = (lab, val, y, col) => { ctx.fillStyle = 'rgba(0,0,0,.35)'; rrect(X + 20, y, CW - 40, 44, 12); ctx.fill(); txt(lab, X + 36, y + 22, 15, '#9fb6d0', FB, 'left'); tfit(val, X + CW - 36, y + 22, 15, col, CW - 190, FB, 'right'); };
+    row('서버 저장', st, Y + 76, fbState === 'on' && fbReady && !fbHold ? '#9affb0' : fbState === 'err' ? '#ff9a8a' : '#ffe0b0');
+    row('구글 계정', fbLinked() ? '✅ 연결됨' : '연결 안 됨', Y + 128, fbLinked() ? '#9affb0' : '#ffe0b0');
+    if (fbAsk) {
+      txt('서버에 더 높은 기록이 있어요', W / 2, Y + 200, 17, '#ffd34d', FT);
+      tfit('☁️ 서버: 최고 ' + fbAsk.best + '층 · 전투력 ' + fbAsk.power.toLocaleString(), W / 2, Y + 228, 14, '#bfe6ff', CW - 50, FB, 'center');
+      tfit('📱 이 폰: 최고 ' + (meta.best || 0) + '층 · 전투력 ' + power().toLocaleString(), W / 2, Y + 250, 14, '#c8b8a0', CW - 50, FB, 'center');
+      button('☁️ 서버 기록 불러오기', X + 30, Y + 274, CW - 60, 54, fbLoadCloud, true);
+      button('📱 이 폰 기록으로 계속 (서버 기록을 덮어써요)', X + 30, Y + 336, CW - 60, 38, fbKeepLocal, false);
+    } else {
+      tfit(fbLinked() ? '폰을 바꾸거나 앱을 지워도 구글 로그인만 하면 이어져요' : '구글로 이어 두면 폰을 바꿔도 기록이 이어져요', W / 2, Y + 204, 13.5, '#c8d8ea', CW - 40, FB, 'center');
+      if (!fbLinked()) { button('🔗 구글로 이어하기' + (meta.linkGift ? '' : '  (선물 💎' + LINK_DIA + ')'), X + 30, Y + 228, CW - 60, 56, fbGoogle, true, fbState !== 'on');
+        tfit('새 폰에서는 여기서 같은 구글 계정으로 로그인하면 돼요', W / 2, Y + 304, 12.5, '#8fa4bc', CW - 40, FB, 'center'); }
+      else button('지금 서버에 저장', X + 60, Y + 232, CW - 120, 46, () => { fbDirty = true; fbUpload(true); acctSay('서버에 저장했어요'); }, false, !fbReady || fbHold);
+    }
+    if (t - acctMsgT < 240) tfit(acctMsg, W / 2, Y + 350 + (fbAsk ? 34 : 0), 14, '#ffe14d', CW - 30, FB, 'center');
+    button('닫기', X + 110, Y + CH - 54, CW - 220, 40, () => { acctPop = false; }, false);
+  }
+  window.__dh = { get fbInfo() { return { state: fbState, ready: fbReady, hold: fbHold, linked: fbLinked(), anon: !!(fbUser && fbUser.isAnonymous), lastUp: fbLastUp, err: fbErr, dirty: fbDirty, cloudBest: fbCloud ? fbCloud.best : null }; }, fbUpload, set acctPop(v) { acctPop = v; }, get acctPop() { return acctPop; }, set fbAskTest(v) { fbAsk = v; fbHold = !!v; }, set fbStateTest(v) { fbState = v; }, set offerPop(v) { offerPop = v; }, get offerPop() { return offerPop; }, get offerOn() { return offerOn(); }, skinNext, get skinNow() { return curSkin(); }, set TOWN2(v) { TOWN2 = v; }, smartInstall, chromeUrl, get IS_CHROME() { return IS_CHROME; }, fsToggle, get fsOn() { return fsOn(); }, get FS_OK() { return FS_OK; }, set HSZ(v) { HSZ = v; }, get HSZ() { return HSZ; }, get tasksN() { return tasks.length; }, openHelp, IPCT, eqBase, saveCode, loadCode, giveAppGift, get isApp() { return isApp; }, set isApp(v) { isApp = v; }, get fx() { return fx; }, autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; rule2 = ''; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive: () => diaRevive(), get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
 })();
 </script>
 </body>
