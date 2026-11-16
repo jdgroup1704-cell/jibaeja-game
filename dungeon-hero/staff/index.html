@@ -2087,7 +2087,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116233157'; let updReady = null;
+  const BUILD = '1116234623'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -2857,7 +2857,7 @@
   drawComic = function () {
     if (gl && inRun()) { const play = state === 'play';
       const es = enemies.filter(e => e.hp > 0 && !e.dead && SPE[e.type] && SPE[e.type].ok && !e.gold).sort((a, b) => a.y - b.y);
-      for (const e of es) { const S = SPE[e.type], [fx0, fy0] = project(e.x, e.y, 0), big = (e.big || 1) * (e.type === 'ogre' ? 1.45 : e.type === 'bat' ? .85 : 1), h = Math.max(24, pxU(e.x, e.y) * 40) * big, s = h / S.H * Math.min(1, .3 + e.t / 14);
+      for (const e of es) { const S = SPE[e.type], [fx0, fy0] = project(e.x, e.y, 0), big = (e.big || 1) * (e.type === 'ogre' ? 1.45 : e.type === 'bat' ? .85 : 1), h = Math.max(24, pxU(e.x, e.y) * 46) * big, s = h / S.H * Math.min(1, .3 + e.t / 14);
         if (play) { const st = e.shootT || 0; if (e._st !== undefined && st > e._st + 20 && !e._atk) e._atk = 1; e._st = st; if (!e._atk && (e.type === 'goblin' || e.type === 'slime' || e.type === 'bat' || e.type === 'ogre') && Math.hypot(P.x - e.x, P.y - e.y) < e.r + P.r + 16 && !(e._acd > 0)) e._atk = 1; if (e._acd > 0) e._acd--; }
         let idx = Math.floor(e.t * .24) % S.nw; if (e._atk) { const i = Math.floor((e._atk - 1) / 26 * S.na); if (i >= S.na) { e._atk = 0; e._acd = 30; } else { idx = S.nw + i; if (play) e._atk++; } }
         const fl = P.x < e.x ? -1 : 1, fly = e.type === 'bat' ? h * .45 + Math.sin(e.t * .12) * 4 : 0; e._top = fy0 - fly - h * 1.02 - 9; e._tf = FRM52; e._txx = fx0;
@@ -3052,7 +3052,7 @@
   }
 
   // ---------- 새 소식(업데이트 내역) ----------
-  const NEWS = [["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]], ["11월 16일 밤 업데이트", ["❓ 도움말이 생겼어요: 골드 · 강화석 · 장비 · 다이아가 뭔지", "장비 뽑기 확률표 · 강화 확률표를 볼 수 있어요", "💎 부활이 바뀌었어요: 쓰러진 그 자리에서, 보스 체력 그대로", "📲 폰에 설치하면 [전설] 무기 + 💎100 선물", "우리 용사가 조금 커졌어요 (장비 · 변신이 더 잘 보이게)"]]];
+  const NEWS = [["11월 16일 밤 업데이트 5", ["일반 몬스터가 조금 커졌어요 (더 잘 보이게)", "설치 선물은 설치한 앱으로 들어왔을 때 자동으로 줘요"]], ["11월 16일 밤 업데이트 4", ["삼성 브라우저 설치는 폰 보안이 막아서, 「크롬으로 열어 설치하기」 버튼을 넣었어요", "버튼을 누르면 크롬이 열리고 기록도 같이 넘어가요"]], ["11월 16일 밤 업데이트 3", ["화면을 한 번 터치하면 주소창 없는 꽉 찬 화면이 돼요 (삼성 브라우저 · 크롬)", "마을 왼쪽 위 「꽉 찬 화면」 버튼으로 켜고 끌 수 있어요", "「지금 설치하기」를 누르면 결과를 글로 알려 줘요", "설치 안 했는데 「설치한 앱」으로 뜨던 오류를 고쳤어요"]], ["11월 16일 밤 업데이트 2", ["폰에서 화면 아래쪽이 잘리던 것을 고쳤어요", "📲 설치 버튼을 「모험 시작」 아래에 크게 · 설치 안내를 폰 화면에 맞게"]], ["11월 16일 밤 업데이트", ["❓ 도움말이 생겼어요: 골드 · 강화석 · 장비 · 다이아가 뭔지", "장비 뽑기 확률표 · 강화 확률표를 볼 수 있어요", "💎 부활이 바뀌었어요: 쓰러진 그 자리에서, 보스 체력 그대로", "📲 폰에 설치하면 [전설] 무기 + 💎100 선물", "우리 용사가 조금 커졌어요 (장비 · 변신이 더 잘 보이게)"]]];
   function drawNews() { let y = 166;
     NEWS.forEach((n, ni) => { ctx.fillStyle = ni ? 'rgba(30,26,40,.9)' : 'rgba(50,40,16,.95)'; const hh = 30 + n[1].length * 21 + 8; rrect(16, y, W - 32, hh, 12); ctx.fill(); ctx.strokeStyle = ni ? 'rgba(255,255,255,.15)' : '#ffc864'; ctx.lineWidth = 2; ctx.stroke();
       tfit((ni ? '' : '🆕 ') + n[0], 28, y + 18, 15, ni ? '#c8a888' : '#ffd27a', W - 56, FT); n[1].forEach((l, i) => tfit('· ' + l, 30, y + 42 + i * 21, 12.5, '#e8d8c0', W - 60)); y += hh + 8; });
@@ -3100,7 +3100,6 @@
       box(34 + steps.length * 26, '#7ad8ff'); tfit('설치하는 방법 (30초)', 28, y + 18, 15, '#bff4ff', W - 56, FT); steps.forEach((s, i) => tfit(s, 30, y + 44 + i * 26, 13.5, '#fff', W - 60)); y += 44 + steps.length * 26;
       if (IS_AND && !IS_CHROME) { button('🌐 크롬으로 열어 설치하기 (기록 그대로)', 40, y, W - 80, 44, openOutside, true); y += 54; }
       if (IS_IOS) { tfit('※ 아이폰은 설치한 앱의 기록이 따로예요 → 아래 「기록 복사」 후', 24, y + 6, 12, '#ffb070', W - 48); tfit('   설치한 앱에서 「기록 붙여넣기」를 누르면 그대로 이어져요', 24, y + 24, 12, '#ffb070', W - 48); y += 40; } }
-    if (!meta.pwaGift && !trial) { button('✅ 설치했어요 · 선물 받기', 40, y, W - 80, 48, () => { giveAppGift(); instSay('선물이 🎒 가방에 들어갔어요! [전설] ' + INAME.w[3] + ' + 💎' + GIFT_DIA); }, true); y += 58; }
     box(96); tfit('📦 기록 옮기기 (다른 브라우저 · 다른 폰으로)', 28, y + 18, 14, '#c8a888', W - 56, FT); const bw = (W - 68) / 2;
     button('📋 기록 복사', 28, y + 36, bw, 46, () => copyText(saveCode(), '기록을 복사했어요 · 옮길 곳의 도움말 → 설치에서 「붙여넣기」'), false); button('📥 기록 붙여넣기', 40 + bw, y + 36, bw, 46, pasteCode, false); y += 106;
     if (instMsg && t - instMsgT < 420) { ctx.fillStyle = 'rgba(20,50,30,.95)'; rrect(16, y, W - 32, 40, 10); ctx.fill(); tfit(instMsg, W / 2, y + 21, 13, '#b8ffc8', W - 52, FB, 'center'); }
