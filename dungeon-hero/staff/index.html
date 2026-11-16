@@ -2088,7 +2088,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116235138'; let updReady = null;
+  const BUILD = '1116235746'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
@@ -3122,7 +3122,7 @@
   MENU.push('help');
 
   // ===================== 빌드 55: 💎 부활 = 그 자리에서(보스 체력 그대로) · 용사 크기 =====================
-  let HSZ = 44;
+  let HSZ = 50;
   { const _die55 = die; die = function () { const n0 = tasks.length; _die55(); if (state === 'over') for (let i = n0; i < tasks.length; i++) tasks[i].ov = 1; }; }
   diaRevive = function () { const rc = Math.max(10, REVIVE_BASE - 6 * vipLv()); if (state !== 'over' || !lastDeath || lastDeath.used || trial || meta.dia < rc) return;
     meta.dia -= rc; lastDeath.used = 1; saveMeta();
