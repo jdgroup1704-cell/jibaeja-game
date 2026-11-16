@@ -215,7 +215,7 @@
   try { const s = JSON.parse(localStorage.getItem('dh-save-staff') || 'null'); if (s) meta = Object.assign(meta, s, { up: Object.assign(meta.up, s.up || {}) }); } catch (e) {}
   if (!Array.isArray(meta.hid)) meta.hid = [];
   meta.eq = Object.assign({ w: 0, a: 0, r: 0 }, meta.eq || {}); meta.bless = Object.assign({ w: 0, a: 0, r: 0 }, meta.bless || {}); meta.att = Object.assign({ day: '', n: 0 }, meta.att || {});
-  ['stone', 'dia', 'hammer'].forEach(k => { meta[k] = meta[k] || 0; }); if (!meta.idleT) meta.idleT = Date.now();
+  ['stone', 'dia', 'hammer'].forEach(k => { meta[k] = meta[k] || 0; }); meta.item = Object.assign({ w: null, a: null, r: null }, meta.item || {}); if (!Array.isArray(meta.bag)) meta.bag = []; if (!meta.idleT) meta.idleT = Date.now();
   if (!meta.start30) { meta.start30 = 1; meta.w30pop = 1; if ((meta.cp || 1) < 30) { meta.cp = 30; meta.best = Math.max(meta.best || 0, 29); }
     const kit = { atk: 16, hp: 16, spd: 3, mag: 2, card: 1 }; Object.keys(kit).forEach(k => { meta.up[k] = Math.max(meta.up[k] || 0, kit[k]); });
     meta.eq.w = Math.max(meta.eq.w, 3); meta.eq.a = Math.max(meta.eq.a, 3); meta.eq.r = Math.max(meta.eq.r, 2); meta.stone += 5; meta.dia += 30; meta.gold += 15000;
@@ -256,10 +256,10 @@
   const VIPT = [0, 5000, 30000, 100000, 300000, 1000000], VIPC = ['', '205,127,50', '200,225,255', '255,210,60', '210,120,255', '255,90,160'], VIPN = ['', '브론즈', '실버', '골드', '다이아', '레전드'];
   const vipLv = () => { const p = meta.paid || 0; let v = 0; for (let i = 1; i < VIPT.length; i++) if (p >= VIPT[i]) v = i; return v; };
   const vipCol = () => { const v = vipLv(); if (v === 5) { const h = (t * 4) % 360; return [Math.round(128 + 127 * Math.sin(h * .0174)), Math.round(128 + 127 * Math.sin((h + 120) * .0174)), Math.round(128 + 127 * Math.sin((h + 240) * .0174))].join(','); } return VIPC[v]; };
-  const eqWMul = () => Math.pow(1.06, meta.eq.w) * (1 + .03 * vipLv());
-  const eqHMul = () => Math.pow(1.05, meta.eq.a);
-  const eqDR = () => Math.min(.3, meta.eq.a * .01);
-  const goldMul = () => (1 + meta.eq.r * .03) * (1 + .15 * vipLv());
+  const eqWMul = () => Math.pow(1.06, meta.eq.w) * (1 + .03 * vipLv()) * itMul('w') * (1 + itOpt('at'));
+  const eqHMul = () => Math.pow(1.05, meta.eq.a) * itMul('a') * (1 + itOpt('hp'));
+  const eqDR = () => Math.min(.45, Math.min(.3, meta.eq.a * .01) + itOpt('dr'));
+  const goldMul = () => (1 + meta.eq.r * .03) * (1 + .15 * vipLv()) * itMul('r') * (1 + itOpt('gd'));
   const eqCost = l => ({ g: Math.round(10 * (120 * Math.pow(1.17, l) + 40 * l)), s: 1 + Math.floor(l / 3) + Math.floor(l * l / 60) });
   const eqRate = (k) => { const l = meta.eq[k]; return Math.min(1, (l < 5 ? 1 : Math.max(.25, 1 - (l - 4) * .05)) + meta.bless[k] * .06); };
   let forgePop = null;
@@ -294,12 +294,57 @@
     { e: '🔷', n: '강화석 10개', d: '장비 강화 재료', p: 50, f: () => { meta.stone += 10; } },
     { e: '🔨', n: '축복의 망치', d: '다음 강화 100% 성공', p: 60, f: () => { meta.hammer++; } },
     { e: '💰', n: '골드 상자', lim: 3, d: () => '골드 +' + dGold().toLocaleString(), p: 30, f: () => { meta.gold += dGold(); } },
+    { e: '🎁', n: '장비 뽑기', d: '영웅 이상 확률 UP · 신화 등장!', p: 80, sub: () => lastGacha ? '[' + IG[lastGacha.g][0] + '] ' + INAME[lastGacha.s][lastGacha.g] + ' → 가방' : '', f: () => { lastGacha = mkItem(1.6); addItem(lastGacha); if (lastGacha.g >= 3) { try { sfx.fanfare(); } catch (e) {} } } },
     { e: '⏩', n: '방치 2시간 즉시', lim: 2, d: () => '💰 +' + Math.floor(120 * idleGoldRate() * goldMul()).toLocaleString() + (meta.best >= 5 ? ' · 🔷 +1' : ''), p: 40, f: () => { meta.gold += Math.floor(120 * idleGoldRate() * goldMul()); if (meta.best >= 5) meta.stone += 1; } },
   ];
+  let lastGacha = null;
   const dGold = () => Math.round(300 * idleGoldRate());
   const dLeft = i => { const it = DSHOP[i]; if (!it.lim) return 99; if (!meta.dbuy || meta.dbuy.day !== today()) meta.dbuy = { day: today(), n: {} }; return it.lim - (meta.dbuy.n[i] || 0); };
-  function buyD(i) { const it = DSHOP[i]; if (meta.dia < it.p || dLeft(i) <= 0) return; if (it.lim) meta.dbuy.n[i] = (meta.dbuy.n[i] || 0) + 1; meta.dia -= it.p; it.f(); saveMeta(); sfx.buy(); flash = .25; flashC = '160,220,255'; townPop = { txt: it.e + ' ' + it.n, sub: '받았어요!', t0: t }; }
+  function buyD(i) { const it = DSHOP[i]; if (meta.dia < it.p || dLeft(i) <= 0) return; if (it.lim) meta.dbuy.n[i] = (meta.dbuy.n[i] || 0) + 1; meta.dia -= it.p; it.f(); saveMeta(); sfx.buy(); flash = .25; flashC = '160,220,255'; townPop = { txt: it.e + ' ' + it.n, sub: it.sub ? it.sub() : '받았어요!', t0: t }; }
   function milestone(f) { if (f % 10 === 0) { meta.dia += 10; later(40, () => comic(P.x, P.y - 70, '💎 +10 첫 도착!', 1.2)); } }
+
+  // ===================== 아이템 =====================
+  const IG = [['일반', '#d8d0c0'], ['희귀', '#6ab8ff'], ['영웅', '#d08aff'], ['전설', '#ffd34d'], ['신화', '#ff5a7a']], IGM = [1, 1.08, 1.18, 1.32, 1.5], IDIS = [1, 2, 4, 8, 16], IEMO = { w: '⚔️', a: '🛡️', r: '💍' };
+  const IOPT = { at: ['공격', .04, .10], hp: ['체력', .05, .12], gd: ['골드', .06, .15], dr: ['피해 감소', .02, .05], ms: ['이동 속도', .03, .07], bd: ['보스 피해', .06, .14], cd: ['치명 피해', .15, .4] };
+  const INAME = { w: ['낡은 검', '강철 검', '룬 블레이드', '용살자의 검', '태양의 성검'], a: ['가죽 갑옷', '강철 갑옷', '수호자의 갑옷', '용비늘 갑옷', '천상의 갑주'], r: ['구리 반지', '은 반지', '마력의 반지', '용의 눈 반지', '운명의 반지'] };
+  function mkItem(luck, slot) { const wt = [60, 28, 9, 2.6, .4].map((w, g) => g ? w * (1 + luck * g) : w); let r = Math.random() * wt.reduce((a, b) => a + b, 0), g = 0; for (let i = 0; i < 5; i++) { r -= wt[i]; if (r <= 0) { g = i; break; } }
+    const s = slot || ['w', 'a', 'r'][Math.random() * 3 | 0], keys = Object.keys(IOPT).sort(() => Math.random() - .5).slice(0, g);
+    return { s, g, o: keys.map(k => [k, Math.round((IOPT[k][1] + Math.random() * (IOPT[k][2] - IOPT[k][1])) * (1 + g * .12) * 1000) / 1000]) }; }
+  const itScore = it => it ? IGM[it.g] * 100 + it.o.reduce((a, o) => a + o[1] / IOPT[o[0]][2] * 6, 0) : 0;
+  function itMul(k) { const it = meta.item && meta.item[k]; if (!it) return 1; return k === 'r' ? 1 + (IGM[it.g] - 1) * .6 : IGM[it.g]; }
+  function itOpt(key) { let v = 0; if (meta.item) for (const k of ['w', 'a', 'r']) { const it = meta.item[k]; if (it) for (const o of it.o) if (o[0] === key) v += o[1]; } return v; }
+  const itText = it => it.o.length ? it.o.map(o => IOPT[o[0]][0] + ' +' + Math.round(o[1] * 100) + '%').join(' · ') : '붙은 옵션 없음';
+  const itBase = it => it.s === 'w' ? '공격 ×' + IGM[it.g] : it.s === 'a' ? '체력 ×' + IGM[it.g] : '골드 ×' + (1 + (IGM[it.g] - 1) * .6).toFixed(2);
+  function addItem(it) { meta.bag.push(it); if (meta.bag.length > 20) { meta.bag.sort((a, b) => itScore(b) - itScore(a)); const x = meta.bag.pop(); meta.stone += IDIS[x.g]; } saveMeta(); }
+  function equipItem(i) { const it = meta.bag[i]; if (!it) return; const p0 = power(), old = meta.item[it.s]; meta.item[it.s] = it; meta.bag.splice(i, 1); if (old) meta.bag.push(old); saveMeta(); sfx.buy(); flash = .25; flashC = '255,220,120'; powPop = { from: p0, to: power(), t0: t }; }
+  function dismItem(i) { const it = meta.bag[i]; if (!it) return; meta.bag.splice(i, 1); meta.stone += IDIS[it.g]; saveMeta(); try { sfx.gold(); } catch (e) {} townPop = { txt: '분해 완료', sub: '🔷 +' + IDIS[it.g], t0: t }; }
+  function autoEquip() { let n = 0, st = 0; const p0 = power();
+    for (const s of ['w', 'a', 'r']) { let bi = -1, bs = itScore(meta.item[s]); meta.bag.forEach((it, i) => { if (it.s === s && itScore(it) > bs) { bs = itScore(it); bi = i; } }); if (bi >= 0) { const old = meta.item[s]; meta.item[s] = meta.bag[bi]; meta.bag.splice(bi, 1); if (old) meta.bag.push(old); n++; } }
+    meta.bag.forEach(it => { st += IDIS[it.g]; }); meta.stone += st; meta.bag = []; saveMeta(); if (n) powPop = { from: p0, to: power(), t0: t }; return [n, st]; }
+  const bagBetter = () => meta.bag.some(it => itScore(it) > itScore(meta.item[it.s]));
+  function dropItem(x, y) { if (trial) return; const luck = Math.max(0, Math.min(1, (floor - 30) / 70)) + .15 * vipLv(), it = mkItem(luck); addItem(it);
+    comic(x, y - 90, '🎁 ' + IG[it.g][0] + ' ' + INAME[it.s][it.g] + '!', it.g >= 3 ? 1.6 : 1.2); if (it.g >= 3) { flash = .5; flashC = it.g === 4 ? '255,90,122' : '255,211,77'; try { sfx.fanfare(); } catch (e) {} } }
+  let bagPg = 0;
+  function drawBag() {
+    topBar('🎒 장비 가방', '#ffd27a');
+    ['w', 'a', 'r'].forEach((s, i) => { const it = meta.item[s], x = 16 + i * 142, c = it ? IG[it.g][1] : 'rgba(255,255,255,.3)';
+      ctx.fillStyle = 'rgba(50,34,22,.92)'; rrect(x, 112, 134, 98, 12); ctx.fill(); ctx.strokeStyle = c; ctx.lineWidth = 2.5; ctx.stroke();
+      txt(IEMO[s] + ' +' + meta.eq[s], x + 67, 130, 15, '#ffe0b0', FB); txt(it ? INAME[s][it.g] : '(비어 있음)', x + 67, 153, 14, c, FT);
+      txt(it ? '[' + IG[it.g][0] + '] ' + itBase(it) : '보스 상자에서 나와요', x + 67, 174, 11, '#e8d8c0'); if (it) txt(it.o.length ? '옵션 ' + it.o.length + '개' : '옵션 없음', x + 67, 194, 11, '#9fe0ff'); });
+    const list = meta.bag.map((it, i) => [it, i]).sort((a, b) => itScore(b[0]) - itScore(a[0])), pages = Math.max(1, Math.ceil(list.length / 5)); bagPg = Math.max(0, Math.min(bagPg, pages - 1));
+    txt('가방 ' + meta.bag.length + '/20' + (pages > 1 ? '  ·  ' + (bagPg + 1) + '/' + pages + '쪽' : ''), W / 2, 228, 13, '#c8a888');
+    if (pages > 1) { button('◀', 24, 214, 56, 28, () => { bagPg = Math.max(0, bagPg - 1); }, false); button('▶', W - 80, 214, 56, 28, () => { bagPg++; }, false); }
+    let y = 246;
+    if (!list.length) { txt('가방이 비었어요', W / 2, 400, 18, '#8a7a6a'); txt('보스 상자 · 정예 몬스터 · 💎 장비 뽑기에서 나와요', W / 2, 430, 13, '#8a7a6a'); }
+    list.slice(bagPg * 5, bagPg * 5 + 5).forEach(([it, i]) => { const c = IG[it.g][1], up = itScore(it) > itScore(meta.item[it.s]);
+      ctx.fillStyle = 'rgba(40,30,22,.92)'; rrect(16, y, W - 32, 82, 12); ctx.fill(); ctx.strokeStyle = c; ctx.lineWidth = up ? 3 : 1.5; ctx.stroke();
+      txt(IEMO[it.s], 44, y + 30, 26, '#fff', FB, 'center', 'rgba(0,0,0,0)'); txt(INAME[it.s][it.g], 72, y + 19, 17, c, FT, 'left');
+      txt('[' + IG[it.g][0] + '] ' + itBase(it) + (up ? '  ▲ 더 좋아요' : ''), 72, y + 41, 12, up ? '#7aff9a' : '#e8d8c0', FB, 'left'); txt(itText(it), 26, y + 66, 11, '#9fe0ff', FB, 'left');
+      button('착용', W - 158, y + 8, 64, 38, () => equipItem(i), up); button('🔷+' + IDIS[it.g], W - 88, y + 8, 66, 38, () => dismItem(i), false); y += 88; });
+    button('✨ 좋은 것 착용 + 나머지 분해', 30, 690, W - 60, 42, () => { const r = autoEquip(); townPop = { txt: r[0] ? '✨ ' + r[0] + '개 착용!' : '분해 완료', sub: '🔷 +' + r[1], t0: t }; }, bagBetter(), !meta.bag.length);
+    const b3 = (W - 60) / 3; button('⚒️ 대장간', 20, 740, b3, 44, () => { state = 'forge'; }, false); button('💎 뽑기', 30 + b3, 740, b3, 44, () => { state = 'dshop'; }, false); button('🏰 마을로', 40 + b3 * 2, 740, b3, 44, () => { state = 'town'; }, false);
+    drawPopups(330);
+  }
   function power() { const u = meta.up, g = gearT(); return Math.round(100 * Math.pow(1.07, u.atk) * Math.pow(1.08, g) * Math.sqrt(Math.pow(1.06, u.hp) * Math.pow(1.06, g) * eqHMul() / (1 - eqDR())) * (1 + u.spd * .02) * eqWMul() * (1 + meta.eq.r * .008)); }
   const saveMeta = () => { if (trial) return; try { localStorage.setItem('dh-save-staff', JSON.stringify(meta)); } catch (e) {} };
   let runSave = null; try { runSave = JSON.parse(localStorage.getItem('dh-run-staff') || 'null'); } catch (e) {}
@@ -352,7 +397,7 @@
     const g = gearT(), sk = 1 + (meta.streak || 0) * .08;
     P.dmgMul = Math.pow(1.07, u.atk) * (1 + lvOf('might') * .2) * Math.pow(1.08, g) * sk * eqWMul();
     const oldMax = P.maxHp; P.maxHp = Math.round((130 + lvOf('vital') * 25) * Math.pow(1.06, u.hp) * Math.pow(1.06, g) * sk * eqHMul()); if (P.maxHp > oldMax) P.hp += P.maxHp - oldMax;
-    P.spd = 2.5 * (1 + u.spd * .04) * (1 + lvOf('swift') * .1);
+    P.spd = 2.5 * (1 + u.spd * .04) * (1 + lvOf('swift') * .1) * (1 + itOpt('ms'));
     P.mag = 70 + u.mag * 15 + lvOf('magnet') * 45;
     P.crit = .05 + lvOf('crit') * .08 + meta.eq.r * .008;
   }
@@ -616,7 +661,7 @@
   function nearest(from, range, exclude) { let best = null, bd = range; for (const e of targets()) { if (exclude && exclude.has(e)) continue; const d = dist(e, from); if (d < bd) { bd = d; best = e; } } return best; }
   function damage(e, base, opts = {}) {
     if (!e || e.hp <= 0) return;
-    const crit = Math.random() < P.crit, d = Math.round(base * P.dmgMul * (crit ? 2 : 1) * (.9 + Math.random() * .2) * (P.powT > 0 ? 1.5 : 1) * (e === boss && boss.stun > 0 ? 1.3 : 1));
+    const crit = Math.random() < P.crit, d = Math.round(base * P.dmgMul * (crit ? 2 + itOpt('cd') : 1) * (e === boss ? 1 + itOpt('bd') : 1) * (.9 + Math.random() * .2) * (P.powT > 0 ? 1.5 : 1) * (e === boss && boss.stun > 0 ? 1.3 : 1));
     e.hp -= d; e.flash = 5;
     if (!opts.noKb && e !== boss) { const a = Math.atan2(e.y - P.y, e.x - P.x); const kbm = e.elite ? 0 : .35; e.kx += Math.cos(a) * (opts.kb || 2) * kbm; e.ky += Math.sin(a) * (opts.kb || 2) * kbm; }
     nums.push({ x: e.x + rnd(-8, 8), y: e.y - e.r, v: d, crit, life: 40 });
@@ -632,7 +677,7 @@
     if (e.dead) return;
     e.dead = true; P.kills++; sfx.kill();
     if (e.gold) { for (let i = 0; i < 16; i++) gems.push({ k: 'gold', x: e.x + rnd(-70, 70), y: e.y + rnd(-70, 70), v: 5 + floor, t: 0 }); comic(e.x, e.y - 30, '대박!!', 1.7); sfx.chest(); shake = 8; }
-    if (e.elite) { if (Math.random() < .4) addStone(1, e.x, e.y); pendingLv++; P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .15); comic(e.x, e.y - 40, '정예 처치!', 1.5); sfx.chest(); shake = 10; later(30, () => { if (state === 'play' && pendingLv > 0) openLevelUp(); }); }
+    if (e.elite) { if (Math.random() < .4) addStone(1, e.x, e.y); if (Math.random() < .15) dropItem(e.x, e.y); pendingLv++; P.hp = Math.min(P.maxHp, P.hp + P.maxHp * .15); comic(e.x, e.y - 40, '정예 처치!', 1.5); sfx.chest(); shake = 10; later(30, () => { if (state === 'play' && pendingLv > 0) openLevelUp(); }); }
     burstFx(e.x, e.y, 10, ECOL[e.type]);
     for (let i = 0; i < e.xp; i++) gems.push({ k: 'xp', x: e.x + rnd(-8, 8), y: e.y + rnd(-8, 8), v: 1, t: 0 });
     if (Math.random() < .35) gems.push({ k: 'gold', x: e.x, y: e.y, v: Math.ceil(rnd(1, 3) * (1 + floor * .1)), t: 0 });
@@ -729,7 +774,7 @@
     // door
     if (doorOpen && P.y < R.y0 + 30 && Math.abs(P.x - W / 2) < 40) { doorOpen = false; sfx.door(); nextFloor(); }
     // chest
-    if (chest) { chest.t += k; if (dist(chest, P) < 34) { sfx.chest(); runGold += Math.round(60 * (floor / 5) * goldMul() * GS()); addStone(1 + Math.floor(floor / 20) + (vipLv() >= 2 ? 1 : 0) + (vipLv() >= 4 ? 1 : 0), chest.x, chest.y); P.hp = P.maxHp; pendingLv += 2; burstFx(chest.x, chest.y, 40, '#ffd34d'); chest = null; cleared = true; doorOpen = true; banner = '보물 획득!'; bannerSub = '체력 회복 + 카드 2장 + 골드'; bannerT = 100; { const tt = TITLES.find(x => x[0] === floor); newTitle = ''; if (tt && !meta.titles.includes(tt[1])) { meta.titles.push(tt[1]); newTitle = tt[1]; saveMeta(); if (gearAt(floor) <= gearT()) { comic(P.x, P.y - 70, '👑 칭호 「' + tt[1] + '」!', 1.3); sfx.fanfare(); } } }
+    if (chest) { chest.t += k; if (dist(chest, P) < 34) { sfx.chest(); runGold += Math.round(60 * (floor / 5) * goldMul() * GS()); addStone(1 + Math.floor(floor / 20) + (vipLv() >= 2 ? 1 : 0) + (vipLv() >= 4 ? 1 : 0), chest.x, chest.y); dropItem(chest.x, chest.y); P.hp = P.maxHp; pendingLv += 2; burstFx(chest.x, chest.y, 40, '#ffd34d'); chest = null; cleared = true; doorOpen = true; banner = '보물 획득!'; bannerSub = '체력 회복 + 카드 2장 + 골드'; bannerT = 100; { const tt = TITLES.find(x => x[0] === floor); newTitle = ''; if (tt && !meta.titles.includes(tt[1])) { meta.titles.push(tt[1]); newTitle = tt[1]; saveMeta(); if (gearAt(floor) <= gearT()) { comic(P.x, P.y - 70, '👑 칭호 「' + tt[1] + '」!', 1.3); sfx.fanfare(); } } }
     if (floor % 5 === 0 && gearAt(floor) > gearT()) { meta.gear = gearAt(floor); saveMeta(); recalc(); P.hp = P.maxHp; state = 'gear'; bannerT = 0; gems = []; levelupT = 0; flash = .7; flashC = '255,220,120'; sfx.fanfare(); } else openLevelUp(); return; } }
 
     // attacks
@@ -1580,7 +1625,7 @@
       button('🛠️ 강화하기 · ' + n + '개 가능!', bx, y, bw, 46, () => { state = 'shop'; }, true); circle(bx + bw - 4, y + 4, 13, '#ff3b3b'); txt(n, bx + bw - 4, y + 5, 15, '#fff', FB);
       txt('👉', bx - 22 + Math.sin(t * .15) * 6, y + 24, 26, '#fff', FB, 'center', 'rgba(0,0,0,0)'); }
       else button('🛠️ 강화 상점', 100, y, W - 200, 44, () => { state = 'shop'; }, false); y += 54; }
-    { const er = eqRecommend(); button('⚒️ 대장간' + (er ? ' · 강화 가능!' : ''), 40, y, (W - 90) / 2 + 20, 46, () => { state = 'forge'; }, !!er); if (er) circle(40 + (W - 90) / 2 + 16, y + 4, 9, '#ff3b3b');
+    { const er = eqRecommend(); const nb = bagBetter(); button(nb ? '🎒 새 장비!' : '⚒️ 대장간' + (er ? ' · 강화 가능!' : ''), 40, y, (W - 90) / 2 + 20, 46, () => { state = nb ? 'bag' : 'forge'; }, !!er || nb); if (er) circle(40 + (W - 90) / 2 + 16, y + 4, 9, '#ff3b3b');
       button('💎 상점', 70 + (W - 90) / 2, y, (W - 90) / 2 - 20, 46, () => { state = 'dshop'; }, false); y += 56; }
     if (!(meta.bought && meta.bought.starter)) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(W / 2, y + 22, 170, '255,180,60', .16 + .1 * Math.sin(t * .12)); ctx.restore(); button('🎁 스타터 패키지 · 첫 구매 5배!', 40, y, W - 80, 44, () => openShop('town'), true); y += 52; }
     else { button('💳 상점' + (vipLv() ? ' · 👑VIP ' + vipLv() : ''), 90, y, W - 180, 40, () => openShop('town'), false); y += 48; }
@@ -1766,7 +1811,7 @@
       ctx.fillStyle = 'rgba(0,0,0,.35)'; rrect(28, y + 14, 70, 70, 12); ctx.fill(); ctx.strokeStyle = g[1]; ctx.lineWidth = 2; ctx.stroke();
       txt(q.e, 63, y + 50, 38, '#fff', FB, 'center', 'rgba(0,0,0,0)');
       txt('+' + l, 63, y + 92, 18, g[1], FT);
-      txt(q.n + '  ', 112, y + 28, 22, '#ffe0b0', FT, 'left'); txt('[' + g[0] + ']', 112 + 58, y + 28, 15, g[1], FB, 'left');
+      { const it = meta.item[k]; txt(it ? INAME[k][it.g] : q.n, 112, y + 28, 20, it ? IG[it.g][1] : '#ffe0b0', FT, 'left'); if (it) txt('[' + IG[it.g][0] + ']', W - 44, y + 28, 13, IG[it.g][1], FB, 'right'); }
       txt(q.d(l), 112, y + 56, 14, '#e8d8c0', FB, 'left');
       txt(mx ? '최고 단계!' : '다음 +' + (l + 1) + ' · ' + q.d(l + 1), 112, y + 78, 13, '#9fe0ff', FB, 'left');
       if (!mx) { txt('성공 ' + Math.round(rate * 100) + '%' + (meta.bless[k] ? ' (실패 보너스 +' + meta.bless[k] * 6 + '%)' : ''), 112, y + 98, 13, rate >= 1 ? '#7aff9a' : rate >= .6 ? '#ffd34d' : '#ff9a7a', FB, 'left'); }
@@ -1779,8 +1824,7 @@
     });
     txt('🔷 강화석: 보스 상자 · 정예 몬스터 · 방치 보상 · 💎 상점', W / 2, y + 6, 13, '#8fd0ff');
     y += 22;
-    button('💎 다이아 상점', 30, y, (W - 70) / 2, 48, () => { state = 'dshop'; }, false);
-    button('🏰 마을로', 40 + (W - 70) / 2, y, (W - 70) / 2, 48, () => { state = 'town'; }, false);
+    { const b3 = (W - 60) / 3; button('🎒 가방' + (meta.bag.length ? ' ' + meta.bag.length : ''), 20, y, b3, 48, () => { state = 'bag'; }, bagBetter()); button('💎 상점', 30 + b3, y, b3, 48, () => { state = 'dshop'; }, false); button('🏰 마을로', 40 + b3 * 2, y, b3, 48, () => { state = 'town'; }, false); }
     if (!meta.hammer) { txt('🔨 축복의 망치가 있으면 100% 성공', W / 2 - 50, y + 64, 12, '#ffd9a0'); button('구하기', W - 130, y + 52, 90, 24, () => openShop('forge'), false); }
     drawPopups(704);
   }
@@ -1892,7 +1936,7 @@
   }
   function draw() {
     buttons = [];
-    const in3d = state !== 'shop' && state !== 'book' && state !== 'forge' && state !== 'dshop' && state !== 'trialsel' && state !== 'pshop';
+    const in3d = state !== 'shop' && state !== 'book' && state !== 'forge' && state !== 'dshop' && state !== 'trialsel' && state !== 'pshop' && state !== 'bag';
     if (in3d && GL_ON) render3D();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     if (in3d && gl) ctx.clearRect(0, 0, cv.width, cv.height); else { ctx.fillStyle = '#07060a'; ctx.fillRect(0, 0, cv.width, cv.height); }
@@ -1900,6 +1944,7 @@
     if (state === 'shop') { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawShop(); ctx.restore(); return; }
     if (state === 'book') { drawBook(); return; }
     if (state === 'forge') { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawForge(); ctx.restore(); return; }
+    if (state === 'bag') { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawBag(); ctx.restore(); return; }
     if (state === 'pshop') { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawPShop(); ctx.restore(); return; }
     if (state === 'trialsel') { ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); drawTrialSel(); ctx.restore(); return; }
     if (state === 'town' && trial) endTrial();
@@ -1984,8 +2029,8 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1116160241'; let updReady = null;
-  const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel'];
+  const BUILD = '1116160902'; let updReady = null;
+  const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now()); }
   function updCheck() {
@@ -2333,7 +2378,7 @@
   })();
   window.__updCheck = updCheck;
 
-  window.__dh = { vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive, get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
+  window.__dh = { autoEquip, mkItem, addItem, get bagBetter() { return bagBetter(); }, vox: n => playVox(n), payBuy: id => payBuy(PACK.find(p => p.id === id)), get vip() { return vipLv(); }, openShop, get rule() { return rule; }, setRule: r => { rule = r; ruleT = 0; }, get KITS() { return KIT; }, get bossObj() { return boss; }, get bossTen() { return boss && boss.ten; }, startTrial, get trial() { return !!trial; }, killMe: () => { P.revive = 0; P.hp = 0; die(); }, diaRevive, get lastDeath() { return lastDeath; }, special, spawnBossX: i => spawnBoss(i), get bossPats() { return boss && boss.def.pats; }, enhance, eqRecommend, claimIdle, claimAtt, buyD, get attPop() { return attPop; }, get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
 })();
 </script>
 </body>
