@@ -1779,6 +1779,33 @@
     try { update(slowM > 0 ? k * .28 : k); draw(); } catch (err) { errCount++; if (errCount < 5) console.error(err); }
     requestAnimationFrame(frame); }
   requestAnimationFrame(frame);
+
+  // ===================== 자동 업데이트 =====================
+  const BUILD = '1116102041'; let updReady = null;
+  function updGo() { try { localStorage.setItem('dh-upd', '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady); }
+  function updCheck() {
+    if (BUILD.indexOf('BUILD') >= 0 || !/^https?:/.test(location.protocol)) return;
+    fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => {
+      if (!j || !j.v || j.v === BUILD) return; updReady = j.v;
+      if (state === 'town' || state === 'title' || (paused && state === 'play') || document.hidden) { if (state === 'play' || state === 'levelup') writeRun(); updGo(); }
+    }).catch(() => {});
+  }
+  setInterval(updCheck, 60000); setTimeout(updCheck, 4000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) updCheck(); });
+  const _sfr2 = startFloorRun; startFloorRun = function (f, resumed) { _sfr2(f, resumed); if (updReady && !resumed) { writeRun(); updGo(); } };
+  (function () {
+    let flag = null; try { flag = localStorage.getItem('dh-upd'); localStorage.removeItem('dh-upd'); } catch (e) {}
+    if (!flag) return;
+    const d = document.createElement('div');
+    d.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgba(10,4,12,.82);color:#ffe9b0;font:900 26px system-ui,sans-serif;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent';
+    const go = runSave ? '▶ 눌러서 이어하기<div style="font-size:18px;color:#fff;font-weight:700;margin-top:10px">' + runSave.floor + '층 · Lv ' + runSave.lv + '</div>' : '▶ 눌러서 계속';
+    d.innerHTML = '<div style="font-size:44px">✨</div><div>게임이 새로워졌어요!</div><div style="background:#8a3a12;border:3px solid #ffc864;border-radius:18px;padding:18px 34px;color:#fff">' + go + '</div>';
+    const done = e => { e.preventDefault(); e.stopPropagation(); d.remove(); if (runSave) resumeRun(); else ac(); };
+    d.addEventListener('pointerdown', done); d.addEventListener('click', done);
+    document.body.appendChild(d);
+  })();
+  window.__updCheck = updCheck;
+
   window.__dh = { get VP() { return VP; }, resumeRun, get runSave() { return runSave; }, get state() { return state; }, get floor() { return floor; }, get lv() { return P.lv; }, get hp() { return P.hp; }, get P() { return P; }, get enemies() { return enemies; }, get boss() { return boss; }, get ebul() { return ebul; }, get hazards() { return hazards; }, get chest() { return chest; }, get door() { return doorOpen; }, get offer() { return offer; }, get gold() { return runGold; }, meta, startRun, chooseCard, openLevelUp, recalc, get skills() { return skills; }, setState(s) { state = s; levelupT = 0; overT = 0; }, power, get cp() { return meta.cp; }, buyUp, recommend, god() { P.inv = 1e12; } };
 })();
 </script>
