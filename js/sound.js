@@ -15,7 +15,7 @@ function unlockAudio() {
   } catch (e) {}
 }
 // 시험용: 소리 기록(봇 영상에 소리를 입히려고)
-function limiter(ac) { const c = ac.createDynamicsCompressor(); c.threshold.value = -6; c.knee.value = 4; c.ratio.value = 20; c.attack.value = 0.002; c.release.value = 0.12; c.connect(ac.destination); return c; }
+function limiter(ac) { const c = ac.createDynamicsCompressor(); c.threshold.value = -9; c.knee.value = 3; c.ratio.value = 20; c.attack.value = 0.001;   /* 11-17 관문⑱ 깨짐 4가 가끔 나옴(대마법 번개 · 터짐이 더해짐) → 누르개를 조금 더 일찍 */  c.release.value = 0.12; c.connect(ac.destination); return c; }
 const BGM_V = 0.3;   /* 11-15 순서 #5: 배경음 크기(효과음보다 한 발 뒤 — 강화 「띵」이 묻히지 않게) */
 const SND_LOG = []; let sndT0 = 0;
 const Snd = {

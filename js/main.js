@@ -61,15 +61,15 @@ if (AUTO) { let sd = (+Q.get('seed') || 1) >>> 0; const rnd = () => { sd = (sd +
 function botStep() {
   if (EX.tr && EX.tr.t > 1.5) { EX.catchTreasure(); return; }
   if (st.raised < JB.C.RAISE_TAPS) { if (JB.raiseTap(st)) { Snd.smp('rise', 0.5); if (st.raised === JB.C.RAISE_TAPS) Snd.voice('v_rise'); } return; }
-  if (S.phase === 'prompt') { castPressed(); return; }
+  if (S.phase === 'prompt') { castPressed(); BOT.say && BOT.say('cast'); return; }
   if ($('modal').style.display === 'flex') UI.closeModal();
   const ks = Object.keys(JB.UPGRADES).filter(k => JB.unlocked(st, k)).sort((a, b) => JB.upCost(a, st.up[a]) - JB.upCost(b, st.up[b]));
-  for (const k of ks) if (JB.buy(st, k)) break;
+  for (const k of ks) if (JB.buy(st, k)) { BOT.say && BOT.say('up', k); break; }
   if (JB.unlocked(st, 'grave') && st.bones > 0) { UI.tab = 'grave'; UI.raiseGrave(st.bones); }
   if (JB.unlocked(st, 'grave') && JB.ALTAR[st.altar + 1] && st.souls > JB.ALTAR[st.altar + 1].cost * 1.5) JB.altarUp(st, Date.now());
-  if (JB.unlocked(st, 'hero') && st.gems >= JB.C.GACHA_COST) { UI.tab = 'hero'; UI.pull(1); }
+  if (JB.unlocked(st, 'hero') && st.gems >= JB.C.GACHA_COST) { UI.tab = 'hero'; UI.pull(1); BOT.say && BOT.say('pull'); }
   for (let i = 0; i < 5; i++) JB.claimMission(st, i);
-  if (JB.canAwaken(st) && !UI.awakening) { UI.tab = 'awaken'; UI.doAwaken(); }
+  if (JB.canAwaken(st) && !UI.awakening) { UI.tab = 'awaken'; UI.doAwaken(); BOT.say && BOT.say('awaken'); }
   if (st.awakens > (BOT.aw || 0)) { BOT.aw = st.awakens; BOT.log.push(['각성' + st.awakens, BOT.t]); }   /* 각성은 1.6초 연출 뒤에 일어남 */
   if (Math.random() < 0.05) UI.tab = ['up', 'grave', 'hero', 'mission'].filter(k => UI.tabOpen(k))[Math.floor(Math.random() * 4)] || 'up';
 }
@@ -80,7 +80,7 @@ function frame(now) {
   { const ap = document.getElementById('app'), c = S.phase === 'cast'; if (ap && ap.classList.contains('casting') !== c) ap.classList.toggle('casting', c); }   /* 11-15 폰에서 대마법 마법진(검은 태양)이 오른쪽 단추 기둥(설정 · 채팅) 밑에 깔림 → 대마법 동안 구석 단추를 흐리게 */
   const real = Math.min(0.05, (now - last) / 1000 || 0); last = now;
   if (Snd.bgmTick) Snd.bgmTick();
-  let dt = S.hold ? 0 : real * SPEED * JB.speedMul(st, Date.now()); if (S.hitstop > 0) { S.hitstop -= real; dt *= 0.06; }   /* 히트 스톱 */ fpsN++; fpsT += real; if (fpsT > 0.5) { fps = fpsN / fpsT; fpsN = 0; fpsT = 0; slowT = fps < 40 && !document.hidden && performance.now() > 10000 && !TRAILER ? slowT + 0.5 : 0; if (slowT >= 3) { slowT = 0; lowerQuality(); } }
+  let dt = S.hold ? 0 : real * SPEED * (window.DEMO_SP || 1) * JB.speedMul(st, Date.now()); if (S.hitstop > 0) { S.hitstop -= real; dt *= 0.06; }   /* 히트 스톱 */ fpsN++; fpsT += real; if (fpsT > 0.5) { fps = fpsN / fpsT; fpsN = 0; fpsT = 0; slowT = fps < 40 && !document.hidden && performance.now() > 10000 && !TRAILER ? slowT + 0.5 : 0; if (slowT >= 3) { slowT = 0; lowerQuality(); } }
   // 규칙: 연출 중(노려봄·대마법)에는 규칙 시간도 멈춤
   if (!(TRAILER && window.__freeze) && (!['stare', 'prompt', 'cast'].includes(S.phase) || st.boss?.phase === 'fight')) {
     let left = dt; while (left > 0) { const d = Math.min(0.1, left); left -= d; onEvents(JB.tick(st, d)); }

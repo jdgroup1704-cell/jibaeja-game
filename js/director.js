@@ -46,6 +46,7 @@ function say(text, x, y, o = {}) {
   if (!o.screen && typeof fmtD !== 'undefined' && text === fmtD.s && fmtD.v != null) {   /* 11-16 09:15 「화면 난리」(후반 사진: 8.9억 · 11억 · 4.4경이 유닛을 덮음): 피해 숫자는 화면에 동시 4개 · 크기 보통 21 · 큰 것 27까지 */
     if (S.texts.filter(t => !t.screen && t.val != null && t.age < t.life).length >= 4 && !S.texts.some(t => !t.screen && t.val != null && t.age < 0.3 && Math.abs(t.x - x) < 90 && Math.abs(t.y - y) < 70)) { fmtD.v = null; return; }
     o = Object.assign({}, o, { size: Math.min(o.size || 28, (o.size || 28) >= 30 ? 27 : 21) }); }
+  if (!o.screen && UK() < 1 && typeof text === 'string' && !/^[-+]?[\d.]/.test(text) && x > VX1 - 270) x = VX1 - 270;   /* 11-17 눈 확인: 「방패 치기!」 같은 기술 이름이 폰 오른쪽 메뉴 단추 밑으로 들어감 → 글자는 오른쪽 단추 줄 안쪽으로 */
   const sz = o.size || 28; if (!o.screen && ((typeof UI !== 'undefined' && UI.awakening) || S.t < (S.calmUntil || 0) || S.t < (S.quietUntil || 0))) return;
   if (!o.screen && typeof L !== 'undefined' && L.field && text === L.field.crit) return;
   if (!o.screen && typeof fmtD !== 'undefined' && text === fmtD.s && fmtD.v != null) { const v = fmtD.v, col = o.col || '#fff', m = S.texts.find(t => !t.screen && t.val != null && t.col === col && t.age < 0.3 && Math.abs(t.x - x) < 90 && Math.abs(t.y - y) < 70); fmtD.v = null;
@@ -435,8 +436,8 @@ function castUpdate(dt) {
   S.lord.raise = ease(c / 0.6); S.lord.glow = Math.max(S.lord.glow, Math.min(1, c * 1.5));
   if (c > 0.15 && c < TB) S.parts.push({ x: 250 + rnd(-14, 14), y: 300 + rnd(-20, 20), vx: rnd(-25, 25), vy: rnd(-70, -20), life: 1.0, age: 0, size: rnd(1.5, 3.5), col: '#c9a7ff', g: -10, add: true, kind: 'dot', rot: 0, vr: 0, real: true });
   const spellName = L.spell[st.spell].name;
-  if (TC.l1 >= 0 && c > TC.l1 && once('l1')) { say(L.spell.chant[0], W * 0.27, 150, { size: 42, col: '#e9dcff', life: 3.3, vy: 0, glow: '#8a3cff', reveal: 2.8, screen: true }); Snd.voice('vj_chant1'); if (TC === TC_LONG && !NARROW()) camTo(FAR() ? 330 : 196 + LDX() + 60, FAR() ? 300 : 360, FAR() ? 1.0 : 1.2, 1.0);   /* 11-16 08:44 대표님 「영창 깨지고」: 휴대폰에선 1.15배로 당기면 지배자 몸이 아래 「일으켜라」 단추 뒤로 내려가 머리만 보였음(지배자찍기 사진) → 휴대폰은 당기지 않음 */   /* 18:41 대표님 「영창할 때 화면 끝 닿잖아, 내려」: 먼 화면은 지배자를 아래쪽 가운데로 */ }   /* 첫 영창: 카메라가 지배자에게 다가가 지팡이 치켜들고 구슬 모으는 영상을 크게 */
-  if (TC.l2 >= 0 && c > TC.l2 && once('l2')) { say(L.spell.chant[1], W * 0.27, 212, { size: 42, col: '#e9dcff', life: 2.6, vy: 0, glow: '#8a3cff', reveal: 2.0, screen: true }); Snd.voice('vj_chant2'); camTo(...ringCam(), 1.0, 1.2); }
+  if (TC.l1 >= 0 && c > TC.l1 && once('l1')) { say(L.spell.chant[0], NARROW() ? W / 2 : W * 0.27, 150, { size: NARROW() ? 58 : 42, col: '#e9dcff', life: 3.3, vy: 0, glow: '#8a3cff', reveal: 2.8, screen: true }); Snd.voice('vj_chant1'); if (TC === TC_LONG && !NARROW()) camTo(FAR() ? 330 : 196 + LDX() + 60, FAR() ? 300 : 360, FAR() ? 1.0 : 1.2, 1.0);   /* 11-16 08:44 대표님 「영창 깨지고」: 휴대폰에선 1.15배로 당기면 지배자 몸이 아래 「일으켜라」 단추 뒤로 내려가 머리만 보였음(지배자찍기 사진) → 휴대폰은 당기지 않음 */   /* 18:41 대표님 「영창할 때 화면 끝 닿잖아, 내려」: 먼 화면은 지배자를 아래쪽 가운데로 */ }   /* 첫 영창: 카메라가 지배자에게 다가가 지팡이 치켜들고 구슬 모으는 영상을 크게 */
+  if (TC.l2 >= 0 && c > TC.l2 && once('l2')) { say(L.spell.chant[1], NARROW() ? W / 2 : W * 0.27, 212, { size: NARROW() ? 58 : 42, col: '#e9dcff', life: 2.6, vy: 0, glow: '#8a3cff', reveal: 2.0, screen: true }); Snd.voice('vj_chant2'); camTo(...ringCam(), 1.0, 1.2); }
   if (c > TC.r1 && once('r1')) { S.rings.push({ r: 250, born: c, dir: 1 }); Snd.ring(0); }
   if (c > TC.r2 && once('r2')) { S.rings.push({ r: 178, born: c, dir: -1 }); Snd.ring(1); }
   if (c > TC.r3 && once('r3')) { S.rings.push({ r: 110, born: c, dir: 1 }); Snd.ring(2); }

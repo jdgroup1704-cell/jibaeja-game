@@ -42,7 +42,7 @@ function draw() {
   drawArmyFx(); HF.drawFx(); LM.draw();
   const litLord = S.phase === 'cast' || S.phase === 'stare';   /* 11-14 18:10 대마법 영창 때 화면이 어두워져도 지배자는 밝게(어둠 위에 그림) — 「5초 동안 어둡고 글자만」 고침 */
   if (litLord && S.dark > 0) { ctx.fillStyle = `rgba(4,0,12,${S.dark})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
-  if (typeof SPX !== 'undefined') { SPX.drawUnder(); SPX.draw(); }   /* 11-16 ③ 대마법 무대: 영창 때 화면이 어두워져도 번개 · 마법진이 어둠 위에서 빛나게(어둠보다 나중에 그림) */
+  if (typeof SPX !== 'undefined') { SPX.drawUnder(); SPX.draw(); } if (typeof TAP !== 'undefined') TAP.draw();   /* 11-17 ④ 누른 곳에 영혼탄 */   /* 11-16 ③ 대마법 무대: 영창 때 화면이 어두워져도 번개 · 마법진이 어둠 위에서 빛나게(어둠보다 나중에 그림) */
   drawLord(); drawStaff(); if (!TRAILER) drawAtmoFront();
   if (!litLord && S.dark > 0) { ctx.fillStyle = `rgba(4,0,12,${S.dark})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
   if (S.tint > 0) { ctx.fillStyle = `rgba(20,0,45,${0.45 * S.tint})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }

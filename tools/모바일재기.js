@@ -16,4 +16,12 @@ const IOS = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) AppleWebKit/
   const g1 = await pg.evaluate(() => ({ gems: st.gems, gift: !!(st.seen && st.seen.installGift) })); await pg.evaluate(() => { save(); MOB.gift(); }); await pg.waitForTimeout(300); const g2 = await pg.evaluate(() => st.gems);
   out.설치선물 = g1.gift; out.두번째선물 = g2 - g1.gems; await c.close();
   [c, pg] = await open(); await pg.evaluate(() => { document.getElementById('opening')?.click(); }); await pg.waitForTimeout(800); await pg.evaluate(() => EX.settingsOpen()); out.설정설치줄 = await pg.evaluate(() => !!document.querySelector('#modal [data-x="mobInst"]')); out.보통띠 = await bar(pg); await c.close();
+  /* ⑥ 기록 옮기기: 한쪽에서 37판 기록을 글자로 → 새 브라우저에 붙여 넣고 바꾸기 → 37판으로 이어짐 · 틀린 글자는 막힘 */
+  [c, pg] = await open(); await pg.evaluate(() => { document.getElementById('opening')?.click(); }); await pg.waitForTimeout(800); const code = await pg.evaluate(() => { st.stage = st.best = 37; return MOB.code(); }); await c.close();
+  [c, pg] = await open(); await pg.evaluate(() => { document.getElementById('opening')?.click(); }); await pg.waitForTimeout(800);
+  await pg.evaluate(() => { EX.settingsOpen(); document.querySelector('#modal [data-x="mvOpen"]').click(); }); await pg.waitForTimeout(300);
+  await pg.evaluate(() => { document.getElementById('mvIn').value = 'JBK1.틀린글자'; document.querySelector('#modal [data-x="mvLoad"]').click(); }); out.틀린글자막힘 = await pg.evaluate(() => /맞지 않아요/.test(document.getElementById('mvMsg').innerText));
+  await pg.evaluate(cd => { document.getElementById('mvIn').value = cd; document.querySelector('#modal [data-x="mvLoad"]').click(); }, code); await pg.waitForTimeout(200);
+  await Promise.all([pg.waitForNavigation({ timeout: 8000 }).catch(() => {}), pg.evaluate(() => document.querySelector('#modal [data-x="mvYes"]')?.click())]); await pg.waitForTimeout(2500);
+  out.옮긴판 = await pg.evaluate(() => st.stage); out.글자길이 = code.length; await c.close();
   console.log(JSON.stringify({ ...out, 오류: errs.slice(0, 3) })); await b.close(); srv.close(); })();

@@ -402,7 +402,8 @@
   @media (max-width:520px){ html:not(.trailer) #stagewrap:has(#reraise.on) #toast{left:48%!important;right:3.3em!important} html:not(.trailer) #reraise{top:2.3em!important;max-width:44%;white-space:normal;line-height:1.25} }
   /* ⑤ 「오늘의 임무 ㄹ」: 임무 이름 칸이 한 글자로 눌려 이상한 글자처럼 보이던 것 → 이름 칸 최소 폭, 막대는 좁은 폰에서 숨김 */
   @media (max-width:520px){ #goal .gt{min-width:5.5em} #goal .gb{display:none} #goal{gap:.35em} }
-  @media (max-width:520px){ html:not(.trailer) #app.fold:not(.tall) #stagewrap{aspect-ratio:840/700!important} }   /* 14:53 폰 전장 43% → 키움(답답함) */   /* 18:10 클로드 앱 안(384×665)은 tall이 아니라 목록이 2줄뿐이던 것 → 전장을 조금 낮춰 목록 3줄 넘게 */
+  @media (max-width:520px){ html:not(.trailer) #app.fold:not(.tall) #stagewrap{aspect-ratio:840/790!important} }   /* 11-17 02:5x 대표님 「던전 히어로가 훨씬 낫지 않나」 비교: 그쪽 싸움터 100% · 우리 40% → 강화 카드를 납작하게 하고 전장을 키움(남는 땅은 GY가 위아래로 펼침) */
+  @media (max-width:520px){ html:not(.trailer) .ucard{padding:5px 3px 4px;gap:1px} html:not(.trailer) .ucard img{width:38px;height:38px} html:not(.trailer) .ucard .ue{font-size:13px} html:not(.trailer) .ucard .un{font-size:11.5px} html:not(.trailer) .ucard .btn.buy{margin-top:1px;padding:.22em .2em!important;font-size:12px!important} }   /* 14:53 폰 전장 43% → 키움(답답함) */   /* 18:10 클로드 앱 안(384×665)은 tall이 아니라 목록이 2줄뿐이던 것 → 전장을 조금 낮춰 목록 3줄 넘게 */
   @media (min-width:521px){ html:not(.trailer) #app{width:min(100%,calc(100vh * 0.62),760px)} }   /* 11-16 14:46 대표님(PC) 「지배자 캐릭터도 작고 · 화면이 답답」: PC 세로 틀 폭 상한 560 → 760(같은 세로 비율 · 캐릭터 약 1.25배) */
   html:not(.trailer) #combo{top:.2em!important;right:auto!important;left:50%;transform:translateX(-50%);text-align:center!important;display:flex;align-items:baseline;gap:.3em} #combo b{font-size:22px!important;display:inline!important} #combo.hot b{font-size:25px!important} #combo small{font-size:10px!important}
   /* ④ 「새로 열림」 알림이 두세 개 쌓여 지배자 머리 · 군단을 덮던 것: 하늘 맨 위에 최신 하나만, 글자 작게 */
@@ -612,6 +613,11 @@
   #summonfx .sf-name b{display:block;font-weight:900;font-size:34px;color:#fff;-webkit-text-stroke:1.5px #2a0d45;text-shadow:0 0 18px var(--c),0 3px 6px #000}
   #summonfx .sf-tap{position:absolute;left:0;right:0;bottom:6%;text-align:center;color:#e8dcff;font-weight:800;font-size:14px;opacity:0}
   #summonfx.tapok .sf-tap{animation:sfBlink 1s infinite}
+  #demobar{position:fixed;left:0;right:0;top:0;z-index:420;background:rgba(14,4,30,.94);border-bottom:2px solid #b56cff;color:#f3ecff;font-size:11.5px;padding:3px 6px 4px;box-shadow:0 3px 10px #000a}   /* 11-17 자동 시범 띠 */
+  #demobar .db1{display:flex;align-items:center;gap:4px;flex-wrap:wrap}#demobar .db1 b{flex:1 1 100%;font-size:12px;color:#e2ccff}
+  #demobar button{border:1px solid #6a4a9a;background:#24123a;color:#e8dcff;border-radius:7px;font-weight:800;font-size:11.5px;padding:2px 7px}#demobar button.on{background:#b56cff;color:#1a0630;border-color:#e2ccff}
+  #demobar .dbday{background:#2c4a1c;border-color:#7dff9a}#demobar .dbx{background:#4a1c24;border-color:#ff8a9a;margin-left:auto}
+  #demobar .db2{margin-top:2px;color:#d9c8ff}#demobar .db3{color:#a993c9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#demobar .db3 .new{color:#ffd76a;font-weight:800}
   #mbar{display:none;position:fixed;left:6px;right:6px;top:calc(env(safe-area-inset-top,0px) + 4px);z-index:400;align-items:center;gap:6px;padding:6px 8px;border-radius:10px;background:rgba(24,8,44,.97);border:1px solid #b56cff;box-shadow:0 4px 14px rgba(0,0,0,.6);color:#f3ecff;font-size:12.5px;line-height:1.35}   /* 11-17 던전 히어로에서 배움: 카톡 안 브라우저 · 아이폰 안내 띠 */
   #mbar.on{display:flex}#mbar span{flex:1}#mbar button{border:0;border-radius:8px;font-weight:800;font-size:12px;padding:5px 8px;white-space:nowrap}#mbar .mb-go{background:linear-gradient(#ffd76a,#e0a020);color:#2a1400}#mbar .mb-x{background:transparent;color:#cdb8f0;font-size:15px;padding:2px 4px}
   #summonfx .sf-orb{position:absolute;left:50%;top:46%;width:min(46vw,190px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 38% 34%,#fff 0 6%,var(--c) 28%,color-mix(in srgb,var(--c) 40%,#10002a) 70%,#07000f);box-shadow:0 0 40px 10px var(--c),0 0 120px 30px color-mix(in srgb,var(--c) 45%,transparent),inset 0 0 30px rgba(255,255,255,.35);animation:orbIn .4s ease-out,orbShake .12s .3s linear infinite;transition:background .15s,box-shadow .15s}   /* 11-16 ④ 봉인 구슬 */
@@ -927,7 +933,7 @@
     <!-- 11-14 17:55 「그림 비교 ①②③④」 시험 단추 지움: ③ 예전 개선 + 영상 장면으로 정함(16:30). 시험할 땐 주소에 ?style=2d 처럼 -->
     <button id="reraise"></button>
     <div id="testbar"></div>
-    <div id="ver">판 11-17 01:51</div>
+    <div id="ver">판 11-17 03:26</div>
   </div>
   <div id="grip"><i></i></div>
   <div id="skillbar"><button id="raiseBtn"></button><div id="slots"></div><button id="cast"></button></div>
@@ -941,25 +947,25 @@
 </div>
 <div id="modal"><div class="box"></div></div>
 <script>window.BUILD = '1115102811';</script>   <!-- 11-14 18:12 대표님 「바뀐 새 버전 줘, 저장된 거 주지 말고 첫 시작」: 판마다 저장 이름이 달라 새 판은 늘 1-1부터 -->
-<script src="lang_ko.js?v=1117015105"></script>
-<script src="balance.js?v=1117015105"></script>
-<script src="logic.js?v=1117015105"></script>
-<script src="js/base.js?v=1117015105"></script>
-<script src="js/sound.js?v=1117015105"></script>
-<script src="js/art.js?v=1117015105"></script>
-<script src="js/draw.js?v=1117015105"></script>
-<script src="js/director.js?v=1117015105"></script>
-<script src="js/field.js?v=1117015105"></script>
-<script src="js/thrall.js?v=1117015105"></script>
-<script src="js/brag.js?v=1117015105"></script>
-<script src="js/bosscharge.js?v=1117015105"></script>
-<script src="js/reward.js?v=1117015105"></script>
-<script src="js/dex.js?v=1117015105"></script>
-<script src="js/minion.js?v=1117015105"></script><script src="js/foefx.js?v=1117015105"></script><script src="js/spellfx.js?v=1117015105"></script><script src="js/bossvoice.js?v=1117015105"></script>
-<script src="js/ui.js?v=1117015105"></script>
-<script src="js/extra.js?v=1117015105"></script>
-<script src="js/social.js?v=1117015105"></script>
-<script src="js/legal.js?v=1117015105"></script>
-<script src="js/main.js?v=1117015105"></script><script src="js/mobile.js?v=1117015105"></script>
+<script src="lang_ko.js?v=1117032607"></script>
+<script src="balance.js?v=1117032607"></script>
+<script src="logic.js?v=1117032607"></script>
+<script src="js/base.js?v=1117032607"></script>
+<script src="js/sound.js?v=1117032607"></script>
+<script src="js/art.js?v=1117032607"></script>
+<script src="js/draw.js?v=1117032607"></script>
+<script src="js/director.js?v=1117032607"></script>
+<script src="js/field.js?v=1117032607"></script>
+<script src="js/thrall.js?v=1117032607"></script>
+<script src="js/brag.js?v=1117032607"></script>
+<script src="js/bosscharge.js?v=1117032607"></script>
+<script src="js/reward.js?v=1117032607"></script>
+<script src="js/dex.js?v=1117032607"></script>
+<script src="js/minion.js?v=1117032607"></script><script src="js/foefx.js?v=1117032607"></script><script src="js/spellfx.js?v=1117032607"></script><script src="js/tap.js?v=1117032607"></script><script src="js/bossvoice.js?v=1117032607"></script>
+<script src="js/ui.js?v=1117032607"></script>
+<script src="js/extra.js?v=1117032607"></script>
+<script src="js/social.js?v=1117032607"></script>
+<script src="js/legal.js?v=1117032607"></script>
+<script src="js/main.js?v=1117032607"></script><script src="js/mobile.js?v=1117032607"></script><script src="js/demo.js?v=1117032607"></script>
 </body>
 </html>
