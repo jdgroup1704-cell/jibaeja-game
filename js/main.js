@@ -66,6 +66,7 @@ function botStep() {
   if ($('modal').style.display === 'flex') UI.closeModal();
   const ks = Object.keys(JB.UPGRADES).filter(k => JB.unlocked(st, k)).sort((a, b) => JB.upCost(a, st.up[a]) - JB.upCost(b, st.up[b]));
   for (const k of ks) if (JB.buy(st, k)) { BOT.say && BOT.say('up', k); break; }
+  if ((st.tombQ || []).length && !$('tombfx')) { const tb = document.querySelector('#slots .tomb'); if (tb) { UI.tombOpen(tb); BOT.say && BOT.say('tomb'); } else JB.tombOpen(st); }   /* 11-17 23:0x 로봇도 무덤을 엶(자동 시범에서 보이게 · 하나 솟는 동안은 기다림) */
   if (JB.unlocked(st, 'grave') && st.bones > 0) { UI.tab = 'grave'; UI.raiseGrave(st.bones); }
   if (JB.unlocked(st, 'grave') && JB.ALTAR[st.altar + 1] && st.souls > JB.ALTAR[st.altar + 1].cost * 1.5) JB.altarUp(st, Date.now());
   if (JB.unlocked(st, 'hero') && st.gems >= JB.C.GACHA_COST) { UI.tab = 'hero'; UI.pull(1); BOT.say && BOT.say('pull'); }

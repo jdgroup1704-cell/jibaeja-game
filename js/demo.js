@@ -6,11 +6,11 @@
 const DEMOUI = (() => {
   if (!DEMO) return null;
   const SP = [1, 4, 10, 20]; window.DEMO_SP = 4; try { sessionStorage.setItem('jbDemo', '1'); } catch (er) {} const log = []; const T0 = Date.now();
-  const nm = { up: k => `강화: ${(L.ups && L.ups[k] && (L.ups[k].name || L.ups[k].n || L.ups[k])) || k}`, pull: () => '영웅 모집', awaken: () => '각성!', cast: () => '대마법', day: () => '하루 넘김' };
+  const nm = { up: k => `강화: ${(L.ups && L.ups[k] && (L.ups[k].name || L.ups[k].n || L.ups[k])) || k}`, pull: () => '영웅 모집', awaken: () => '각성!', cast: () => '대마법', day: () => '하루 넘김', tomb: () => '무덤 열기' };
   BOT.say = (k, a) => { const t = (nm[k] || (() => k))(a); if (log[0] && log[0].t === t) { log[0].n++; return; } log.unshift({ t, n: 1 }); log.length = Math.min(log.length, 3); tapAt(k, a); };
   /* 16:3x 조언 4 「손가락을 보여 주고 누르기」: 로봇이 누른 단추 위에 손가락이 내려와 꾹 누름(0.5초) — 보이는 단추일 때만(다른 탭이면 탭 단추를 짚음) */
   const fg = document.createElement('div'); fg.id = 'dfinger'; fg.innerHTML = '<i></i><img src="art/finger.webp" alt="">'; document.body.appendChild(fg); let fgT = 0;
-  const tapAt = (k, a) => { if (window.DEMO_SKIP) return; const sel = { up: `.ucard[data-arg="${a}"] .btn.buy`, pull: '[data-act="pull1"],[data-act="pull10"]', awaken: '[data-act="awaken"],[data-x="awaken"]', cast: '#castBtn,#cast,.castbtn' }[k]; if (!sel) return;
+  const tapAt = (k, a) => { if (window.DEMO_SKIP) return; const sel = { up: `.ucard[data-arg="${a}"] .btn.buy`, pull: '[data-act="pull1"],[data-act="pull10"]', awaken: '[data-act="awaken"],[data-x="awaken"]', cast: '#castBtn,#cast,.castbtn', tomb: '#slots .tomb' }[k]; if (!sel) return;
     let e = document.querySelector(sel); if (!e || !e.getBoundingClientRect().width) e = document.querySelector(`#tabs [data-tab="${{ up: 'up', pull: 'hero', awaken: 'awaken' }[k] || ''}"]`); if (!e) return; const r = e.getBoundingClientRect(); if (!r.width || r.top > innerHeight) return;
     fg.style.left = (r.left + r.width * 0.5) + 'px'; fg.style.top = (r.top + r.height * 0.55) + 'px'; fg.classList.remove('on'); void fg.offsetWidth; fg.classList.add('on'); clearTimeout(fgT); fgT = setTimeout(() => fg.classList.remove('on'), 520); };
   const el = document.createElement('div'); el.id = 'demobar';

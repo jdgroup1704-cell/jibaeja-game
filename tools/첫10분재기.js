@@ -14,6 +14,7 @@ const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComp
     setInterval(() => { for (const k of Object.keys(JB.C.UNLOCK)) if (!seen[k] && JB.unlocked(st, k)) { seen[k] = 1; add('열림', k); }
       if (st.stage !== lastSt) { lastSt = st.stage; add('판', st.stage); }
       const h = Object.keys(st.heroes || {}).length; if (h > lastH) { lastH = h; add('영웅', h); }
+      const tq = (st.tombQ || []).length; if (tq > (seen.__tq || 0)) add('무덤', tq); seen.__tq = tq;   /* 11-17 22:5x 무덤도 「새것」 */
       const g = (st.gear && Object.values(st.gear).filter(Boolean).length) || 0; if (g > lastG) { lastG = g; add('장비', g); }
       if (S.phase !== lastPh && ['prompt', 'fight', 'boss'].includes(S.phase)) add('보스', S.phase); lastPh = S.phase;
       const t = document.querySelector('.toast.on, #toast.on'); if (t && t.textContent !== seen.__t) { seen.__t = t.textContent; add('알림', t.textContent.slice(0, 24)); }

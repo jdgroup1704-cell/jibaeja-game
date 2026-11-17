@@ -57,5 +57,7 @@ echo "㊷ 무덤(순서 #34 · 11-17 21:24 대표님 「재미없고 … 조사 
 pkill -f chrome 2>/dev/null
 echo "㊸ 알림 상자(지적장부 C7 · 11-17 22:0x): 「새로 열림」 등 알림이 판 표시 · 위 단추(전리품 · 빠른 보상 · 배속 · 메뉴)와 안 겹침 — 593 · 780"; G=0; for h in 593 780; do R=$(timeout 90 node 알림겹침재기.js $D $h | tail -1); echo "$R" | H=$h python3 -c "import json,sys,os; r=json.load(sys.stdin); b=r['겹침']; print('  '+os.environ['H']+': 겹침 '+str(len(b))+(' ✗ '+' · '.join(b[:3]) if b else '')+(' 오류 '+str(r['오류']) if r['오류'] else '')); sys.exit(1 if b or r['오류'] else 0)" || G=1; done; [ $G = 0 ] && echo "  알림 상자 통과" || { echo "  ✗ 알림 상자"; F=1; }
 pkill -f chrome 2>/dev/null
+echo "㊹ 로봇 오류 사냥(11-17 23:0x 대표님 21:24 「오류 못 찾으니까 니가 진화해」): 봇이 8배속으로 3분 플레이하며 탭 · 상점 · 메뉴를 돌아가며 열고 매번 — 이상한 글(NaN · undefined) · 재화 이상 · 단추 겹침(창 · 펼친 메뉴가 위에 뜬 것 빼고) · 글자 넘침 · 화면 밖 단추 · 오류 0"; R=$(timeout 260 node 오류사냥.js $D 3 8 593 2>/dev/null); echo "$R" | python3 -c "import json,sys; r=json.load(sys.stdin); e=[x for x in r['오류'] if 'vibrate' not in x]; p=r['문제']; print('  본 화면 %d · %s판 · 문제 %d · 오류 %d' % (r['본화면'], r['끝']['best'], len(p), len(e))); [print('  ✗ '+x) for x in (p+e)[:6]]; sys.exit(1 if p or e else 0)" && echo "  오류 사냥 통과" || { echo "  ✗ 오류 사냥(사진 /home/claude/rec/사냥/)"; F=1; }
+pkill -f chrome 2>/dev/null
 echo "⑬ 직접 플레이 영상(고친 뒤 찍고 본 것 적기) — 11-15 19:56 「기능들도 전부 영상으로 직접 플레이 체크」"; python3 영상확인검사.py $1 || F=1
 [ $F = 0 ] && echo "관문 통과" || { echo "관문 실패"; exit 1; }
