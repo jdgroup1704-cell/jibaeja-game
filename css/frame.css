@@ -231,3 +231,6 @@ button.row.hint{border-color:var(--gold);animation:hintp 1s ease-in-out infinite
 #panel.t-up #tabbody{padding:4px 8px 3px!important}
 .ucards{gap:4px!important}
 #stagewrap:has(#notice.on) #toast,#stagewrap:has(#vsfx.go) #toast{opacity:0;transition:opacity .15s}   /* 알림 줄이 떠 있으면 작은 알림은 숨김(눈_새틀5 3-10: 「새로 열림」이 「군단 힘 100 돌파!」 밑에 겹침) */
+/* 06:2x 눈_적크기: 각성 전 아래 안내 띠가 싸움터 아래쪽 영웅 이름표를 반쯤 덮음 → 안내 띠는 판 표시 바로 밑(위쪽 하늘) */
+#guide{top:58px!important;bottom:auto!important;left:16px!important;right:16px!important}
+#stagewrap:has(#notice.on) > #guide{opacity:0}
