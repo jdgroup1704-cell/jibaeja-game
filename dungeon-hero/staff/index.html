@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118042947'; let updReady = null;
+  const BUILD = '1118043421'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -5244,7 +5244,7 @@
   function arenaGo(o) { const a = arM(); if (arLeft() <= 0) { townPop = { txt: '⚔️ 오늘 결투는 다 했어요', sub: '내일 다시 ' + AR_N + '번', t0: t }; try { sfx.warn(); } catch (e) {} return; }
     a.n++; saveMeta(); const r = arClamp(o.power / Math.max(100, power()), .25, 4), f = arenaFloor(); arenaRun = { o, r, f, t: 0, sp: 0, dm: Math.pow(r, .7) }; arenaRes = null; startRun(f); P.revive = 0; }
   function arenaEnd(win) { const R0 = arenaRun; if (!R0) return; const a = arM(), g = win ? arGain(R0.r) : -arLoss(R0.r), gold = win ? Math.round(idleGoldRate() * 15 * goldMul0()) : 0;
-    a.pt = Math.max(0, Math.round(a.pt + g)); if (win) a.w++; else a.l++; meta.gold += gold; saveMeta(); arenaPush();
+    a.pt = Math.max(0, Math.round(a.pt + g)); if (win) a.w++; else a.l++; a.st = win ? (a.st || 0) + 1 : 0; if (win && [3, 5, 10, 20].indexOf(a.st) >= 0) { try { chatSay('🥊 결투 ' + a.st + '연승! 지금 ' + a.pt.toLocaleString() + '점'); } catch (e) {} } meta.gold += gold; saveMeta(); arenaPush();
     arenaRes = { win, g, gold, o: R0.o, t0: t, sec: Math.round(R0.t / 60) }; arenaRun = null;
     boss = null; enemies = []; ebul = []; chest = null; doorOpen = false; runGold = 0; clearRun(); offer = []; levelupT = 0; state = 'arena'; arenaT = 0; arenaLoad(true); try { win ? sfx.fanfare() : sfx.over(); } catch (e) {} }
   const goldMul0 = () => { try { return (1 + meta.eq.r * .03) * (1 + .15 * vipLv()); } catch (e) { return 1; } };
@@ -5446,7 +5446,7 @@
       txt(A2.why === 'time' ? '⏱️ 60초 끝!' : '💥 쓰러졌어요', W / 2, Y + 42, 26, '#ffe6c8', FT); tfit(A2.B.n + ': 「' + A2.B.say[2] + '」', W / 2, Y + 78, 13.5, `rgb(${A2.B.c2})`, W - 100, FB, 'center');
       txt('💥 ' + A2.dmg.toLocaleString(), W / 2, Y + 138, 36 + 12 * (1 - q), '#fff', FT); if (A2.nb) txt('🆕 이번 주 최고 기록!', W / 2, Y + 182, 18, '#7aff9a', FT); else tfit('이번 주 최고 💥 ' + A2.best.toLocaleString(), W / 2, Y + 182, 15, '#c8b8a0', W - 100, FB, 'center');
       tfit('참가 보상 💰 +' + A2.gold.toLocaleString() + ' · 🔷 +3', W / 2, Y + 222, 16, '#ffd34d', W - 100, FT, 'center');
-      { const L = raidRank || [], me = fbUser && fbUser.uid, mi = L.findIndex(q => q.id === me); tfit(mi >= 0 ? '🏆 이번 주 ' + (mi + 1) + '위 / ' + L.length + '명' : raidBusy ? '순위 불러오는 중…' : fb && fbReady ? '순위에 올리는 중…' : '서버에 연결되면 순위가 나와요', W / 2, Y + 254, 15, mi >= 0 && mi < 3 ? '#ffe27a' : '#e8d8c8', W - 100, FT, 'center'); if (!raidBusy && mi < 0 && fb && fbReady && t - A2.t0 > 120 && !A2.rl) { A2.rl = 1; raidRankLoad(); } }
+      { const L = raidRank || [], me = fbUser && fbUser.uid, mi = L.findIndex(q => q.id === me); if (A2.nb && mi >= 0 && mi < 3 && !A2.said) { A2.said = 1; const r0 = rdM(); if (!r0.said || r0.said > mi + 1) { r0.said = mi + 1; saveMeta(); try { chatSay('⚔️ ' + A2.B.n + ' 토벌전 이번 주 ' + (mi + 1) + '위! 💥' + kfmt(A2.dmg)); } catch (e) {} } } tfit(mi >= 0 ? '🏆 이번 주 ' + (mi + 1) + '위 / ' + L.length + '명' : raidBusy ? '순위 불러오는 중…' : fb && fbReady ? '순위에 올리는 중…' : '서버에 연결되면 순위가 나와요', W / 2, Y + 254, 15, mi >= 0 && mi < 3 ? '#ffe27a' : '#e8d8c8', W - 100, FT, 'center'); if (!raidBusy && mi < 0 && fb && fbReady && t - A2.t0 > 120 && !A2.rl) { A2.rl = 1; raidRankLoad(); } }
       button('확인', 110, Y + CH - 76, W - 220, 50, () => { raidRes = null; }, true); } }
   { const _dr193 = draw; draw = function () { if (state !== 'raid') return _dr193(); buttons = []; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#07060a'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy); ctx.imageSmoothingEnabled = true;
       ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); try { drawRaid(); } catch (e) { txt('토벌전 오류: ' + (e && e.message), W / 2, 400, 14, '#f88', FB); } ctx.restore(); ctx.imageSmoothingEnabled = false; }; }
