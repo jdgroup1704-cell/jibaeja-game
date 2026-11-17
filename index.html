@@ -527,6 +527,7 @@
   html:not(.trailer) #reraise{top:auto!important;bottom:.5em!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;max-width:44%!important;white-space:normal!important;line-height:1.25;font-size:12px}   /* 21:50 위 가운데 큰 판 표시와 겹쳐 → 23:28 왼쪽은 지배자 머리 · 말풍선을 가려서 오른쪽(설정 단추 옆)으로 */
   @media (max-width:520px){ html:not(.trailer) #app.stbig #toast{top:3.55em!important} html:not(.trailer) #toast{z-index:7!important} html:not(.trailer) #toast .toast{background:rgba(22,8,40,.96)!important} html:not(.trailer) #toast .toast b{display:inline!important;font-size:1em!important} html:not(.trailer) #toast .toast{white-space:normal!important;line-height:1.3!important;padding:.25em .6em!important;max-height:2.9em} html:not(.trailer) #stagewrap:has(#reraise.on) #toast{left:3.4em!important;right:4.4em!important} html:not(.trailer) #toast{right:4.4em!important} }   /* 11-17 눈 확인(눈_적줄고정 · 눈_대마법뽑기): 「새로 열림」 둘째 줄이 오른쪽 메뉴 단추(오른쪽 15~51px) 밑으로 들어감 → 오른쪽을 4.4em 비움 */   /* 알림은 큰 판 표시 밑으로 */   /* 11-15 19:25 눈 확인(군주보기): 「새로 열림」 제목이 한 줄을 따로 차지해 두 줄 상자가 전장 윗부분(영웅 머리 · 군주 날개)을 덮음 → 제목을 같은 줄 앞에 붙이고, 판 표시 자리(위)에 잠깐 덮어 뜸 — 판 이름 자리에 올렸더니 관문⑤가 「알림 × 판표시 385번」으로 막음 → 판 표시 밑 그대로 두고 한 줄로만(높이 절반) */
   html:not(.trailer) #app.stbig #hud .chip.stg{display:none}   /* 큰 판 표시가 있으면 위 띠의 작은 판 표시는 뺌(두 번 나옴) */
+  @media (max-width:520px){ html:not(.trailer) #panel.t-up .ucards{margin-top:1px!important;margin-bottom:0!important} html:not(.trailer) #panel.t-up #tabbody{padding-bottom:0!important} }   /* 16:2x ⓐ 강화 탭 카드 밑 빈 띠 12px → 전장에 돌려줌 */
   html:not(.trailer) #panel.t-up > #goal .gk{display:none}   /* 강화 탭: 목표 줄이 ×1 · ×10 단추와 나란히라 「오늘의 임무」 머리말을 빼고 내용만(잘렸음) */
   /* ⑳ 21:55 다른 게임 비교: 영웅 목록 한 줄 · 작은 무기 단추 · 모집 단추 글씨 · 보물 기사 잘림 */
   #panel.t-hero #tabbody .row img.pf{width:44px;height:44px}
@@ -615,6 +616,12 @@
   #summonfx .sf-tap{position:absolute;left:0;right:0;bottom:6%;text-align:center;color:#e8dcff;font-weight:800;font-size:14px;opacity:0}
   #summonfx.tapok .sf-tap{animation:sfBlink 1s infinite}
   #demobar{position:fixed;left:0;right:0;top:0;z-index:420;background:rgba(14,4,30,.94);border-bottom:2px solid #b56cff;color:#f3ecff;font-size:11.5px;padding:3px 6px 4px;box-shadow:0 3px 10px #000a}   /* 11-17 자동 시범 띠 */
+  #dfinger{position:fixed;z-index:419;width:46px;height:46px;margin:-6px 0 0 -14px;pointer-events:none;opacity:0;transform:translateY(-22px)}#dfinger img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px #000a)}#dfinger i{position:absolute;left:8px;top:2px;width:22px;height:22px;border-radius:50%;border:3px solid #ffe08a;opacity:0}
+  #dfinger.on{animation:dfg .5s ease-out forwards}#dfinger.on i{animation:dfr .5s ease-out forwards}
+  #demobar .db1{gap:3px}#demobar .db1 button{padding:2px 5px;font-size:11px}#demobar .dbday{white-space:nowrap}   /* 16:3x 결과만 단추가 들어가 끝내기가 셋째 줄로 밀림 → 한 줄에 */
+  @keyframes dfg{0%{opacity:0;transform:translateY(-22px)}35%{opacity:1;transform:translateY(0) scale(1)}55%{transform:translateY(3px) scale(.9)}100%{opacity:0;transform:translateY(0)}}
+  @keyframes dfr{0%,45%{opacity:0;transform:scale(.4)}60%{opacity:1}100%{opacity:0;transform:scale(2.2)}}
+  body.dskip #stagewrap canvas{opacity:.15}body.dskip #stagewrap::after{content:'⏩';position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);font-size:64px;color:#c9a6ff;opacity:.8;pointer-events:none}   /* 16:3x 시범 「결과만」: 그림 멈춤 표시 */
   #demobar .db1{display:flex;align-items:center;gap:4px;flex-wrap:wrap}#demobar .db1 b{flex:1 1 100%;font-size:12px;color:#e2ccff}
   #demobar button{border:1px solid #6a4a9a;background:#24123a;color:#e8dcff;border-radius:7px;font-weight:800;font-size:11.5px;padding:2px 7px}#demobar button.on{background:#b56cff;color:#1a0630;border-color:#e2ccff}
   #demobar .dbday{background:#2c4a1c;border-color:#7dff9a}#demobar .dbx{background:#4a1c24;border-color:#ff8a9a;margin-left:auto}
@@ -919,7 +926,7 @@
   /* 11-17 04:3x 대표님 「계속 말했던 것 안 고쳤다」 — 30번 넘게 되풀이된 「화면 좁다 · 지배자 작다 · 아래 비어 있다」: 폰 싸움터 54% → 69%(세계 창 1100 → 860, 캐릭터 1.28배) · 강화 카드는 그림 옆 글자 한 덩이로 낮게(높이 104 → 62) */
   @media (max-width:520px){
     html:not(.trailer) #app.fold #stagewrap{aspect-ratio:auto!important;flex:1 1 0!important;min-height:0;max-height:none!important}
-    html:not(.trailer) #app.fold #panel{flex:none!important;height:166px!important;max-height:none!important;min-height:0}
+    html:not(.trailer) #app.fold #panel{flex:none!important;height:clamp(160px,28vh,236px)!important;max-height:none!important;min-height:0}   /* 17:5x 대표님 사진(360×780) 「하단 찍는 거 작은 거 아니냐 · 이렇게 배치된 거 본 적 있어?」: 166/156 고정 → 큰 폰일수록 누르는 칸만 작았음 → 화면 높이의 28%(593 → 166 · 640 → 179 · 780 → 218) · 카드가 남는 높이를 채우며 커짐 */
     html:not(.trailer) #app.fold #panel:not(.t-up){height:min(50vh,420px)!important}   /* 11-17 12:4x 대표님 「따라만 하지 말고 우리에 맞게」 · 탭덩어리.js(360×780): 강화 말고 다른 탭은 보이는 칸 82px에 내용이 6~18배(영웅 19덩어리 · 17.9배 · 군단 11배 · 각성 9배) → 한 줄 반만 보고 계속 밀어야 했음. 방치형 키우기 게임 공통: 싸울 땐 싸움터 크게(강화 탭), 관리 탭을 열면 아래 칸이 화면 절반으로 커짐 */
     html:not(.trailer) #app.fold #panel{transition:height .18s ease-out}   /* 폰 높이와 상관없이 아래 목록은 강화 카드 한 줄(166) · 나머지는 전부 싸움터(593 → 66% · 627 → 68% · 740 → 72%) */
     html:not(.trailer) #app.fold .ucards{margin:.15em 0 .3em;gap:4px}
@@ -936,7 +943,22 @@
     html:not(.trailer) #app.fold .bulk{margin-top:-9px}
     html:not(.trailer) #app.fold .ucard .btn.buy{height:24px!important;min-height:0!important;line-height:1!important;padding:0 .2em!important}
     html:not(.trailer) #app.fold .ucard .btn.buy img.ic,html:not(.trailer) #app.fold .ucard .btn.buy img{width:14px!important;height:14px!important}
+    /* 17:5x 강화 카드가 아래 칸 높이를 채움 — 작은 폰(700 아래)은 그림 옆 글자 한 덩이 그대로 · 값 단추만 조금 키움 / 큰 폰(700↑)은 그림 위 · 이름 · 효과 · 큰 값 단추(엄지로 누르기 쉬운 38px) */
+    html:not(.trailer) #app.fold #panel.t-up #tabbody{display:flex;flex-direction:column}
+    html:not(.trailer) #app.fold #panel.t-up .ucards{flex:1 1 auto;align-items:stretch;margin-bottom:5px!important;min-height:0}
+    html:not(.trailer) #app.fold #panel.t-up .ucard{align-content:space-between}
+    html:not(.trailer) #app.fold #panel.t-up .ucard .btn.buy{height:clamp(24px,4.3vh,28px)!important;font-size:clamp(12px,1.95vh,13.5px)!important}
+    html:not(.trailer) #app.fold #panel.t-up .bulk button{min-height:clamp(26px,4.1vh,34px);font-size:clamp(12.5px,1.85vh,15px)!important}
     html:not(.trailer) #app.fold #tabs button{padding-top:2px!important;padding-bottom:1px!important}
+  }
+  @media (max-width:520px) and (min-height:700px){
+    html:not(.trailer) #app.fold #panel.t-up .ucard{display:flex!important;flex-direction:column;align-items:center;justify-content:space-between;padding:6px 5px 6px!important;gap:1px}
+    html:not(.trailer) #app.fold #panel.t-up .ucard img{width:clamp(40px,6vh,52px)!important;height:clamp(40px,6vh,52px)!important}
+    html:not(.trailer) #app.fold #panel.t-up .ucard .un{font-size:13px!important;max-width:100%}
+    html:not(.trailer) #app.fold #panel.t-up .ucard .ue{font-size:15.5px!important;max-width:100%}
+    html:not(.trailer) #app.fold #panel.t-up .ucard .ulv{font-size:9.5px!important;top:3px;left:4px}
+    html:not(.trailer) #app.fold #panel.t-up .ucard .btn.buy{width:100%;height:clamp(34px,4.9vh,40px)!important;font-size:15.5px!important;margin-top:3px}
+    html:not(.trailer) #app.fold #panel.t-up .ucard .btn.buy img.ic,html:not(.trailer) #app.fold #panel.t-up .ucard .btn.buy img{width:18px!important;height:18px!important}
   }
 </style>
 </head>
@@ -956,7 +978,7 @@
     <!-- 11-14 17:55 「그림 비교 ①②③④」 시험 단추 지움: ③ 예전 개선 + 영상 장면으로 정함(16:30). 시험할 땐 주소에 ?style=2d 처럼 -->
     <button id="reraise"></button>
     <div id="testbar"></div>
-    <div id="ver">판 11-17 16:11</div>
+    <div id="ver">판 11-17 18:32</div>
   </div>
   <div id="grip"><i></i></div>
   <div id="skillbar"><button id="raiseBtn"></button><div id="slots"></div><button id="cast"></button></div>
@@ -970,25 +992,25 @@
 </div>
 <div id="modal"><div class="box"></div></div>
 <script>window.BUILD = '1115102811';</script>   <!-- 11-14 18:12 대표님 「바뀐 새 버전 줘, 저장된 거 주지 말고 첫 시작」: 판마다 저장 이름이 달라 새 판은 늘 1-1부터 -->
-<script src="lang_ko.js?v=1117161111"></script>
-<script src="balance.js?v=1117161111"></script>
-<script src="logic.js?v=1117161111"></script>
-<script src="js/base.js?v=1117161111"></script>
-<script src="js/sound.js?v=1117161111"></script>
-<script src="js/art.js?v=1117161111"></script>
-<script src="js/draw.js?v=1117161111"></script>
-<script src="js/director.js?v=1117161111"></script>
-<script src="js/field.js?v=1117161111"></script>
-<script src="js/thrall.js?v=1117161111"></script>
-<script src="js/brag.js?v=1117161111"></script>
-<script src="js/bosscharge.js?v=1117161111"></script>
-<script src="js/reward.js?v=1117161111"></script>
-<script src="js/dex.js?v=1117161111"></script>
-<script src="js/minion.js?v=1117161111"></script><script src="js/foefx.js?v=1117161111"></script><script src="js/spellfx.js?v=1117161111"></script><script src="js/tap.js?v=1117161111"></script><script src="js/bossvoice.js?v=1117161111"></script>
-<script src="js/ui.js?v=1117161111"></script>
-<script src="js/extra.js?v=1117161111"></script>
-<script src="js/social.js?v=1117161111"></script>
-<script src="js/legal.js?v=1117161111"></script>
-<script src="js/main.js?v=1117161111"></script><script src="js/mobile.js?v=1117161111"></script><script src="js/demo.js?v=1117161111"></script>
+<script src="lang_ko.js?v=1117183218"></script>
+<script src="balance.js?v=1117183218"></script>
+<script src="logic.js?v=1117183218"></script>
+<script src="js/base.js?v=1117183218"></script>
+<script src="js/sound.js?v=1117183218"></script>
+<script src="js/art.js?v=1117183218"></script>
+<script src="js/draw.js?v=1117183218"></script>
+<script src="js/director.js?v=1117183218"></script>
+<script src="js/field.js?v=1117183218"></script>
+<script src="js/thrall.js?v=1117183218"></script>
+<script src="js/brag.js?v=1117183218"></script>
+<script src="js/bosscharge.js?v=1117183218"></script>
+<script src="js/reward.js?v=1117183218"></script>
+<script src="js/dex.js?v=1117183218"></script>
+<script src="js/minion.js?v=1117183218"></script><script src="js/foefx.js?v=1117183218"></script><script src="js/spellfx.js?v=1117183218"></script><script src="js/tap.js?v=1117183218"></script><script src="js/bossvoice.js?v=1117183218"></script>
+<script src="js/ui.js?v=1117183218"></script>
+<script src="js/extra.js?v=1117183218"></script>
+<script src="js/social.js?v=1117183218"></script>
+<script src="js/legal.js?v=1117183218"></script>
+<script src="js/main.js?v=1117183218"></script><script src="js/mobile.js?v=1117183218"></script><script src="js/demo.js?v=1117183218"></script>
 </body>
 </html>

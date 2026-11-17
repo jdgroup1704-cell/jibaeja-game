@@ -87,7 +87,7 @@ function frame(now) {
   }
   if (JB.altarTick(st, Date.now())) { UI.toast(L.grave.title, L.grave.altar(st.altar)); Snd.chime(988); }
   EX.tick(real, dt); if (typeof SO !== 'undefined') SO.tick(real);
-  viewUpdate(dt); if (typeof Saver !== 'undefined' && Saver.is) Saver.tick(); else draw();   /* 절전 중엔 그리지 않음 */
+  viewUpdate(dt); if (typeof Saver !== 'undefined' && Saver.is) Saver.tick(); else if (!window.DEMO_SKIP) draw();   /* 절전 중엔 그리지 않음 */
   uiT += real; if (uiT > (typeof Saver !== 'undefined' && Saver.is ? 2 : 0.25)) { uiT = 0; UI.render(); }
   saveT += real; if (saveT > 5) { saveT = 0; save(); if (JB.newDay(st, dayNo())) UI.toast(L.mission.title, L.ui.newMission); }
   if (AUTO) { BOT.t += dt; botT += dt; if (botT > 0.5) { botT = 0; botStep(); } }

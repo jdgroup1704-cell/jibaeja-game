@@ -4,11 +4,13 @@ const L = window.LANG.ko;
 const cv = document.getElementById('battle'), ctx = cv.getContext('2d');
 const W = 1280, H = 720, GROUND = 452;
 const Q = new URLSearchParams(location.search);
-const DEMO = Q.get('demo') === '1' || location.hash === '#demo';   /* 11-17 02:44 대표님 「로봇이 화면에서 직접 플레이하는 창 + 빨리 감기 · 내 기록은 건드리지 않게 시범용 저장 따로」 */
+const DEMO_COPY = location.hash === '#demo-copy';   /* 16:3x 던전 히어로 조언 4: 「지금 기록 복사본」으로 시범 */
+const DEMO = Q.get('demo') === '1' || location.hash === '#demo' || DEMO_COPY || (() => { try { return sessionStorage.getItem('jbDemo') === '1'; } catch (e) { return false; } })();   /* 새로 고침 · 새 판으로 주소가 바뀌어도 시범 유지(탭 저장) */   /* 11-17 02:44 대표님 「로봇이 화면에서 직접 플레이하는 창 + 빨리 감기 · 내 기록은 건드리지 않게 시범용 저장 따로」 */
 const AUTO = Q.get('bot') === '1' || DEMO;                 // 봇이 대신 플레이(시험용 · 자동 시범)
 const TEST = Q.get('test') === '1' || AUTO;        // 시험용 저장 이름을 따로 씀
 const SPEED = Math.max(0.1, Math.min(20, +(Q.get('speed') || 1)));
 const SAVE_KEY = DEMO ? 'jibaeja_demo_b1115102811' : TEST ? 'jibaeja_test_b1115102811' : 'jibaeja_b1115102811';   /* 11-16 19:02 대표님 「업데이트되더라도 기존에 했던 강화들 초기화되면 안 된다」: 저장 이름을 못 박음 — 판(업데이트)이 바뀌어도 같은 저장을 이어 씀. 절대 바꾸지 말 것(바꾸면 모든 이용자 진행이 사라짐). 처음부터는 ?reset=1 */
+if (DEMO_COPY) try { const r = localStorage.getItem('jibaeja_b1115102811'); if (r) localStorage.setItem(SAVE_KEY, r); history.replaceState(null, '', location.pathname + location.search + '#demo'); } catch (e) {}   /* 내 기록을 시범 저장으로 한 번 복사(원래 기록은 읽기만) · 다시 고침하면 복사 안 함 */
 let view = { s: 1, ox: 0, oy: 0, dpr: 1 };
 // 화면 선명도 자동 낮춤(11-13 14:50): 느린 휴대폰에서 초당 장수가 3초 넘게 40장 밑이면 선명도를 한 단계(×0.8)씩 낮춤. 올리지는 않음(오락가락 방지). 1배 밑으로는 안 내림
 let QUAL = 1;
