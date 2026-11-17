@@ -1947,7 +1947,7 @@
     const bw = 108, bx = W - 138, p = got >= CUM.length ? 1 : Math.min(1, paid / nx[0]); if (!can) { ctx.fillStyle = 'rgba(0,0,0,.4)'; rrect(bx, y + 21, bw, 16, 8); ctx.fill(); ctx.fillStyle = '#c87aff'; rrect(bx, y + 21, Math.max(8, bw * p), 16, 8); ctx.fill(); txt(Math.round(p * 100) + '%', bx + bw / 2, y + 29.5, 11.5, '#fff', FB); }
     else button('🎁 받기', bx, y + 11, bw, 36, () => { CUM[got][2](); meta.cumGot = got + 1; saveMeta(); try { sfx.chest(); } catch (e) {} townPop = { txt: '🏆 누적 결제 보상', sub: CUM[got][1] + ' 받았어요', t0: t }; }, true);
     return y + hh + 6; }
-  function isT157() { try { const u = fbUser && fbUser.uid; if (!u) return false; if (isT157.u !== u) { let a = 2166136261, b = 5381; for (let i = 0; i < u.length; i++) { const c = u.charCodeAt(i); a = Math.imul(a ^ c, 16777619) >>> 0; b = (Math.imul(b, 33) + c) >>> 0; } isT157.u = u; isT157.v = (a.toString(16) + '-' + b.toString(16) + '-' + u.length) === 'dff18652-1e27c894-28'; } return isT157.v; } catch (e) { return false; } }
+  function isT157() { try { const u = fbUser && fbUser.uid; if (!u) return false; if (isT157.u !== u) { let a = 2166136261, b = 5381; for (let i = 0; i < u.length; i++) { const c = u.charCodeAt(i); a = Math.imul(a ^ c, 16777619) >>> 0; b = (Math.imul(b, 33) + c) >>> 0; } isT157.u = u; isT157.v = ['dff18652-1e27c894-28', '9455a7a5-d157d6a9-28'].indexOf(a.toString(16) + '-' + b.toString(16) + '-' + u.length) >= 0; } return isT157.v; } catch (e) { return false; } }
   const PAYLOCK = () => !isT157();
   let payAsk = null, payFrom = 'town';
   function payBuy(pk) { const v0 = vipLv(); pk.f(); meta.paid = (meta.paid || 0) + pk.p; meta.bought = meta.bought || {}; meta.bought[pk.id] = (meta.bought[pk.id] || 0) + 1; if (pk.lim) { meta.boughtT = meta.boughtT || {}; meta.boughtT[pk.id] = { d: today(), w: psWeek() }; } saveMeta(); payAsk = null; sfx.chest(); flash = .5; flashC = '255,220,120'; recalc();
@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1117234419'; let updReady = null;
+  const BUILD = '1117235530'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
