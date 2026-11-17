@@ -1,6 +1,7 @@
 #!/bin/bash
 # 올리기 전 반드시 통과해야 하는 관문(11-14 23:10 대표님 「확실히 보려면 어떻게 해야 해?」)
 # 사용: bash 점검관문.sh 폴더   → 하나라도 실패면 「관문 실패」 + 0 아닌 끝 번호
+exec 9>/tmp/관문.lock; flock -n 9 || { echo '✗ 다른 관문이 돌고 있음 — 끝난 뒤 다시'; exit 1; }   # 11-17 관문 두 개가 겹쳐 돌며 서로 크롬을 끈 일 두 번
 D=${1:-/home/claude/v85t}; F=0; pkill -f chrome 2>/dev/null
 echo "① 안 때리는 병사"; R=$(timeout 60 node 공격재기.js $D 13 2>&1); echo "$R" | head -3 | cut -c1-160; echo "$R" | grep -q "한번도안때림[1-9]" && { echo "  ✗ 안 때리는 병사 있음"; F=1; }; echo "$R" | grep -q "오류 0" || { echo "  ✗ 오류"; F=1; }
 pkill -f chrome 2>/dev/null

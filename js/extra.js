@@ -155,9 +155,11 @@ const EX = {
 { const r0 = UI.render.bind(UI); UI.render = f => { r0(f); EX.render(); }; }
 { const u0 = UI.tab_up.bind(UI); UI.tab_up = () => {
   const open = JB.autoUpOpen(st);
-  if (!open) return u0() + (st.best >= 10 ? `<p class="muted">${L.autoUp.name}: ${L.autoUp.lock}</p>` : '');   // 잠겼을 땐 맨 위가 아니라 맨 아래 한 줄, 10판 전엔 숨김
+  if (!open) return u0();   // 11-17 「자동 강화: 각성 1번에 열림」 줄은 군단 탭 아래로(UI.trainRowHTML)
+  return u0().replace('<div class="bulk">', `<div class="bulk"><button class="auto${st.autoUp ? ' on' : ''}" data-act="autoUp" title="${L.autoUp.desc}"><img src="art/u_auto.webp" alt="">${L.autoUp.short(st.autoUp)}</button>`);   /* 11-17 11:5x 수련 칸은 「군단」 탭 아래(UI.trainRowHTML)로 — 강화 탭은 카드만 */
+}; UI.trainRowHTML = () => { if (!JB.autoUpOpen(st)) return st.best >= 10 ? `<p class="muted mini">${L.autoUp.name}: ${L.autoUp.lock}</p>` : '';
   const tr = st.train || { lv: 0, t0: Date.now() }, need = JB.trainNeed(tr.lv), left = JB.trainLeft(st, Date.now()), trow = `<div class="row ur train"><img class="uic" src="art/i_army.webp" alt=""><div class="grow"><div class="nm">${L.train.name} <span class="lvb">${L.lv(tr.lv)}</span></div><div class="ds">${L.train.eff(Math.round(tr.lv * JB.C.TRAIN.atk * 100), Math.round(tr.lv * JB.C.TRAIN.soul * 100))}</div><div class="bar2"><i style="width:${(1 - left / need) * 100}%"></i></div><div class="ds mini">${L.train.next(L.time(Math.ceil(left / 1000)))}</div></div></div>`;
-  const html = u0().replace('<div class="bulk">', `<div class="bulk"><button class="auto${st.autoUp ? ' on' : ''}" data-act="autoUp" title="${L.autoUp.desc}"><img src="art/u_auto.webp" alt="">${L.autoUp.short(st.autoUp)}</button>`); const bi = html.indexOf('<div class="bulk">'), be = bi < 0 ? 0 : html.indexOf('</div>', bi) + 6; { const gi = html.search(/<div class="(gear|gbox|eq)/); if (gi > be) return html.slice(0, gi) + trow + html.slice(gi); } return html.slice(0, be) + trow + html.slice(be);   /* 11-16 15:2x 수련 칸이 강화 카드 위에 있어 폰에서 값 단추가 잘렸음 → 강화 카드 아래(장비 위)로 */   /* 수련 칸은 ×1/×10 줄 아래(위 임무 막대에 가리지 않게) */   /* 11-14 자동 강화를 한 줄 차지하던 칸 → ×1/×10/최대 옆 작은 단추(임무 막대에 반쯤 가려지던 문제) */
+  return trow;
 }; }
 { const a0 = UI.act.bind(UI); UI.act = (a, arg) => { if (a === 'autoUp') { st.autoUp = !st.autoUp; UI.render(true); return; } if (a === 'evoAd') { EX.act('evoAd'); return; } a0(a, arg); }; }
 

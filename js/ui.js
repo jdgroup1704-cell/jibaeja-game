@@ -430,8 +430,10 @@ const UI = {
     const evo = JB.armySize(st) >= JB.C.EVO.minArmy ? `<div class="row ur"><img class="uic" src="art/cls0.webp" alt=""><div class="grow"><div class="nm">${L.evo.title} <span class="lvb">${L.evo.mul(JB.evoMul(st).toFixed(2))}</span></div><div class="bar2"><i style="width:${(st.evoXp || 0) / JB.C.EVO.waves * 100}%"></i></div><div class="ds">${L.evo.next(JB.C.EVO.waves - (st.evoXp || 0))}</div></div><button class="btn buy gold" data-act="evoAd" ${(st.evoAd || 0) >= JB.C.EVO.adMax ? 'disabled' : ''}>${L.ui.evoAdShort}<small>${st.evoAd || 0}/${JB.C.EVO.adMax}</small></button></div>` : '';
     const lsn = JB.LSKINS.filter(s => JB.lskinOwned(st, s.id)).length;
     const chips = `<div class="chips"><button class="chip2 lsk" data-act="lskin">${L.lskin.chip(lsn, JB.LSKINS.length, Math.round(JB.lskinBonus(st) * 100))} ›</button><button class="chip2${JB.dexClaimable && JB.dexClaimable(st) ? ' dot' : ''}" data-act="dex">${L.ui.dexChip(dn, JB.C.RISE.regions * 2, JB.dexMul(st).toFixed(2))}</button><button class="chip2 pwr" data-act="power">${L.power.chip} ›</button></div>`;
-    return head + rows + this.gearBox() + evo + chips;
+    this._upMore = this.gearBox() + evo + chips;   /* 11-17 11:5x 대표님 「밑에 뭐 보라는 거야 · 불편」(사진: 강화 카드는 안 보이고 겉모습 · 도감 · 군단 힘 줄만): 강화 탭 아래 칸(폰 166px)에 다섯 덩어리를 넣어 4배 길었고 조금만 밀려도 강화 카드가 사라짐 → 강화 탭 = ×1/×10/최대 + 강화 카드만(밀리지 않음), 장비 · 진화 · 겉모습 · 도감 · 군단 힘 · 수련은 「군단」 탭 아래로 */
+    return head + rows + (!this.tabOpen('grave') && JB.unlocked(st, 'gear') ? this.gearBox() : '');   /* 군단 탭이 열리기 전(4~10판)엔 열린 장비만 카드 아래에 — 잠긴 장비 안내 · 겉모습 · 도감 칩은 안 보임 */
   },
+  upMore() { this.tab_up(); return `<div class="upmore">${(this.trainRowHTML ? this.trainRowHTML() : '') + (this._upMore || '')}</div>`; },
   gearBox() {   /* 22:50 지배자 장비 6칸: 등급 색 테두리 · +강화 · 효과. 아래에 뽑기 · 광고 · 모두 강화 */
     if (!JB.unlocked(st, 'gear')) return `<div class="gearbox off"><div class="gh">${L.gear.title}</div><p class="muted mini">${L.gear.lockAt(L.stage(JB.C.UNLOCK.gear))}</p></div>`;
     const G = JB.gearOf(st), ART_OF = { staff: 'gear_staff', crown: 'gear_crown', ring: 'gear_ring', armor: 'gear_armor', amulet: 'gear_amulet', cloak: 'gear_cloak' };   /* 23:05 드리미나로 만든 장비 전용 아이콘 */
@@ -463,13 +465,13 @@ const UI = {
     const slots = JB.CLASSES.map((c, i) => { const g = st.grave[i]; return `<div class="slot${g >= 0 ? ' s' + g : ' emp'}"><img class="ci" src="art/cls${i}.webp" alt=""><b class="${g >= 0 ? 'g' + g : ''}">${g >= 0 ? L.grades[g] : L.grave.empty}</b>${L.classes[c]}</div>`; }).join('');
     const lg = this.lastGrave; const last = lg ? `<p>${lg.n > 1 ? L.ui.times(lg.n) : ''}<b class="g${lg.r.grade}">${L.grades[lg.r.grade]} ${L.classes[JB.CLASSES[lg.r.cls]]}</b> — ${lg.better ? L.grave.better : L.grave.worse(fmt(lg.souls))}</p>` : '';
     const altarBtn = st.altarUntil ? `<button class="btn" disabled>${L.grave.altarWait(L.time(Math.ceil((st.altarUntil - now) / 1000)))}</button><button class="btn gold" data-act="altarRush" ${st.gems < JB.altarGems(st, now) ? 'disabled' : ''}>${L.lab.rush(JB.altarGems(st, now))}</button>` : nx ? `<button class="btn" data-act="altar" ${st.souls < nx.cost ? 'disabled' : ''}>${L.grave.altarUp(fmt(nx.cost))}</button>` : `<span class="muted">${L.grave.altarMax}</span>`;
-    return `<div class="row"><div class="grow"><div class="nm">${L.grave.title}</div><div class="ds">${L.bones} ${st.bones} · ${L.ui.graveMul} ×${JB.graveMul(st).toFixed(2)}</div></div><button class="btn" data-act="autoGrave">${L.grave.auto} ${this.autoGrave ? L.settings.on : L.settings.off}</button></div>
+    return (`<div class="row"><div class="grow"><div class="nm">${L.grave.title}</div><div class="ds">${L.bones} ${st.bones} · ${L.ui.graveMul} ×${JB.graveMul(st).toFixed(2)}</div></div><button class="btn" data-act="autoGrave">${L.grave.auto} ${this.autoGrave ? L.settings.on : L.settings.off}</button></div>
       <div class="gbtns"><button class="btn big gold" data-act="grave" ${st.bones < 1 ? 'disabled' : ''}>${L.grave.raiseBtn} <small>(${L.grave.cost})</small></button>${st.bones > 1 ? `<button class="btn big" data-act="graveAll">${L.ui.raiseAll(st.bones)}</button>` : ''}</div>
       <div class="slots">${slots}</div>
       ${(st.adBones || 0) < JB.C.AD_BONES.max ? `<button class="btn" style="width:100%;margin-top:.4em" data-act="adBones">${L.grave.adBones(JB.C.AD_BONES.n, st.adBones || 0, JB.C.AD_BONES.max)}</button>` : ''}
       ${last}
       <div class="row"><div class="grow"><div class="nm">${L.grave.altar(alt)}</div><div class="ds">${L.ui.graveHint}</div></div>${altarBtn}</div>
-      <button class="btn" data-act="altarOdds">${L.grave.odds}</button>`;
+      <button class="btn" data-act="altarOdds">${L.grave.odds}</button>`) + this.upMore();   /* 11-17 11:5x 강화 탭에서 옮겨 온 장비 · 진화 · 수련 · 겉모습 · 도감 · 군단 힘 */
   },
   tab_hero() {
     const cc = JB.country(navigator.language), allowed = JB.gachaAllowed(Q.get('country') || cc);

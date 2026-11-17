@@ -491,7 +491,7 @@ function drawFoe(f) {   /* 01:35 「딱딱탁」: 맞으면 0.16초 뒤로 튕�
 const EVO_C = ['', '#5dff8f', '#6ab8ff', '#c58bff', '#ffd76a']; let EVO_K = -1, EVO_M = new Map();
 function EVO_OF(a) { if (EVO_K !== S.t) { EVO_K = S.t; EVO_M = new Map(); const e = st.evo || [], T = []; for (let L = 4; L >= 1; L--) for (let n = 0; n < (e[L] || 0); n++) T.push(L); const B = S.army.filter(o => o.big && !o.fly && !o.gone).sort((p, q) => (p.c - q.c) || (p.x - q.x)); B.forEach((o, i) => EVO_M.set(o, T[i] || 0)); } return EVO_M.get(a) || 0; }
 function EVO_BACK(a, ev, h) { const C = EVO_C[ev], t = S.t + (a.ph || 0); ctx.save(); ctx.globalCompositeOperation = 'lighter';
-  if (ev >= 3) { const g = ctx.createRadialGradient(0, -h * 0.5, 6, 0, -h * 0.5, h * 0.62); g.addColorStop(0, C + '55'); g.addColorStop(1, C + '00'); ctx.fillStyle = g; ctx.fillRect(-h * 0.7, -h * 1.15, h * 1.4, h * 1.2); }
+  if (ev >= 3) { const g = ctx.createRadialGradient(0, -h * 0.5, 6, 0, -h * 0.5, h * 0.62); g.addColorStop(0, C + (typeof PHN === 'function' && PHN() ? '30' : '55'));   /* 11-17 빛덮임 17.6%: 진화 소환수 뒤 빛 — 폰은 옅게 */ g.addColorStop(1, C + '00'); ctx.fillStyle = g; ctx.fillRect(-h * 0.7, -h * 1.15, h * 1.4, h * 1.2); }
   ctx.save(); ctx.scale(1, 0.28); ctx.strokeStyle = C; ctx.globalAlpha = 0.85; ctx.lineWidth = 7; ctx.setLineDash([16, 10]); ctx.rotate(t * 0.9); ctx.beginPath(); ctx.arc(0, 0, h * 0.42, 0, 7); ctx.stroke();
   if (ev >= 3) { ctx.rotate(-t * 1.8); ctx.setLineDash([6, 12]); ctx.beginPath(); ctx.arc(0, 0, h * 0.3, 0, 7); ctx.stroke(); } ctx.setLineDash([]); ctx.globalAlpha = 0.3; ctx.fillStyle = C; ctx.beginPath(); ctx.arc(0, 0, h * 0.4, 0, 7); ctx.fill(); ctx.restore();
   if (ev >= 2 && Math.random() < 0.12 + ev * 0.05) S.parts.push({ x: a.x + rnd(-h * 0.3, h * 0.3), y: a.y - rnd(0, h * 0.6), vx: rnd(-8, 8), vy: rnd(-90, -40), life: 0.9, age: 0, size: rnd(2, 4), col: C, g: -20, add: true, kind: 'dot', rot: 0, vr: 0 });
@@ -503,7 +503,7 @@ function drawFoe0(f) {
   const sc = 1.9 * lerp(0.85, 1.1, f.d) * (f.kind === 'shield' ? 1.18 : f.kind === 'archer' ? 0.92 : 1), mv = f.px === undefined ? 0 : Math.abs(f.x - f.px);
   f.px = f.x; f.wph = (f.wph ?? f.ph) + Math.min(mv, 6) * 0.1; f.wamp = lerp(f.wamp || 0, mv > 0.15 ? 1 : 0, 0.2);   /* 적도 걸을 때만 다리를 번갈아 내딛음(전엔 서 있어도 늘 통통 튐) */
   const bob = (1 - f.wamp) * Math.sin(S.t * 2.6 + f.ph) * 0.8 - f.wamp * Math.abs(Math.sin(f.wph)) * 3.5 + (f.fly ? -150 + Math.sin(S.t * 5 + f.ph) * 10 : 0);
-  ctx.save(); if (!f.flee) { ctx.globalCompositeOperation = 'lighter'; const rg = ctx.createRadialGradient(f.x, f.y - 40 * sc, 4, f.x, f.y - 40 * sc, 48 * sc); rg.addColorStop(0, 'rgba(255,40,60,.32)'); rg.addColorStop(1, 'rgba(255,40,60,0)'); ctx.fillStyle = rg; ctx.fillRect(f.x - 50 * sc, f.y - 92 * sc, 100 * sc, 100 * sc); ctx.globalCompositeOperation = 'source-over'; }   /* A판: 적 뒤 붉은 빛(우리 편과 한눈에 구분) */ ctx.globalAlpha = 0.5; ctx.fillStyle = '#05000c'; ctx.beginPath(); ctx.ellipse(f.x, f.y, 22 * sc, 6 * sc, 0, 0, 7); ctx.fill(); if (!f.flee) { ctx.globalAlpha = 0.75; ctx.strokeStyle = '#ff3a4a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(f.x, f.y - 1, 24 * sc, 7 * sc, 0, 0, 7); ctx.stroke(); } ctx.restore();   /* 적 발밑 그림자 + 빨간 고리(적 편 표시 — 11-13 대표님 「상대는 보이지도 않네」) */
+  ctx.save(); if (!f.flee) { ctx.globalCompositeOperation = 'lighter'; const ph_ = typeof PHN === 'function' && PHN(), rg = ctx.createRadialGradient(f.x, f.y - 40 * sc, 4, f.x, f.y - 40 * sc, (ph_ ? 38 : 48) * sc); rg.addColorStop(0, ph_ ? 'rgba(255,40,60,.17)' : 'rgba(255,40,60,.32)');   /* 11-17 11:5x 빛 효과 붐빔(빛덮임재기: 빛이 싸움터 17% 색을 바꿈 · 그중 적 뒤 붉은 빛 22%) — 폰은 적이 2배로 보여 이 빛이 겹겹이 쌓임 → 반쯤 · 작게(적 발밑 붉은 고리는 그대로라 구분은 됨) */ rg.addColorStop(1, 'rgba(255,40,60,0)'); ctx.fillStyle = rg; ctx.fillRect(f.x - 50 * sc, f.y - 92 * sc, 100 * sc, 100 * sc); ctx.globalCompositeOperation = 'source-over'; }   /* A판: 적 뒤 붉은 빛(우리 편과 한눈에 구분) */ ctx.globalAlpha = 0.5; ctx.fillStyle = '#05000c'; ctx.beginPath(); ctx.ellipse(f.x, f.y, 22 * sc, 6 * sc, 0, 0, 7); ctx.fill(); if (!f.flee) { ctx.globalAlpha = 0.75; ctx.strokeStyle = '#ff3a4a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(f.x, f.y - 1, 24 * sc, 7 * sc, 0, 0, 7); ctx.stroke(); } ctx.restore();   /* 적 발밑 그림자 + 빨간 고리(적 편 표시 — 11-13 대표님 「상대는 보이지도 않네」) */
   const ak = f.atk > 0 ? -Math.sin((1 - f.atk / 0.32) * Math.PI) * 22 : 0; f.hk = Math.max(0, (f.hk || 0) - 1 / 60); if (f.flash > 0.12 && !(f.hk > 0)) f.hk = 0.16; const hq = f.hk > 0 ? Math.sin(f.hk / 0.16 * Math.PI) : 0;   /* 11-14 타격감: 맞으면 찌그러지고 뒤로 살짝 밀림 */
   if (typeof FFX !== 'undefined') FFX.bless(f, sc);
   ctx.save(); ctx.translate(f.x + ak + hq * 9, f.y + bob); ctx.scale(1 + 0.1 * hq, 1 - 0.08 * hq); if (f.flee) ctx.scale(-1, 1); if (ak && !ART.kn_attack) ctx.rotate(-0.12 * Math.sin((1 - f.atk / 0.32) * Math.PI));
@@ -1037,11 +1037,12 @@ function drawWave() {
   ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = `rgba(230,210,255,${Math.max(0, 1 - w.r / 2200)})`; ctx.lineWidth = 30 * (1 - w.r / 2200) + 2;
   ctx.beginPath(); ctx.ellipse(w.x, w.y + 140, w.r, w.r * 0.45, 0, 0, 7); ctx.stroke(); ctx.restore();
 }
-function drawParts() {
+let PAS = 1;
+function drawParts() { PAS = typeof PHN === 'function' && PHN() ? 0.8 : 1;
   for (const p of S.parts) {
     const k = 1 - p.age / p.life; ctx.globalAlpha = Math.max(0, k);
     ctx.globalCompositeOperation = p.add ? 'lighter' : 'source-over'; ctx.fillStyle = p.col;
-    if (p.add) { ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (0.5 + k * 0.5), 0, 7); ctx.fill(); }
+    if (p.add) { ctx.beginPath(); ctx.arc(p.x, p.y, p.size * (0.5 + k * 0.5) * (PAS || 1), 0, 7); ctx.fill(); }   /* PAS: 폰 빛 불똥 0.8배(빛덮임 21%) */
     else { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size); ctx.restore(); }
   }
   ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
