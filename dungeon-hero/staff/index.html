@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118001346'; let updReady = null;
+  const BUILD = '1118001749'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -5105,8 +5105,7 @@
       tfit(y ? '1,000,000' : '50,000개', W / 2, 410, 92 * pop, 'rgb(' + col + ')', W - 30, FT, 'center');
       txt(y ? '선물 도착!' : '잘 받았니?', W / 2, 505, 72, '#ffffff', FT);
       tfit(y ? '지금 넣어 드렸어요 · 강화에 써 보세요' : '유료 상점 · 아바타도 다 열렸어요', W / 2, 575, 22, '#ffe6b0', W - 40, FB, 'center');
-      if (a > 30) { const b = .6 + .4 * Math.sin(a * .15); ctx.globalAlpha = q * b; txt('👆 화면을 누르면 닫혀요', W / 2, 660, 24, '#ffffff', FB); ctx.globalAlpha = q; }
-      ctx.restore(); ctx.globalAlpha = 1; buttons = []; if (a > 30) buttons.push({ x: -2000, y: -2000, w: 6000, h: 6000, act: close172 }); } catch (e) { try { ctx.restore(); } catch (_) {} ctx.globalAlpha = 1; } }; }
+      ctx.restore(); ctx.globalAlpha = 1; buttons = []; if (a > 30) { const y2 = bn172.k === 'y' && (state === 'town' || state === 'over'); if (y2) button('🛠️ 강화하러 가기', 40, 614, W - 80, 58, () => { close172(); state = 'shop'; }, true); button(y2 ? '닫기' : '👍 확인', W / 2 - 80, y2 ? 686 : 620, 160, 46, close172, !y2); } } catch (e) { try { ctx.restore(); } catch (_) {} ctx.globalAlpha = 1; } }; }
 
   // ===================== 빌드 173: 운영자 선배의 도움(두 계정) =====================
   let op173 = null;
@@ -5127,8 +5126,7 @@
       if (op173.give > 0) { txt('💰 골드', W / 2, 352, 46, '#ffffff', FT); tfit('+' + op173.give.toLocaleString(), W / 2, 428, 84 * pop, 'rgb(' + col + ')', W - 30, FT, 'center'); }
       else { txt('💰 골드는', W / 2, 352, 46, '#ffffff', FT); txt('이미 충분해!', W / 2, 428, 64, 'rgb(' + col + ')', FT); }
       tfit('🛠️ 강화 상점에서 공격력 · 체력을 올려 봐', W / 2, 508, 26, '#ffffff', W - 30, FT, 'center'); tfit('그러면 ' + op173.f + '층을 깰 수 있어!', W / 2, 548, 26, '#9affb0', W - 30, FT, 'center');
-      if (a > 30) { const b = .6 + .4 * Math.sin(a * .15); ctx.globalAlpha = q * b; txt('👆 화면을 누르면 닫혀요', W / 2, 640, 24, '#ffffff', FB); ctx.globalAlpha = q; }
-      ctx.restore(); ctx.globalAlpha = 1; buttons = []; if (a > 30) buttons.push({ x: -2000, y: -2000, w: 6000, h: 6000, act: close173 }); } catch (e) { try { ctx.restore(); } catch (_) {} ctx.globalAlpha = 1; } }; }
+      ctx.restore(); ctx.globalAlpha = 1; buttons = []; if (a > 30) { const sh = state !== 'shop'; if (sh) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(W / 2, 622, 150, '255,200,90', .25 + .12 * Math.sin(a * .15)); ctx.restore(); button('🛠️ 강화하러 가기', 40, 594, W - 80, 62, () => { close173(); state = 'shop'; }, true); } button('닫기', W / 2 - 80, sh ? 676 : 600, 160, 44, close173, false); } } catch (e) { try { ctx.restore(); } catch (_) {} ctx.globalAlpha = 1; } }; }
   // ===================== 빌드 111: 상점 탭 · 아바타 탭 · 체험 끝 구매 창 · 주간 · 성장 패스 =====================
   let psTab = 'rec', avEnd = null;
   const PST = [['rec', '⭐ 추천'], ['day', '⏰ 매일'], ['dia', '💎 다이아'], ['pack', '🎁 패키지'], ['sub', '📅 정기'], ['av', '👑 아바타']];
