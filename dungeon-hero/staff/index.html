@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118040330'; let updReady = null;
+  const BUILD = '1118041101'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -5329,13 +5329,14 @@
     try { const { S, db } = fb; await S.setDoc(S.doc(db, 'rank', RD_SEASON, 'list', fbUser.uid), { name: myNick(), best: Math.min(200, r.tries | 0), power: Math.max(0, Math.min(99999999, Math.round(r.best / 1e4))), upd: S.serverTimestamp(), skin: ('' + (meta.skin || '')).slice(0, 12), tier: Math.max(0, Math.min(20, heroTier() | 0)), ti: (rdBoss().id + ':' + rdWeek()).slice(0, 20) }); } catch (e) {} }
   function raidOpen() { state = 'raid'; raidRes = null; rdM(); if (fbOK() && (fbState === 'off' || fbState === 'err')) fbInit(); raidRankLoad(); try { sfx.pick(); } catch (e) {} }
   function raidGo() { const r = rdM(); if (rdLeft() <= 0) { townPop = { txt: '⚔️ 오늘 토벌은 다 했어요', sub: '내일 다시 ' + RD_N + '번', t0: t }; try { sfx.warn(); } catch (e) {} return; }
-    r.n++; r.tries = (r.tries || 0) + 1; saveMeta(); const B = rdBoss(), f = arenaFloor(); raidRun = { B, f, t: 0, sp: 0, w: 0, fx: [], sk: 0, nx: 300, ult: 0, cut: null, say: null, dmg: 0, dt: 0 }; raidRes = null; startRun(f); P.revive = 0; }
+    r.n++; r.tries = (r.tries || 0) + 1; saveMeta(); const B = rdBoss(), f = arenaFloor(); try { const vk = B.id === 'dev' ? 'v_rd' : 'v_rc'; [1, 2, 3].forEach(i => loadExt(vk + i)); } catch (e) {} raidRun = { B, f, t: 0, sp: 0, w: 0, fx: [], sk: 0, nx: 300, ult: 0, cut: null, say: null, dmg: 0, dt: 0 }; raidRes = null; startRun(f); P.revive = 0; }
   function raidEnd(why) { const R0 = raidRun; if (!R0) return; const r = rdM(), dmg = Math.max(0, Math.round(R0.dmg)), nb = dmg > r.best, gold = Math.round(idleGoldRate() * 20 * goldMul0());
     if (nb) r.best = dmg; meta.gold += gold; meta.stone += 3; saveMeta(); raidPush();
-    raidRes = { dmg, nb, best: r.best, gold, why, t0: t, B: R0.B, sec: Math.round(R0.t / 60) }; raidRun = null;
+    raidRes = { dmg, nb, best: r.best, gold, why, t0: t, B: R0.B, sec: Math.round(R0.t / 60) }; try { playExt((R0.B.id === 'dev' ? 'v_rd' : 'v_rc') + 3, 1); } catch (e) {} raidRun = null;
     boss = null; enemies = []; ebul = []; chest = null; doorOpen = false; runGold = 0; clearRun(); offer = []; levelupT = 0; state = 'raid'; raidRankLoad(); try { sfx.fanfare(); } catch (e) {} }
   const rdCut = (name, col) => { if (raidRun) raidRun.cut = { name, col, t0: t }; shake = Math.max(shake, 6); try { sfx.warn(); } catch (e) {} };
-  const rdSay = s => { if (raidRun) raidRun.say = { s, t0: t }; };
+  const rdVk = () => raidRun ? (raidRun.B.id === 'dev' ? 'v_rd' : 'v_rc') : 'v_rc';
+  const rdSay = (s, n) => { if (raidRun) { raidRun.say = { s, t0: t }; if (n) try { playExt(rdVk() + n, 1); } catch (e) {} } };
   const rdHit = (pct) => { if (P.inv > 0 || state !== 'play') return; hurt(P.maxHp * pct); };
   const distSeg = (px, py, ax, ay, bx, by) => { const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy || 1, u = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L)); return Math.hypot(px - ax - u * dx, py - ay - u * dy); };
   const RX = () => ({ x0: R.x0 + 10, x1: R.x1 - 10, y0: R.y0 + 30, y1: R.y1 - 20 });
@@ -5349,8 +5350,8 @@
     if (k === 'loop') { F.push({ k: 'beam', t: 0, T: 200, a: Math.atan2(P.y - b.y, P.x - b.x) + 1.2, warn: 34 }); }
     if (k === 'hotfix') { for (let i = 0; i < 6; i++) F.push({ k: 'pillar', t: -i * 15, T: 62, warn: 40, x: 0, y: 0, set: 0, hit: 0 }); }
     if (k === 'bugs') { for (let i = 0; i < 12; i++) { const s = i % 4, x = s === 0 ? rx.x0 : s === 1 ? rx.x1 : rx.x0 + Math.random() * (rx.x1 - rx.x0), y = s === 2 ? rx.y0 : s === 3 ? rx.y1 : rx.y0 + Math.random() * (rx.y1 - rx.y0); F.push({ k: 'bug', t: -i * 5, T: 230, x, y, a: Math.atan2(P.y - y, P.x - x), hit: 0 }); } }
-    if (k === 'singong') { b.x = 225; b.y = 444; rdSay(B.say[1]); F.push({ k: 'nova', t: 0, T: 150, warn: 115, r: 255, hit: 0 }); }
-    if (k === 'overload') { rdSay(B.say[1]); const s = []; for (let i = 0; i < 2; i++) s.push({ x: rx.x0 + 70 + Math.random() * (rx.x1 - rx.x0 - 140), y: rx.y0 + 120 + Math.random() * (rx.y1 - rx.y0 - 200) }); F.push({ k: 'glitch', t: 0, T: 150, warn: 115, safe: s, r: 72, hit: 0 }); }
+    if (k === 'singong') { b.x = 225; b.y = 444; rdSay(B.say[1], 2); F.push({ k: 'nova', t: 0, T: 150, warn: 115, r: 255, hit: 0 }); }
+    if (k === 'overload') { rdSay(B.say[1], 2); const s = []; for (let i = 0; i < 2; i++) s.push({ x: rx.x0 + 70 + Math.random() * (rx.x1 - rx.x0 - 140), y: rx.y0 + 120 + Math.random() * (rx.y1 - rx.y0 - 200) }); F.push({ k: 'glitch', t: 0, T: 150, warn: 115, safe: s, r: 72, hit: 0 }); }
   }
   function rdTick(k) { const R0 = raidRun, b = boss; if (!R0 || !b) return; const F = R0.fx;
     for (let i = F.length - 1; i >= 0; i--) { const f = F[i]; f.t += k; if (f.t < 0) continue;
@@ -5373,7 +5374,7 @@
   { const _dmg193 = damage; damage = function (e, base, opts) { const h0 = e && e === boss && boss && boss.raid ? boss.hp : 0, r = _dmg193(e, base, opts); if (h0 && raidRun && boss) { raidRun.dmg += Math.max(0, h0 - boss.hp); if (boss.hp < RD_HP * .5) boss.hp = RD_HP; } return r; }; }
   { const _u193 = update; update = function (k) { _u193(k); const R0 = raidRun; if (!R0) return; if (state === 'town' || state === 'victory') { raidRun = null; return; } if (state !== 'play') return; k = k || 1;
       enemies = enemies.filter(e => false); spawnLeft = 0;
-      if (!R0.sp) { R0.w += k; if (!boss && R0.w > 240) spawnBoss(Math.max(1, Math.round(R0.f / 5))); if (boss) { const B = R0.B; R0.sp = 1; boss.final = 0; boss.clone = 0; boss.say = ''; boss.sayT = 0; nb179 = null; boss.raid = B; boss.def = Object.assign({}, boss.def, { n: B.n, pats: B.pats }); boss.hp = boss.maxHp = RD_HP; boss.phase2 = true; boss.y = R.y0 + 250; banner = '⚔️ 토벌전 · ' + B.n; bannerSub = '60초 동안 최대한 많이 깎아요 · 피하면서!'; bannerT = 140; rdSay(B.say[0]); } return; }
+      if (!R0.sp) { R0.w += k; if (!boss && R0.w > 240) spawnBoss(Math.max(1, Math.round(R0.f / 5))); if (boss) { const B = R0.B; R0.sp = 1; boss.final = 0; boss.clone = 0; boss.say = ''; boss.sayT = 0; nb179 = null; boss.raid = B; boss.def = Object.assign({}, boss.def, { n: B.n, pats: B.pats }); boss.hp = boss.maxHp = RD_HP; boss.phase2 = true; boss.y = R.y0 + 250; banner = '⚔️ 토벌전 · ' + B.n; bannerSub = '60초 동안 최대한 많이 깎아요 · 피하면서!'; bannerT = 140; rdSay(B.say[0], 1); } return; }
       R0.t += k; if (boss && boss.raid) { boss.phase2 = true; boss.sayT = 0; if (boss.hp < RD_HP * .5) boss.hp = RD_HP; }
       if (R0.t >= R0.nx) { const B = R0.B; R0.nx = R0.t + 400; rdSkill(B.sk[R0.sk++ % B.sk.length]); }
       if ((R0.ult === 0 && R0.t >= 1560) || (R0.ult === 1 && R0.t >= 3060)) { R0.ult++; R0.nx = Math.max(R0.nx, R0.t + 260); rdSkill(R0.B.ult); }
