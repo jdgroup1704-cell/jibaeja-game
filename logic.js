@@ -179,12 +179,17 @@ function gearRoll(st, w, ilv, bossUp) { const tot = w.reduce((a, b) => a + b, 0)
   const sl = GEAR_SLOTS[Math.floor(Math.random() * GEAR_SLOTS.length)]; return { slot: sl.id, g, ilv: Math.max(1, ilv), lv: 0 }; }
 function gearTake(st, it) {   /* 더 좋으면 끼고(끼던 건 분해), 아니면 분해. 결과를 돌려줌 */
   const G = gearOf(st), sl = GEAR_SLOTS.find(s => s.id === it.slot), cur = G.slots[it.slot]; G.n++;
-  if (!cur || gearVal(it, sl) > gearVal(Object.assign({}, cur, { lv: 0 }), sl) * (1 + GEAR.lvK * (cur.lv || 0)) * 0.999) { if (cur) { it.lv = Math.max(it.lv || 0, Math.floor((cur.lv || 0) * 0.7)); G.stones += GEAR.salvage[cur.g]; } G.slots[it.slot] = it; return { it, equipped: true, stones: cur ? GEAR.salvage[cur.g] : 0 }; }
+  if (!cur || gearVal(it, sl) > gearVal(Object.assign({}, cur, { lv: 0 }), sl) * (1 + GEAR.lvK * (cur.lv || 0)) * 0.999) { const prev = cur ? gearVal(cur, sl) : 0; if (cur) { it.lv = Math.max(it.lv || 0, Math.floor((cur.lv || 0) * 0.7)); G.stones += GEAR.salvage[cur.g]; } G.slots[it.slot] = it; return { it, equipped: true, stones: cur ? GEAR.salvage[cur.g] : 0, prev, val: gearVal(it, sl) }; }   /* prev · val: 무덤 열기에서 「전 → 후」 보여 주려고(계산은 그대로) */
   G.stones += GEAR.salvage[it.g]; return { it, equipped: false, stones: GEAR.salvage[it.g] }; }
-function gearDrop(st, ev, boss) { if (!unlocked(st, 'gear')) return; if (Math.random() > (boss ? GEAR.bossDrop : GEAR.drop)) return; const r = gearTake(st, gearRoll(st, GEAR.w, st.stage, boss)); ev.push(Object.assign({ e: 'gear', boss: !!boss }, r)); }
+function gearDrop(st, ev, boss) { if (!unlocked(st, 'gear')) return; if (Math.random() > (boss ? GEAR.bossDrop : GEAR.drop)) return; const it = gearRoll(st, GEAR.w, st.stage, boss);
+  if (TOMB.on) { const q = st.tombQ || (st.tombQ = []); q.push(it); ev.push({ e: 'tomb', boss: !!boss, n: q.length }); if (q.length <= TOMB.cap) return; const r0 = gearTake(st, q.shift()); ev.push(Object.assign({ e: 'gear', boss: false }, r0)); return; }   /* 11-17 22:0x 무덤: 떨어진 장비를 바로 끼지 않고 전장 무덤에 쌓아 두고 사람이 열게 함(확률 · 개수는 그대로 — 새 재화 아님) · 20개 넘으면 가장 옛것부터 저절로 */
+  const r = gearTake(st, it); ev.push(Object.assign({ e: 'gear', boss: !!boss }, r)); }
 /* 01:30 「영혼 제단」(버섯커 램프): 뼛조각 1개 = 장비 1개, 무료 재화로 계속 누르는 핵심 반복. 많이 누를수록 제단 단계↑ → 좋은 등급 확률↑ */
 function altarLv(st) { return Math.min(10, Math.floor(((st.gearAltar || 0)) / 40)); }
 function altarW(st) { const k = altarLv(st); return GEAR.w.map((w, i) => i === 0 ? Math.max(10, w - k * 4) : i >= 5 ? 0 : i === 4 ? w * 0.5 * (1 + k * 0.1) : w * (1 + k * 0.18 * i)); }   /* 11-15 과금흉내: 뼛조각 제단으로 무과금이 7일에 신화 → 제단은 신화 없음 · 전설 절반(신화는 보스 · 장비 뽑기 · 운) */
+const TOMB = { on: true, cap: 20, start: 3 };   /* 처음 열릴 때 무덤 3개(처음 1분 안에 한 번은 열어 보게) */
+function tombOpen(st) { const q = st.tombQ || []; if (!q.length) return null; return gearTake(st, q.shift()); }
+function tombStart(st) { if (st.tombGift || !unlocked(st, 'gear')) return 0; st.tombGift = 1; const q = st.tombQ || (st.tombQ = []); for (let i = 0; i < TOMB.start; i++) q.push(gearRoll(st, GEAR.w, Math.max(1, st.stage), false)); return TOMB.start; }
 function altarPull(st, n) { n = Math.min(n, st.bones); if (n < 1 || !unlocked(st, 'gear')) return null; st.bones -= n; const out = []; for (let i = 0; i < n; i++) { st.gearAltar = (st.gearAltar || 0) + 1; out.push(gearTake(st, gearRoll(st, altarW(st), st.best, false))); } return out; }
 function gearPull(st, n) { const cost = n >= 10 ? GEAR.pull10 : GEAR.pull1 * n; if (st.gems < cost) return null; st.gems -= cost; const out = []; for (let i = 0; i < n; i++) out.push(gearTake(st, gearRoll(st, GEAR.pullW, st.best, false))); return out; }
 function gearAd(st) { const G = gearOf(st); if (G.adDay !== st.day) { G.adDay = st.day; G.ad = 0; } if (G.ad >= GEAR.adMax) return null; G.ad++; return [gearTake(st, gearRoll(st, GEAR.adW, st.best, false))]; }   /* 11-15 21:45 밸런스 관문: 광고 장비에서 신화가 나와 무과금 30일 신화 14/16(너무 흔함) → 광고 장비는 신화 없음 · 전설 1%(아주 좋은 장비는 마정석 뽑기 · 보스 운) */
@@ -708,6 +713,6 @@ root.JB = { dexCount, dexClaimable, dexClaim, thrallMul, trOpen, trCost, starMul
   LSKINS, lskinOwned, lskinBonus, lskinWear,
   GEAR_SLOTS, GEAR, gearOf, gearVal, gearBonus, gearPull, gearAd, gearUp, gearUpAll, gearUpCost,
   RELICS, relicBonus, cryptHp, cryptPower, cryptDust, relicCost, cryptFight, cryptSweep, relicUp, buyKey,
-  trainTick, trainNeed, trainLeft, vipItem, quickCost, quickReward, LCHEST, lchestInfo, lchestClaim, powerParts, KEEP, keepOf, keepLv, keepTime, keepCost, keepStart, keepLeft, keepRushCost, keepRush, keepTick, keepMul, GUILD, guildOf, guildJoin, guildDay, guildCheck, guildBossPct, guildHit, guildMul, DUNGEON, dunOf, dunHp, dunReward, dunPower, dunFight, dunAd, dunDay, SHOP2, PASS, FUND, PIGGY, MONTH, shopOf, passReady, passClaim, fundReady, fundClaim, monthClaim, shopBuy, altarLv, altarPull, speedMul, adSpeed, autoUpOpen, autoUpgrade, treasure };
+  trainTick, trainNeed, trainLeft, vipItem, quickCost, quickReward, LCHEST, lchestInfo, lchestClaim, powerParts, KEEP, keepOf, keepLv, keepTime, keepCost, keepStart, keepLeft, keepRushCost, keepRush, keepTick, keepMul, GUILD, guildOf, guildJoin, guildDay, guildCheck, guildBossPct, guildHit, guildMul, DUNGEON, dunOf, dunHp, dunReward, dunPower, dunFight, dunAd, dunDay, SHOP2, PASS, FUND, PIGGY, MONTH, shopOf, passReady, passClaim, fundReady, fundClaim, monthClaim, shopBuy, altarLv, altarPull, TOMB, tombOpen, tombStart, speedMul, adSpeed, autoUpOpen, autoUpgrade, treasure };
 })(typeof window !== 'undefined' ? window : globalThis);
 if (typeof module !== 'undefined') module.exports = globalThis.JB;

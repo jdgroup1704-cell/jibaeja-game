@@ -86,6 +86,7 @@ function frame(now) {
   if (!(TRAILER && window.__freeze) && (!['stare', 'prompt', 'cast'].includes(S.phase) || st.boss?.phase === 'fight')) {
     let left = dt; while (left > 0) { const d = Math.min(0.1, left); left -= d; onEvents(JB.tick(st, d)); }
   }
+  if (!st.tombGift && JB.tombStart(st) && !AUTO && typeof UI !== 'undefined') UI.skillRow();   /* 11-17 22:0x 장비가 열릴 때 무덤 3개 */
   if (JB.altarTick(st, Date.now())) { UI.toast(L.grave.title, L.grave.altar(st.altar)); Snd.chime(988); }
   EX.tick(real, dt); if (typeof SO !== 'undefined') SO.tick(real);
   viewUpdate(dt); if (typeof Saver !== 'undefined' && Saver.is) Saver.tick(); else if (!window.DEMO_SKIP) draw();   /* 절전 중엔 그리지 않음 */

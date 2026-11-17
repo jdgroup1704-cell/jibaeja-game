@@ -1,7 +1,8 @@
 // (11-15 21:30) 「판」은 그날까지 가장 깊이 간 판(각성하면 지금 판은 처음으로 돌아가 30일째 값이 각성 때와 겹치면 크게 흔들렸음)
 // 과금 흉내 30일(11-15 18:08 대표님 「무과금도 따라올 수는 있고, 소과금도 운이 좋아서 아주 좋은 장비를 먹을 수도 있고, 그래도 현질 메리트는 느껴야」)
 // node 과금흉내.js [날수=30] [씨앗수=8] → 무 · 소 · 중 · 고 4사람 × 씨앗 N번, 하루 40분 켜고(그 사이 23시간 20분 자리 비움) 하는 일을 다 하고 날마다 최고 판 · 힘 · 장비 · 영웅 별을 적음
-const path = require('path'); require(path.join(__dirname, '..', 'balance.js')); const JB = require(path.join(__dirname, '..', 'logic.js'));   /* 11-15 21:50 게임처럼 balance.js 숫자를 먼저 읽음(전엔 흉내만 logic.js 기본값을 써서 게임과 다를 수 있었음) */
+const path = require('path'); require(path.join(__dirname, '..', 'balance.js')); const JB = require(path.join(__dirname, '..', 'logic.js'));
+if (process.env.TOMBOFF) JB.TOMB.on = false;   /* 11-15 21:50 게임처럼 balance.js 숫자를 먼저 읽음(전엔 흉내만 logic.js 기본값을 써서 게임과 다를 수 있었음) */
 if (process.env.SSRB) { JB.RARITY.SSR.bonus = +process.env.SSRB; JB.RARITY.SR.bonus = +(process.env.SRB || JB.RARITY.SR.bonus); } if (process.env.LATE) JB.C.LATE_AT = +process.env.LATE; if (process.env.LG) JB.C.LATE_GROW = +process.env.LG; if (process.env.SE) JB.C.SIGIL_EXP = +process.env.SE; if (process.env.SQ) JB.C.AWAKEN_SQ = +process.env.SQ; if (process.env.SMUL) JB.C.SIGIL_MUL = +process.env.SMUL;
 const DAYS = +(process.argv[2] || 30), SEEDS = +(process.argv[3] || 8), PLAY = 40 * 60, DT = 0.5;
 const PROFILES = {
@@ -31,6 +32,8 @@ function run(name, seed) {
     }
     for (let i = 0; i < JB.C.MISSIONS?.length || i < 8; i++) T(JB.claimMission, st, i); T(JB.weekClaim, st, 0); T(JB.weekClaim, st, 1); T(JB.weekClaim, st, 2);
     // 뽑기 · 별 · 초월 · 무기 · 장비
+    T(JB.tombStart, st); while ((st.tombQ || []).length) T(JB.tombOpen, st);   /* 11-17 22:0x 무덤에 쌓인 장비는 날마다 다 엶(사람도 그럴 것) */
+    if (process.env.TOMB) T(JB.altarPull, st, st.bones * (+process.env.TOMB || 1));   /* 11-17 22:0x 무덤 단추: 사람이 뼛조각을 무덤에 다 써 버리면(무기 강화보다 먼저) 어떻게 되나 — TOMB=1 다 씀 · TOMB=0.5 절반 */
     for (let k = 0; k < 200 && st.gems >= JB.C.GACHA10_COST; k++) { const sqDone = st.squad.filter(Boolean).every(id => st.heroes[id] && st.heroes[id].tr); if (sqDone || k % 2) { if (!T(JB.gearPull, st, 10)) break; } else T(JB.pull, st, 10); }   /* 11-15 21:40 마정석을 영웅만 뽑던 것 → 영웅 · 장비를 번갈아, 진형이 다 ☠7이면 장비만(실제 고과금은 둘 다 삼) */
     for (const h of JB.HEROES) T(JB.transcend, st, h.id);
     const sq = T(JB.bestSquad, st); if (sq) st.squad = sq.slice(0, st.squad.length);
