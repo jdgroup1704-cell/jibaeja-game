@@ -1887,7 +1887,7 @@
     const v1 = vipLv(); townPop = v1 > v0 ? { txt: '👑 VIP ' + v1 + ' · ' + VIPN[v1] + ' 달성!', sub: '옷 · 오라 · 혜택이 바뀌었어요', t0: t } : { txt: pk.e + ' ' + pk.n, sub: '구매 완료 (시연)', t0: t }; if (v1 > v0) { try { sfx.fanfare(); } catch (e) {} } }
   const vipTxt = v => '골드 +' + v * 15 + '% · 공격 +' + v * 3 + '% · 방치 +' + v + '시간 · 출석 💎+' + v * 5 + ' · 부활 💎' + Math.max(10, 40 - 6 * v);
   function drawPShop() {
-    topBar('💳 상점', '#ffd27a'); const v = vipLv(), nx = VIPT[v + 1], paid = meta.paid || 0;
+    topBar('💳 상점', '#ffd27a'); button('💎 뽑기 상점', W - 120, 24, 104, 38, () => { state = 'dshop'; }, false); const v = vipLv(), nx = VIPT[v + 1], paid = meta.paid || 0;
     ctx.fillStyle = 'rgba(50,30,10,.9)'; rrect(16, 110, W - 32, 96, 12); ctx.fill(); ctx.strokeStyle = v ? 'rgb(' + vipCol() + ')' : 'rgba(255,210,140,.5)'; ctx.lineWidth = 2.5; ctx.stroke();
     txt(v ? '👑 VIP ' + v + ' · ' + VIPN[v] : '👑 VIP 0', 30, 130, 19, v ? 'rgb(' + vipCol() + ')' : '#e8c890', FT, 'left');
     if (nx) { const pr = Math.min(1, (paid - VIPT[v]) / (nx - VIPT[v])); ctx.fillStyle = 'rgba(0,0,0,.55)'; rrect(W - 216, 121, 186, 18, 9); ctx.fill(); ctx.fillStyle = 'rgba(255,190,90,.55)'; rrect(W - 216, 121, Math.max(14, 186 * pr), 18, 9); ctx.fill(); txt('VIP ' + (v + 1) + '까지 ' + won(nx - paid), W - 123, 130.5, 12.5, '#fff', FB); }
@@ -1948,12 +1948,12 @@
       ctx.fillStyle = 'rgba(24,40,56,.85)'; rrect(16, y, W - 32, 86, 14); ctx.fill(); ctx.strokeStyle = 'rgba(160,220,255,.4)'; ctx.lineWidth = 2; ctx.stroke();
       txt(it.e, 52, y + 43, 34, '#fff', FB, 'center', 'rgba(0,0,0,0)');
       txt(it.n, 88, y + 30, 20, '#e8f6ff', FT, 'left'); txt(typeof it.d === 'function' ? it.d() : it.d, 88, y + 58, 14, '#9fd0ff', FB, 'left');
-      const g10r = it.n === '장비 뽑기'; button(left <= 0 ? '내일 또' : '💎 ' + it.p, W - 128, y + (g10r ? 7 : 20), 98, g10r ? 36 : 46, () => buyD(i), can, !can); if (g10r) button('10번 💎' + it.p * 10, W - 128, y + 47, 98, 32, () => gacha10(i), false, meta.dia < it.p * 10); if (it.lim) txt('오늘 ' + Math.max(0, left) + '/' + it.lim * (1 + vipLv()), W - 79, y + 76, 12.5, '#9fd0ff');
+      const g10r = it.n === '장비 뽑기'; button(left <= 0 ? '내일 또' : '💎 ' + it.p, W - 128, y + (g10r ? 7 : 20), 98, g10r ? 36 : 46, () => buyD(i), can, !can); if (g10r) { button('10번 💎' + it.p * 9, W - 128, y + 47, 98, 32, () => gacha10(i), true, meta.dia < it.p * 9); ctx.fillStyle = '#e8322a'; rrect(W - 158, y + 41, 40, 18, 9); ctx.fill(); txt('-10%', W - 138, y + 50, 11.5, '#fff', FB); } if (it.lim) txt('오늘 ' + Math.max(0, left) + '/' + it.lim * (1 + vipLv()), W - 79, y + 76, 12.5, '#9fd0ff');
       y += 94;
     });
     ctx.fillStyle = 'rgba(0,0,0,.4)'; rrect(16, y + 4, W - 32, 80, 12); ctx.fill();
     txt('🔨 축복의 망치 ' + meta.hammer + '개 보유', W / 2, y + 20, 15, '#ffe0b0');
-    button('💳 다이아 충전하기', W / 2 - 140, y + 32, 280, 44, () => openShop('dshop'), true);
+    button('💳 다이아 충전하기', W / 2 - 140, y + 32, 280, 44, () => { psTab = 'dia'; openShop('dshop'); }, true);
     y += 98;
     button('⚒️ 대장간', 30, y, (W - 70) / 2, 48, () => { state = 'forge'; }, false);
     button('🏰 마을로', 40 + (W - 70) / 2, y, (W - 70) / 2, 48, () => { state = 'town'; }, false);
@@ -2146,7 +2146,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1117161329'; let updReady = null;
+  const BUILD = '1117161921'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -3305,7 +3305,7 @@
       tabBtn('🛠️', '강화', 0, () => { state = 'shop'; }, na > 0, na || '');
       tabBtn('⚒️', '대장간', 1, () => { state = 'forge'; }, !!er, er ? '가능' : '');
       tabBtn('🎒', '가방', 2, () => { state = 'bag'; }, nb, nb ? '새 장비' : (meta.bag.length || ''));
-      tabBtn('💎', '상점', 3, () => { state = 'dshop'; }, false, '');
+      tabBtn('💳', '상점', 3, () => { psTab = 'rec'; openShop('town'); }, false, '');
       { const c2 = K2.some(eq2Can); tabBtn('🤺', '내 용사', 4, () => { state = 'hero'; try { sfx.pick(); } catch (e) {} }, c2, c2 ? '가능' : ''); } }
   }
 
@@ -4023,7 +4023,7 @@
     if (b < 10) { ctx.fillStyle = 'rgba(255,255,255,' + ((1 - b / 10) * .9) + ')'; ctx.fillRect(X0, Y0, FW, FH); }
     if (b > 18) { if (G.in) button(G.up ? '⚔️ 바로 착용' : '착용', 36, 630, 184, 50, () => { const idx = meta.bag.indexOf(it); if (idx >= 0) equipItem(idx); gach = null; }, !!G.up);
       button('🎒 가방에 넣기', G.in ? 230 : 133, 630, 184, 50, () => { gach = null; }, !G.up || !G.in);
-      const D = DSHOP[G.i], can = meta.dia >= D.p && dLeft(G.i) > 0; button('🎁 한 번 더 💎' + D.p, 36, 694, 184, 42, () => { gach = null; buyD(G.i); }, false, !can); button('🎁 10번 💎' + D.p * 10, 230, 694, 184, 42, () => { gach = null; gacha10(G.i); }, false, meta.dia < D.p * 10); } }
+      const D = DSHOP[G.i], can = meta.dia >= D.p && dLeft(G.i) > 0; button('🎁 한 번 더 💎' + D.p, 36, 694, 184, 42, () => { gach = null; buyD(G.i); }, false, !can); button('🎁 10번 💎' + D.p * 9 + ' (-10%)', 230, 694, 184, 42, () => { gach = null; gacha10(G.i); }, true, meta.dia < D.p * 9); } }
   { const _dd84 = drawDShop; drawDShop = function () { _dd84(); if (gach) { buttons = []; drawGacha(); } }; }
 
   // ===================== 빌드 85: 오늘의 보상(하루 몫) =====================
@@ -4064,7 +4064,7 @@
   // ===================== 빌드 87: 뽑기 10번 =====================
   let g10 = null;
   { const _bd87 = buyD; buyD = function (i) { const g0 = lastGacha; _bd87(i); if (g10 && lastGacha && lastGacha !== g0) g10.push(lastGacha); }; }
-  function gacha10(i) { const D = DSHOP[i]; if (meta.dia < D.p * 10 || state !== 'dshop') return; g10 = []; const sb = sfx.buy, sf = sfx.fanfare; sfx.buy = sfx.fanfare = () => {}; try { for (let k = 0; k < 10; k++) buyD(i); } finally { sfx.buy = sb; sfx.fanfare = sf; } const got = g10; g10 = null; if (!got.length) return; try { sb(); if (got.some(x => x.g >= 3)) sf(); } catch (e) {}
+  function gacha10(i) { const D = DSHOP[i]; if (meta.dia < D.p * 9 || state !== 'dshop') return; g10 = []; const sb = sfx.buy, sf = sfx.fanfare; sfx.buy = sfx.fanfare = () => {}; meta.dia += D.p; try { for (let k = 0; k < 10; k++) buyD(i); } finally { sfx.buy = sb; sfx.fanfare = sf; } const got = g10; g10 = null; if (!got.length) return; try { sb(); if (got.some(x => x.g >= 3)) sf(); } catch (e) {}
     got.sort((a, b) => a.g - b.g || itScore(a) - itScore(b)); gach = { ten: got, i, t0: t, best: got[got.length - 1] }; townPop = null; }
   function drawGacha10() { const G = gach, L = G.ten, a = t - G.t0, bestG = G.best.g, col = GCOL[bestG], cx = W / 2, X0 = -ox / scale, Y0 = -oy / scale, FW = innerWidth / scale, FH = innerHeight / scale;
     ctx.fillStyle = 'rgba(3,4,10,' + Math.min(.94, a / 10) + ')'; ctx.fillRect(X0, Y0, FW, FH);
