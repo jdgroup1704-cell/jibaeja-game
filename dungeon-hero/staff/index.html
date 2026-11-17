@@ -2146,7 +2146,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1117160856'; let updReady = null;
+  const BUILD = '1117161329'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -2883,10 +2883,16 @@
       [[-70, -235, -1], [150, -250, 1]].forEach(([x, y, d]) => { ctx.save(); ctx.translate(x, y); ctx.scale(d * big, big); ctx.beginPath(); ctx.moveTo(-34, 20); ctx.quadraticCurveTo(20, -40, 62, -150); ctx.quadraticCurveTo(70, -40, 40, 34); ctx.closePath(); const g = ctx.createLinearGradient(0, 30, 60, -150); g.addColorStop(0, col[1]); g.addColorStop(1, col[0]); ctx.fillStyle = g; ctx.fill(); ctx.stroke(); ctx.restore(); }); }
     ctx.restore(); }
   const rigPart = (n, x, y, ang, sx, sy) => { const sk = curSkin(); if (sk && n === 'hand') return; const p = (sk && RIGS[sk][n] && RIGS[sk][n].ok && RIGS[sk][n]) || (!sk && TR && TR[n]) || RIG[n]; ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale((sx || 1) / RSC, (sy || 1) / RSC); ctx.drawImage(p.img, -p.px, -p.py); ctx.restore(); };
+  let hPose = null;
   function drawRigHero(moving, sw, hit) {  // 원본 그림 단위 · 발이 (0,0) · 오른쪽을 봄 · + 각도 = 뒤쪽으로
     hT++; TRn = curSkin() ? 0 : heroTier(); TR = TRn ? tierRig(TRn) : null; let lean = 0, bob = 0, tN = 0, tF = 0, kN = .12, kF = .12, aN = .15, aF = -.1, headA = 0, capeA = .05 + Math.sin(hT * .09) * .04, sqy = 1, dx = 0, hand = 0;
     if (moving) { const ph = hWalk * .55; tN = -Math.sin(ph) * .62; tF = Math.sin(ph) * .62; kN = .15 + .95 * Math.max(0, Math.cos(ph)); kF = .15 + .95 * Math.max(0, -Math.cos(ph)); lean = -.13; bob = -Math.abs(Math.cos(ph)) * 16 + 8; aN = Math.sin(ph) * .5; aF = -Math.sin(ph) * .55; headA = .04 + Math.sin(ph * 2) * .02; capeA = .55 + Math.sin(ph * 2 + 1) * .1; }
     else { sqy = 1 + Math.sin(hT * .1) * .02; headA = Math.sin(hT * .1) * .025; aN = .15 + Math.sin(hT * .1) * .05; aF = -.1 - Math.sin(hT * .1) * .04; bob = -Math.sin(hT * .1) * 3; }
+    if (hPose) { const k = hPose.k, ph = hPose.ph || 0, sn = Math.sin(ph);
+      if (k === 'climb') { aN = -2.75 + sn * .45; aF = -2.75 - sn * .45; tN = -.55 + sn * .45; tF = -.55 - sn * .45; kN = .9 + .5 * Math.max(0, sn); kF = .9 + .5 * Math.max(0, -sn); lean = .08; bob = Math.abs(Math.cos(ph)) * -6; headA = -.12; capeA = .15 + Math.sin(hT * .08) * .05; hand = .3; }
+      else if (k === 'rise') { const q = Math.min(1, hPose.q || 0); tN = -1.05 * q; kN = .25 + 1.25 * q; tF = .35 * q; kF = .2 + .5 * q; aN = .15 + (-1.75 - .15) * q; aF = -.1 + 1.0 * q; lean = -.12 * q; headA = -.06 * q; capeA = .9 + .2 * q; bob = -4 * q; }
+      else if (k === 'fall') { const q = Math.min(1, hPose.q || 0); tN = -.35 - .1 * q; kN = .55 + .2 * q; tF = .45 + .1 * q; kF = .65; aN = -1.2 - 1.1 * q + Math.sin(hT * .5) * .12 * q; aF = -.9 - 1.0 * q - Math.sin(hT * .5) * .12 * q; lean = .05; headA = .05; capeA = -.25 - .2 * q; }
+      else if (k === 'land') { const q = Math.min(1, hPose.q || 0); sqy = 1 - .14 * q; tN = -.35 * q; tF = .35 * q; kN = .15 + .8 * q; kF = .15 + .8 * q; lean = -.15 * q; aN = .6 * q; aF = .5 * q; bob = 10 * q; } }
     if (sw >= 0) { const q = sw; let a2, l2; if (q < .3) { const w = q / .3, e = w * w * (3 - 2 * w); a2 = .15 + 2.2 * e; l2 = .12 * e; hand = .5 * e; } else if (q < .55) { const w = (q - .3) / .25, e = 1 - Math.pow(1 - w, 3); a2 = 2.35 - 3.6 * e; l2 = .12 - .4 * e; dx = 30 * e; hand = .5 - 1.1 * e; } else { const w = (q - .55) / .45, e = w * w * (3 - 2 * w); a2 = -1.25 + 1.4 * e; l2 = -.28 * (1 - e); dx = 30 * (1 - e); hand = -.6 * (1 - e); } aN = a2; lean += l2 * (moving ? .5 : 1); }
     var cy2 = 0, cG = null, cArc = null, cTip = null, cFar = null, cBig = null;
     if (hCast) { if (state === 'play') hCast.t++; const D = CASTD[hCast.k] || 18, q = hCast.t / D, sm = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); }, k = hCast.k, col = CASTC[k] || '255,255,255';
@@ -4462,7 +4468,8 @@
     for (const b of L.bee) { const y = sy(b.y); if (y < -40 || y > H + 40) continue; jBee(b.x0 + Math.sin(S.fr * b.s + b.ph) * b.a, y, Math.cos(S.fr * b.s + b.ph), b); }
     for (const q of L.spi) { const y0 = sy(q.y0 - 300), qy = sy(q.y0 + (1 - Math.cos(S.fr * q.s + q.ph)) * q.a); if (qy < -40 || y0 > H + 40) continue; ctx.strokeStyle = 'rgba(230,230,240,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(q.x, Math.max(-10, y0)); ctx.lineTo(q.x, qy - 10); ctx.stroke(); jSpider(q.x, qy); }
     for (const b of S.ban) { const x = b.x, y = sy(b.y); if (b.ac) { jAcorn(x, y, b.r); continue; } ctx.save(); ctx.translate(x, y); ctx.rotate(b.r); jSpr('banana2', -12, -14, 24, 29); ctx.restore(); }
-    { const x = P.x, y = sy(P.y); if (RIG.torso.ok) { ctx.save(); ctx.translate(x, y + 2); const s = .082; ctx.scale(s * P.face, s); if (P.stun > 0) ctx.rotate(Math.sin(t * .6) * .3); const hc = hCast; hCast = null; drawRigHero(!!(P.ground && P.vx) || !!(P.vine && P.vy < 0), -1, 0); hCast = hc; ctx.restore(); ctx.filter = 'none'; ctx.globalAlpha = 1; } else { ctx.fillStyle = '#ffd34d'; ctx.fillRect(x - 11, y - 44, 22, 44); }
+    { const x = P.x, y = sy(P.y); if (RIG.torso.ok) { ctx.save(); ctx.translate(x, y + 2); const s = .082; ctx.scale(s * P.face, s); if (P.stun > 0) ctx.rotate(Math.sin(t * .6) * .3); const hc = hCast; hCast = null; { const F = S.fr; if (P.ground && !P._g0) P._land = 9; P._g0 = !!P.ground; if (P._land > 0 && P.ground) P._land--; if (P.vine) { if (P.vy < 0) P._cph = (P._cph || 0) + .2; hPose = { k: 'climb', ph: P._cph || 0 }; } else if (!P.ground) hPose = P.vy < 0 ? { k: 'rise', q: Math.min(1, -P.vy / 7) } : { k: 'fall', q: Math.min(1, P.vy / 8) }; else if (P._land > 0 && !P.vx) hPose = { k: 'land', q: P._land / 9 }; else hPose = null; }
+      drawRigHero(!!(P.ground && P.vx), -1, 0); hPose = null; hCast = hc; ctx.restore(); ctx.filter = 'none'; ctx.globalAlpha = 1; } else { ctx.fillStyle = '#ffd34d'; ctx.fillRect(x - 11, y - 44, 22, 44); }
       if (P.stun > 0) for (let i = 0; i < 3; i++) txt('⭐', x + Math.cos(t * .2 + i * 2.1) * 16, y - 52 + Math.sin(t * .2 + i * 2.1) * 4, 12, '#fff', FB); }
     jZoneFx(S, L, P, sy);
     for (const f of R2.fx) { ctx.globalAlpha = Math.max(0, 1 - f.l / f.T); ctx.fillStyle = `rgb(${f.c})`; ctx.fillRect(f.x - 2, sy(f.y) - 2, 4, 4); } ctx.globalAlpha = 1;
