@@ -11,7 +11,18 @@ for a in sys.argv[1:3]:
     if min(R['승급단계그림'][1:]) < 50: bad.append(f"{v}: 승급 단계 그림 {R['승급단계그림']} (1~4단계 각각 50↑)")
     if R['왕관'] < 50: bad.append(f"{v}: 리치 왕관 {R['왕관']}")
 F = json.loads(sys.argv[3])
-if F['평균fps'] < 38 or F['느린프레임'] > 10 or F['가장긴멈춤'] > 200: bad.append(f"렉: 평균 {F['평균fps']}fps · 느린 프레임 {F['느린프레임']} · 가장 긴 멈춤 {F['가장긴멈춤']}ms (기준 38↑ · 10↓ · 200↓ — 이 기계는 그래픽 가속 없이 그려서 폰보다 느림 · 13:09 판 43~45)")
+# 11-17 08:1x: 같은 기계라도 날마다 빠르기가 다름(11-16 13:09 판 43~45fps → 11-17 아침 마지막 올린 판이 37~39 · 느린 프레임 9~17 = 옛 판도 3번에 2번 실패).
+#   → 새 판을 두 번 · 마지막 올린 판(기준판, 깃허브 받은 것)을 두 번 같은 자리에서 재서 평균을 비교. 기준판보다 3fps 넘게 느려지거나 느린 프레임이 5개 넘게 늘면 실패.
+#   절대 기준(38↑ · 10↓)은 기준판이 그 기준을 넘는 날에만 그대로 씀. 가장 긴 멈춤 200ms↓는 언제나.
+REF = json.loads(sys.argv[4]) if len(sys.argv) > 4 and sys.argv[4].strip().startswith('[') else None
+if REF:
+    Fs = [F] + ([json.loads(sys.argv[5])] if len(sys.argv) > 5 and sys.argv[5].strip().startswith('{') else [])
+    nf = sum(x['평균fps'] for x in Fs) / len(Fs); ns = sum(x['느린프레임'] for x in Fs) / len(Fs); rf = sum(x['평균fps'] for x in REF) / len(REF); rs = sum(x['느린프레임'] for x in REF) / len(REF)
+    print(f"  렉 비교(같은 기계 · 같은 때): 새 판 {nf:.1f}fps · 느린 {ns:.1f} / 기준판 {rf:.1f}fps · 느린 {rs:.1f}")
+    absok = nf >= 38 and ns <= 10
+    if not absok and (rf >= 38 and rs <= 10 or nf < rf - 3 or ns > rs + 5): bad.append(f"렉: 새 판 {nf:.1f}fps · 느린 {ns:.1f} vs 기준판 {rf:.1f}fps · 느린 {rs:.1f} (기준판보다 3fps↓ · 느린 +5↑면 실패)")
+    if max(x['가장긴멈춤'] for x in Fs) > 200: bad.append(f"렉: 가장 긴 멈춤 {max(x['가장긴멈춤'] for x in Fs)}ms (200↓)")
+elif F['평균fps'] < 38 or F['느린프레임'] > 10 or F['가장긴멈춤'] > 200: bad.append(f"렉: 평균 {F['평균fps']}fps · 느린 프레임 {F['느린프레임']} · 가장 긴 멈춤 {F['가장긴멈춤']}ms (기준 38↑ · 10↓ · 200↓ — 이 기계는 그래픽 가속 없이 그려서 폰보다 느림 · 13:09 판 43~45)")
 for b in bad: print('  ✗ 적 떼 · 승급 · 렉: ' + b)
 if not bad: print('  적 떼 · 승급 · 렉 통과: ' + ' / '.join(f"{json.loads(a)['화면']} 적 {json.loads(a)['보이는적최대']} · 기술 {json.loads(a)['기술']} · 빛깔 {json.loads(a)['빛깔종류']}" for a in sys.argv[1:3]) + f" · 렉 {F['평균fps']}fps · 느린 {F['느린프레임']} · 최장 {F['가장긴멈춤']}ms")
 sys.exit(1 if bad else 0)

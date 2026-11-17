@@ -29,7 +29,8 @@ function draw() {
   const list = [];
   for (const a of S.army) list.push(['a', a.y, a]);
   if (typeof MN !== 'undefined') for (const m of MN.list) list.push(['m', m.y, m]);   /* 11-16 망자병 떼 */
-  for (const f of S.foes) list.push(['f', f.y, f]);
+  const VXC = VX1 + 160;   /* 11-17 08:1x 관문㉚ 렉: 화면 오른쪽 밖에서 줄 서 기다리는 적(4~7마리)도 매 프레임 그리고 있었음 → 몸이 다 밖이면 안 그림 */
+  for (const f of S.foes) if (f.x - 150 * (f.big || 1) < VXC) list.push(['f', f.y, f]);
   for (const c of (S.corpses || [])) list.push(['c', c.y - 1, c]);
   for (const c of (S.fallen || [])) list.push(['d', c.y - 2, c]);   /* A판 03:23: 쓰러지는 적(뒤로 넘어지며 밀려나고 사라짐) */
   for (const h of HF.list) list.push(['h', h.y + 400, h]);   /* 00:35 영웅(모르데 y540)이 병사 뒤에 그려져 묻힘 → 영웅은 늘 병사 · 적 위에 */
@@ -37,7 +38,7 @@ function draw() {
   if (typeof MN !== 'undefined') MN.drawCracks();
   for (const [k, , o] of list) k === 'm' ? MN.draw(o) : k === 'a' ? drawSkel(o) : k === 'h' ? HF.draw(o) : k === 'c' ? drawCorpse(o) : k === 'd' ? drawFallen(o) : drawFoe(o);
   if (typeof TH !== 'undefined') TH.draw(); if (typeof BC !== 'undefined') BC.tick(); if (typeof BV !== 'undefined') BV.tick(1 / 60); if (typeof FFX !== 'undefined') FFX.draw();   /* 11-16 망자 거인은 군단 · 적 위에(앞으로 솟아 내려찍음) */
-  for (const f of S.foes) HF.drawFoeBar(f);   /* 적 체력 막대는 맨 위에 */
+  for (const f of S.foes) if (f.x - 150 * (f.big || 1) < VXC) HF.drawFoeBar(f);   /* 적 체력 막대는 맨 위에 */
   HF.drawArmyBars();
   drawArmyFx(); HF.drawFx(); LM.draw();
   const litLord = S.phase === 'cast' || S.phase === 'stare';   /* 11-14 18:10 대마법 영창 때 화면이 어두워져도 지배자는 밝게(어둠 위에 그림) — 「5초 동안 어둡고 글자만」 고침 */
@@ -357,6 +358,7 @@ const KC = { 1: 'k1', 2: 'k2', 3: 'k3', 5: 'k5' }, K_AT = { k1: 0.62, k2: 0.6, k
 const vsOk = n => STYLE === 'old' && !!VS[n] && Object.keys(VS[n].n).map(a => need(VS[n].f + '_' + a)).every(Boolean);   /* 한 번에 다 받기 시작(every는 첫 빈 것에서 멈춰 하나씩 늦게 받았음) */
 const kk0 = f => f.hT > 0 ? 1 - f.hT / 0.4 : 0;
 const BAKE = {};
+const GLOWS = {}; function glowSpr(col) { if (GLOWS[col]) return GLOWS[col]; const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 32 * 4 / 90, 32, 32, 32); gr.addColorStop(0, col + '44'); gr.addColorStop(1, col + '00'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return (GLOWS[col] = c); }   /* 진화 소환수 몸 빛(전엔 프레임마다 그라데이션을 새로 칠함) */
 function baked(key, img, filt) {   /* 필터 입힌 줄그림을 한 번만 만들어 둠(같은 필터면 다시 씀) */
   if (!filt || filt === 'none') return img;
   const k = key + '|' + filt; if (BAKE[k]) return BAKE[k];
@@ -384,14 +386,15 @@ const vsIdle = (ph, sp, n) => ((S.t / (sp || 5) + (((ph || 0) * 0.618) % 1)) % 1
 function drawSkel(a) {
   const sc = lerp(0.8, 1.25, a.d) * (a.big || 1) * (a.big ? UKU() : 1), img = SKEL[a.w];
   if (a.big && !a.fly) { const TC = ['#9aa0a6', '#5be37a', '#4aa8ff', '#b56cff', '#ffcc33'][a.g || 0], pu = 0.75 + 0.25 * Math.sin(S.t * 3 + a.ph); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35 * pu; ctx.fillStyle = TC; ctx.beginPath(); ctx.ellipse(a.x, a.y - 2, 50 * sc, 11 * sc, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 0.7; ctx.strokeStyle = TC; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(a.x, a.y - 2, 50 * sc, 11 * sc, 0, 0, 7); ctx.stroke();
-    if ((a.g || 0) >= 2) { const g2 = ctx.createRadialGradient(a.x, a.y - 80 * sc, 4, a.x, a.y - 80 * sc, 90 * sc); g2.addColorStop(0, TC + '44'); g2.addColorStop(1, TC + '00'); ctx.globalAlpha = pu; ctx.fillStyle = g2; ctx.fillRect(a.x - 90 * sc, a.y - 170 * sc, 180 * sc, 180 * sc); } ctx.restore(); }   /* 01:20 소환수: 진화 단계 색 발밑 고리(회 · 초 · 파 · 보 · 금), 3단계부터 몸 빛 */
+    if ((a.g || 0) >= 2) { ctx.globalAlpha = pu; ctx.drawImage(glowSpr(TC), a.x - 90 * sc, a.y - 170 * sc, 180 * sc, 180 * sc); }   /* 11-17 08:1x 관문㉚ 렉(그림시간.js: 진화 소환수 빛이 프레임마다 14ms/4배 느린 CPU) → 같은 빛을 64칸 그림으로 한 번 만들어 늘려 그림 */ ctx.restore(); }   /* 01:20 소환수: 진화 단계 색 발밑 고리(회 · 초 · 파 · 보 · 금), 3단계부터 몸 빛 */
   /* 걷기(11-13 대표님 「걷는 게 엄청 부자연스럽다」): 서 있으면 숨쉬기만, 움직이면 움직인 거리만큼 다리를 번갈아 내딛고 걸음마다 살짝 출렁 */
   const mv = a.px === undefined ? 0 : Math.abs(a.x - a.px); a.px = a.x; a.wph = (a.wph ?? a.ph) + Math.min(mv, 6) * 0.1; a.wamp = lerp(a.wamp || 0, mv > 0.15 ? 1 : 0, 0.2); a.back = a.x < (a.px0 ?? a.x) - 0.05; a.px0 = a.x;
   const bob = a.fly ? 0 : (1 - a.wamp) * Math.sin(S.t * 2.6 + a.ph) * 0.8 - a.wamp * Math.abs(Math.sin(a.wph)) * 3.5 + (S.phase === 'cast' && S.cast > TB + 1.2 ? -Math.abs(Math.sin(S.t * 8 + a.cheer)) * 12 : 0);
   const hop = a.hop > 0 ? -Math.sin((1 - a.hop / 0.6) * Math.PI) * 34 : 0;   // 원정 성공 때 함성 뜀
   if (a.hurt > 0) a.hurt = Math.max(0, a.hurt - 1 / 60);
   const swk = a.sw > 0 ? Math.sin((1 - a.sw / SW_T) * Math.PI) : (a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.6 : 0);   /* 맞으면 뒤로 움찔 */   /* 휘두르기: 발을 축으로 앞으로 기울였다 돌아옴 */
-  ctx.save(); ctx.translate(a.x + swk * 10, a.y + bob + hop + (1 - a.rise) * 40);
+  const swq = a.sw > 0 ? 1 - a.sw / SW_T : 0, lgx = a.lg && a.sw > 0 ? (swq < 0.3 ? Math.sin(swq / 0.3 * Math.PI / 2) : 1 - ease((swq - 0.3) / 0.7)) * 34 : 0;   /* 11-17 08:1x 순서 ③ 「때릴 때 튀어 나감」(누가 때리는지 14번): 근접 베기는 0.13초에 34 앞으로 튀어 나가 치고 천천히 제자리로 — 전엔 10만 기울어 서서 치는 것처럼 보였음 */
+  ctx.save(); ctx.translate(a.x + swk * 10 + lgx, a.y + bob + hop + (1 - a.rise) * 40);
   const wkey = (a.evo && need('evo' + a.evo)) ? '' : a.c >= 0 && ART['cls' + a.c] ? 'cls' + a.c : 'skel', legs = !!LEGS[wkey];   /* 다리 나눠 그리는 병과는 휘두를 때 윗몸만 숙이고 발은 땅에 붙임 */
   if (a.fly) ctx.rotate(a.fly.r); else if (swk && !legs && !(ART.sk4_idle && !a.evo)) ctx.rotate(swk * 0.42);
   ctx.globalAlpha = a.rise;
