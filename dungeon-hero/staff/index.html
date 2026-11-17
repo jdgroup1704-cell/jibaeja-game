@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118043815'; let updReady = null;
+  const BUILD = '1118044227'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -5335,7 +5335,7 @@
     if (nb) r.best = dmg; meta.gold += gold; meta.stone += 3; saveMeta(); raidPush();
     raidRes = { dmg, nb, best: r.best, gold, why, t0: t, B: R0.B, sec: Math.round(R0.t / 60) }; try { playExt((R0.B.id === 'dev' ? 'v_rd' : 'v_rc') + 3, 1); } catch (e) {} raidRun = null;
     boss = null; enemies = []; ebul = []; chest = null; doorOpen = false; runGold = 0; clearRun(); offer = []; levelupT = 0; state = 'raid'; raidRankLoad(); try { sfx.fanfare(); } catch (e) {} }
-  const rdCut = (name, col) => { if (raidRun) raidRun.cut = { name, col, t0: t }; shake = Math.max(shake, 6); try { sfx.warn(); } catch (e) {} };
+  const rdCut = (name, col) => { if (raidRun) raidRun.cut = { name, col, t0: t, ult: name === raidRun.B.skn[raidRun.B.ult] }; shake = Math.max(shake, 6); try { sfx.warn(); } catch (e) {} };
   const rdVk = () => raidRun ? (raidRun.B.id === 'dev' ? 'v_rd' : 'v_rc') : 'v_rc';
   const rdSay = (s, n) => { if (raidRun) { raidRun.say = { s, t0: t }; if (n) try { playExt(rdVk() + n, 1); } catch (e) {} } };
   const rdHit = (pct) => { if (P.inv > 0 || state !== 'play') return; hurt(P.maxHp * pct); };
@@ -5423,8 +5423,15 @@
   { const _hud193 = drawHUD; drawHUD = function () { _hud193(); const R0 = raidRun; if (!R0 || state !== 'play') return; try { const B = R0.B;
       ctx.fillStyle = 'rgba(10,4,8,.92)'; rrect(16, R.y0 + 10, W - 32, 40, 12); ctx.fill(); ctx.strokeStyle = `rgba(${B.col},.9)`; ctx.lineWidth = 2; ctx.stroke();
       tfit('💥 ' + Math.round(R0.dmg).toLocaleString(), 30, R.y0 + 31, 21, '#fff', 210, FT, 'left'); const s = Math.max(0, Math.ceil((RD_T - R0.t) / 60)); tfit('⏱️ ' + (R0.sp ? s : 60) + '초', W - 30, R.y0 + 31, 19, s <= 10 && Math.floor(t / 15) % 2 ? '#ff6a5a' : '#ffe6c8', 110, FT, 'right');
-      if (R0.cut && t - R0.cut.t0 < 70) { const a = t - R0.cut.t0, q = Math.min(1, a / 8), o = Math.min(1, (70 - a) / 15); ctx.save(); ctx.globalAlpha = o; ctx.fillStyle = 'rgba(0,0,0,.75)'; ctx.fillRect(0, 236, W, 74); ctx.fillStyle = `rgba(${R0.cut.col},.95)`; ctx.fillRect(0, 236, W * q, 4); ctx.fillRect(W * (1 - q), 306, W * q, 4);
-        txt(R0.B.n + ' · ' + R0.cut.name, W / 2 + 30 * (1 - q), 273, 30 + 14 * (1 - q), `rgb(${R0.B.c2})`, FT); ctx.restore(); }
+      if (R0.cut && R0.cut.ult && t - R0.cut.t0 < 80) { const a = t - R0.cut.t0, q = Math.min(1, a / 10), o = Math.min(1, (80 - a) / 14), S = RDIMG[R0.B.id], Y0 = 200, HH = 250; ctx.save(); ctx.globalAlpha = o;
+          ctx.fillStyle = 'rgba(0,0,0,.82)'; ctx.fillRect(0, Y0, W, HH); const g = ctx.createLinearGradient(0, Y0, W, Y0 + HH); g.addColorStop(0, `rgba(${R0.B.col},.55)`); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0, Y0, W, HH);
+          ctx.globalCompositeOperation = 'lighter'; for (let i = 0; i < 18; i++) { const yy = Y0 + ((i * 53 + a * 7) % HH), ln = 60 + (i * 37) % 140, xx = W - ((a * 22 + i * 61) % (W + ln)); ctx.fillStyle = `rgba(${i % 2 ? R0.B.col : R0.B.c2},.5)`; ctx.fillRect(xx, yy, ln, 2 + i % 3); } ctx.globalCompositeOperation = 'source-over';
+          if (S && S.ok) { const h2 = HH * 1.25, w2 = S.img.width * h2 / S.img.height, xx = -40 + (1 - q) * -w2 + Math.sin(a * .1) * 3; ctx.save(); ctx.beginPath(); ctx.rect(0, Y0, W, HH); ctx.clip(); ctx.filter = 'brightness(1.35) saturate(1.2)'; ctx.drawImage(S.img, xx, Y0 - 20, w2, h2); ctx.restore(); ctx.filter = 'none'; }
+          ctx.fillStyle = `rgba(${R0.B.col},1)`; ctx.fillRect(0, Y0, W * q, 5); ctx.fillRect(W * (1 - q), Y0 + HH - 5, W * q, 5);
+          const sc = 1 + .25 * Math.max(0, 1 - a / 12); ctx.save(); ctx.translate(W - 120, Y0 + HH / 2); ctx.rotate(-.06); ctx.scale(sc, sc); txt('필살기', 0, -46, 18, '#ffffff', FT); txt(R0.cut.name, 0, 4, 40, `rgb(${R0.B.c2})`, FT); txt(R0.B.n, 0, 48, 16, `rgb(${R0.B.col})`, FT); ctx.restore(); ctx.restore(); }
+      else if (R0.cut && t - R0.cut.t0 < 70) { const a = t - R0.cut.t0, q = Math.min(1, a / 8), o = Math.min(1, (70 - a) / 15), S = RDIMG[R0.B.id]; ctx.save(); ctx.globalAlpha = o; ctx.fillStyle = 'rgba(0,0,0,.75)'; ctx.fillRect(0, 236, W, 74); ctx.fillStyle = `rgba(${R0.cut.col},.95)`; ctx.fillRect(0, 236, W * q, 4); ctx.fillRect(W * (1 - q), 306, W * q, 4);
+        if (S && S.ok) { ctx.save(); ctx.beginPath(); ctx.rect(0, 240, W, 66); ctx.clip(); const h2 = 190, w2 = S.img.width * h2 / S.img.height; ctx.drawImage(S.img, 10 - (1 - q) * 80, 226, w2, h2); ctx.restore(); }
+        txt(R0.B.n + ' · ' + R0.cut.name, W / 2 + 40 + 30 * (1 - q), 273, 28 + 12 * (1 - q), `rgb(${R0.B.c2})`, FT); ctx.restore(); }
       if (R0.say && t - R0.say.t0 < 160 && boss) { const x = W / 2, w = Math.min(330, R0.say.s.length * 15 + 40), yy = R.y0 + 76; ctx.fillStyle = 'rgba(255,255,255,.95)'; rrect(clamp(x - w / 2, 10, W - w - 10), yy - 22, w, 38, 14); ctx.fill(); tfit(R0.say.s, clamp(x, w / 2 + 10, W - w / 2 - 10), yy - 3, 15, '#201018', w - 16, FB, 'center'); } } catch (e) {} }; }
   function drawRaid() { const B = rdBoss(), r = rdM(), S = RDIMG[B.id];
     const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, B.id === 'dev' ? '#04140a' : '#1a0408'); g.addColorStop(1, '#06040a'); ctx.fillStyle = g; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
