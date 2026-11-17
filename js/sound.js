@@ -73,7 +73,7 @@ Object.assign(Snd, {
   bufs: {}, bgm: null, bgmV: 0.5, loading: null,
   loadAll() {
     if (!this.ac) return Promise.resolve(); if (this.loading) return this.loading;
-    const names = ['bgm1', 'bgm2', 'up', 'march', 'slam', 'boom', 'hit', 'stare', 'circle', 'stamp', 'charge', 'cheer', 'rise', 'soul', 'summon', 'click', 'vj_chant1', 'vj_chant2', 'vj_chant3', 'v_rise', 'win', 'ssr', 'v_awaken', 'v_boss', 'v_serafine', 'v_morde'];   /* 04:30 드리미나 AI 오디오: 지배자 「일어나라, 나의 군단이여!」 · 승리 짧은 팡파르 */
+    const names = ['bgm1', 'bgm2', 'up', 'march', 'slam', 'boom', 'hit', 'stare', 'circle', 'stamp', 'charge', 'cheer', 'rise', 'soul', 'summon', 'click', 'vj_chant1', 'vj_chant2', 'vj_chant3', 'v_rise', 'win', 'ssr', 'v_awaken', 'v_boss', 'v_serafine', 'v_morde', 'v_lwin1', 'v_lwin2', 'v_lwin3', 'v_lwin4', 'v_lwin5'];   /* 04:30 드리미나 AI 오디오: 지배자 「일어나라, 나의 군단이여!」 · 승리 짧은 팡파르 */
     this.loading = Promise.all(names.map(async n => { try { const r = await fetch('sfx/' + n + '.mp3'); if (!r.ok) return; const ab = await r.arrayBuffer(); this.bufs[n] = await new Promise((res, rej) => this.ac.decodeAudioData(ab, res, rej)); } catch (e) {} }));
     return this.loading;
   },

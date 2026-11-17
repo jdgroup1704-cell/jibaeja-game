@@ -7,6 +7,7 @@ const RW = {
   show(de, gx, gy, k = 0) {
     if (!de) return; if (k < 60 && typeof UI !== 'undefined' && UI.busy && UI.busy()) { setTimeout(() => this.show(de, gx, gy, k + 1), 300); return; }   /* 11-17 04:24 「보스 격파!」가 자리 비움 창 · 대마법 이름 위에 겹쳤음 → 비면 띄움 */
     this.n++;
+    if (typeof Snd !== 'undefined' && Snd.smp && !TRAILER) { const n = [1, 2, 3, 4, 5].filter(i => i !== RW.lastV); const v = n[Math.floor(Math.random() * n.length)]; RW.lastV = v; Snd.voiceCd('v_lwin' + v, 6, 1.1); }   /* 11-17 18:5x 💡 보스를 깨면 지배자 목소리 한 줄(일레븐랩스 Midnight Cave · 3일차 영상과 같은 목소리) — 「다음은… 누구냐」 등 5줄 · 같은 줄 연달아 X · 1.1초 뒤(영웅 말과 안 겹치게) */
     const p = this.pos(Math.min(gx, VW.x + VW.w * 0.6), gy - 160), r = p.r;
     const items = [['souls', 'i_soul', fmt(de.souls || 0), L.rw.souls]]; if (de.gems) items.push(['gems', 'i_gem', de.gems, L.rw.gems]); if (de.bones) items.push(['bones', 'i_bone', de.bones, L.rw.bones]);
     /* 가운데 큰 띠 */
