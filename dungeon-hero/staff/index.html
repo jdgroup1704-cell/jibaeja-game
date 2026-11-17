@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118005939'; let updReady = null;
+  const BUILD = '1118011103'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -5031,18 +5031,18 @@
   let dexPop = false, dexTab = 0, dexFrom = '', dexSh = {};
   const dexSpr = k => k === 'ggob' ? SPW.ggob : k[0] === 'b' && +k.slice(1) ? SPB[+k.slice(1)] : (SPE[k] || SPW[k]);
   const dexGot = () => { const d = meta.dex || {}; let n = 0, s = 0; DEXW.forEach(w => w[1].forEach(m => { if (d[m[0]]) n++; s += d[m[0]] || 0; })); if (d.ggob) n++; s += d.ggob || 0; for (let i = 1; i <= 12; i++) { if (d['b' + i]) n++; s += d['b' + i] || 0; } return [n, s]; };
-  function dexAdd(k) { try { if (trial || !k) return; meta.dex = meta.dex || {}; const nw = !meta.dex[k]; meta.dex[k] = (meta.dex[k] || 0) + 1; if (nw) { saveMeta(); const nm = dexName(k); if (nm && state === 'play') comic(P.x, P.y - 96, '👾 도감 등록! ' + nm, 1.1); } else dmDirty = 1; } catch (e) {} }
+  function dexAdd(k) { try { if (trial || !k) return; meta.dex = meta.dex || {}; const nw = !meta.dex[k]; meta.dex[k] = (meta.dex[k] || 0) + 1; if (nw) { meta.dexNew = meta.dexNew || {}; meta.dexNew[k] = 1; saveMeta(); const nm = dexName(k); if (nm && state === 'play') comic(P.x, P.y - 96, '👾 도감 등록! ' + nm, 1.1); } else dmDirty = 1; } catch (e) {} }
   function dexName(k) { if (k === 'ggob') return '황금 고블린'; if (k[0] === 'b' && +k.slice(1)) return (BOSSDEF[+k.slice(1) - 1] || {}).n || ''; for (const w of DEXW) for (const m of w[1]) if (m[0] === k) return m[1]; return ''; }
   { const _ke162 = killEnemy; killEnemy = function (e) { const was = e.dead; _ke162(e); try { if (!was && e.dead && !e.named) dexAdd(e.gold ? 'ggob' : (e.skin && SPW[e.skin] ? e.skin : e.type)); } catch (er) {} }; }
   { const _u162 = update; update = function (k) { _u162(k); try { if (boss && boss.dead && !boss._dx) { boss._dx = 1; if (boss.i >= 1 && boss.i <= 12 && !(boss.final > 1)) dexAdd('b' + boss.i); } } catch (e) {} }; }
-  function dexCard(k, nm, x, y, w, h, big) { const n = (meta.dex || {})[k] || 0, s = dexSpr(k), ok = s && s.ok && s.img && s.img.width > 0;
+  function dexCard(k, nm, x, y, w, h, big) { const n = (meta.dex || {})[k] || 0, s = dexSpr(k), ok = s && s.ok && s.img && s.img.width > 0; if (n && meta.dexNew && meta.dexNew[k]) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(x + w / 2, y + h / 2, Math.max(w, h) * .8, '255,214,77', .28 + .14 * Math.sin(t * .15)); ctx.restore(); }
     ctx.fillStyle = n ? 'rgba(40,34,70,.95)' : 'rgba(20,18,28,.9)'; rrect(x, y, w, h, 10); ctx.fill(); ctx.strokeStyle = n >= 1000 ? '#ffd27a' : n >= 100 ? '#c8a0ff' : n ? 'rgba(160,190,255,.5)' : 'rgba(255,255,255,.1)'; ctx.lineWidth = n >= 100 ? 2.2 : 1.5; ctx.stroke();
     const bw = w - 10, bh = h - 36, cx = x + w / 2, cy = y + 5 + bh / 2;
     if (ok) { const sc = Math.min(bw / s.cw, bh / s.ch); let im = s.img;
       if (!n) { if (!dexSh[k]) { const c = document.createElement('canvas'); c.width = s.cw; c.height = s.ch; const g = c.getContext('2d'); g.drawImage(s.img, 0, 0, s.cw, s.ch, 0, 0, s.cw, s.ch); g.globalCompositeOperation = 'source-in'; g.fillStyle = '#06050a'; g.fillRect(0, 0, s.cw, s.ch); dexSh[k] = c; } im = dexSh[k]; }
       ctx.imageSmoothingEnabled = true; ctx.drawImage(im, 0, 0, s.cw, s.ch, cx - s.cw * sc / 2, cy - s.ch * sc / 2, s.cw * sc, s.ch * sc); ctx.imageSmoothingEnabled = false; if (!n) txt('?', cx, cy, big ? 30 : 24, 'rgba(255,255,255,.55)', FT); }
     else txt(n ? (k === 'b9' || k === 'b10' ? '👤' : '👾') : '?', cx, cy, big ? 34 : 26, n ? '#fff' : 'rgba(255,255,255,.4)', FT, 'center', 'rgba(0,0,0,0)');
-    tfit(n ? nm : '???', cx, y + h - 24, 11.5, n ? '#fff' : '#77748a', w - 6, FB, 'center'); txt(n ? '×' + (n >= 10000 ? kfmt(n) : n.toLocaleString()) : '아직 못 만남', cx, y + h - 10, 11, n >= 1000 ? '#ffd27a' : n >= 100 ? '#d8b8ff' : n ? '#9fe0ff' : '#5c5a6c', FB); }
+    if (n && meta.dexNew && meta.dexNew[k]) { ctx.fillStyle = '#e8322a'; rrect(x + w - 34, y + 3, 31, 15, 7); ctx.fill(); txt('NEW', x + w - 18.5, y + 10.5, 10.5, '#fff', FB); } tfit(n ? nm : '???', cx, y + h - 24, 11.5, n ? '#fff' : '#77748a', w - 6, FB, 'center'); txt(n ? '×' + (n >= 10000 ? kfmt(n) : n.toLocaleString()) : '아직 못 만남', cx, y + h - 10, 11, n >= 1000 ? '#ffd27a' : n >= 100 ? '#d8b8ff' : n ? '#9fe0ff' : '#5c5a6c', FB); }
   function drawDex() { ctx.fillStyle = '#0e0b16'; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
     const [gn, gs] = dexGot(); txt('👾 몬스터 도감', W / 2, 40, 28, '#c8b0ff', FT);
     ctx.fillStyle = 'rgba(0,0,0,.5)'; rrect(40, 62, W - 80, 16, 8); ctx.fill(); ctx.fillStyle = '#9a7aff'; rrect(40, 62, Math.max(12, (W - 80) * gn / DEXN), 16, 8); ctx.fill(); txt('발견 ' + gn + ' / ' + DEXN + ' · 모두 ' + gs.toLocaleString() + '마리', W / 2, 70.5, 12, '#fff', FB);
@@ -5050,8 +5050,8 @@
     if (dexTab === 0) { const cw = (W - 24 - 5 * 5) / 6; let y = 136; DEXW.forEach(w => { txt(w[0], 16, y + 9, 13, '#ffd9a0', FT, 'left'); y += 20; w[1].forEach((m, i) => dexCard(m[0], m[1], 12 + i * (cw + 5), y, cw, 94)); y += 100; }); }
     else { const cw = (W - 24 - 3 * 6) / 4; let y = 136; txt('보스', 16, y + 9, 13, '#ffd9a0', FT, 'left'); y += 20; for (let i = 0; i < 12; i++) dexCard('b' + (i + 1), BOSSDEF[i].n, 12 + (i % 4) * (cw + 6), y + Math.floor(i / 4) * 138, cw, 132, 1); y += 3 * 138 + 4;
       txt('특별', 16, y + 9, 13, '#ffd9a0', FT, 'left'); y += 20; dexCard('ggob', '황금 고블린', 12, y, cw, 132, 1); tclip('황금 고블린은 가끔 나타나 금방 도망가요', 12 + cw + 14, y + 50, 13, '#c8b8a0', W - cw - 40, FB, 'left'); tclip('테두리: ×100 보라 · ×1,000 금빛', 12 + cw + 14, y + 74, 12.5, '#a89ac8', W - cw - 40, FB, 'left'); }
-    button('← 돌아가기', W / 2 - 90, H - 56, 180, 44, () => { dexPop = false; if (dexFrom === 'town') state = 'town'; dexFrom = ''; }, false); }
-  { const _db162 = drawBook; drawBook = function () { if (dexPop) { buttons = []; drawDex(); return; } _db162(); const g = dexGot()[0]; buttons.push({ x: 8, y: 22, w: 96, h: 40, act: () => { dexPop = true; dexFrom = ''; try { sfx.pick(); } catch (e) {} } }); ctx.fillStyle = 'rgba(60,44,110,.95)'; rrect(8, 22, 96, 40, 12); ctx.fill(); ctx.strokeStyle = '#c8b0ff'; ctx.lineWidth = 2; ctx.stroke(); txt('👾 도감', 56, 35, 14, '#fff', FT); txt(g + ' / ' + DEXN, 56, 52, 11.5, '#d8c8ff', FB); }; }
+    button('← 돌아가기', W / 2 - 90, H - 56, 180, 44, () => { dexPop = false; if (meta.dexNew) { meta.dexNew = {}; saveMeta(); } if (dexFrom === 'town') state = 'town'; dexFrom = ''; }, false); }
+  { const _db162 = drawBook; drawBook = function () { if (dexPop) { buttons = []; drawDex(); return; } _db162(); const g = dexGot()[0]; buttons.push({ x: 8, y: 22, w: 96, h: 40, act: () => { dexPop = true; dexFrom = ''; try { sfx.pick(); } catch (e) {} } }); ctx.fillStyle = 'rgba(60,44,110,.95)'; rrect(8, 22, 96, 40, 12); ctx.fill(); ctx.strokeStyle = '#c8b0ff'; ctx.lineWidth = 2; ctx.stroke(); txt('👾 도감', 56, 35, 14, '#fff', FT); { const nn = Object.keys(meta.dexNew || {}).length; if (nn) { ctx.fillStyle = '#e8322a'; rrect(86, 14, 26, 18, 9); ctx.fill(); txt('' + nn, 99, 23, 11, '#fff', FB); } } txt(g + ' / ' + DEXN, 56, 52, 11.5, '#d8c8ff', FB); }; }
 
   // ===================== 빌드 163: 히든 스킬 각성 컷인 =====================
   let hc163 = null;
