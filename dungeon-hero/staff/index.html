@@ -2209,7 +2209,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1117164032'; let updReady = null;
+  const BUILD = '1117164430'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -3505,7 +3505,7 @@
     rankBusy = true; rankErr = '';
     try { const { S, db } = fb; await rankPush(); const sn = await S.getDocs(S.query(S.collection(db, 'rank', RK_SEASON, 'list'), S.orderBy(tab ? 'power' : 'best', 'desc'), S.limit(50))); const a = [];
       sn.forEach(d => { const x = d.data() || {}; a.push({ id: d.id, name: ('' + (x.name || '용사')).slice(0, 16), best: x.best | 0, power: x.power | 0, skin: '' + (x.skin || ''), tier: x.tier === undefined ? -1 : x.tier | 0, gear: '' + (x.gear || ''), vip: x.vip | 0, ti: '' + (x.ti || '') }); });
-      a.sort((p, q) => tab ? (q.power - p.power) || (q.best - p.best) : (q.best - p.best) || (q.power - p.power)); rankData[tab] = a; rankT[tab] = Date.now(); }
+      a.sort((p, q) => tab ? (q.power - p.power) || (q.best - p.best) : (q.best - p.best) || (q.power - p.power)); { const me = fbUser && fbUser.uid, sn2 = new Set(), mr = a.find(r => r.id === me); if (mr) sn2.add(mr.name); const b2 = a.filter(r => { if (r.id === me) return true; if (sn2.has(r.name)) return false; sn2.add(r.name); return true; }); a.length = 0; a.push(...b2); } rankData[tab] = a; rankT[tab] = Date.now(); }
     catch (e) { rankErr = (e && e.code) || 'err'; }
     rankBusy = false;
   }
@@ -4502,7 +4502,7 @@
     const kl = keys['ArrowLeft'] || keys['KeyA'], kr = keys['ArrowRight'] || keys['KeyD'], kj = keys['Space'] || keys['ArrowUp'] || keys['KeyW'];
     const inp = { l: jIn.l || kl ? 1 : 0, r: jIn.r || kr ? 1 : 0, j: jIn.j || kj ? 1 : 0 };
     R2.acc = Math.min(4, R2.acc + k); while (R2.acc >= 1) { R2.acc--; JC.step(S, window.__jbot ? JC.bot(S, window.__jbot) : inp); for (const e of S.ev) jEv(e); if (S.won) { jWin(); return; } if (S.fr >= JLIM) { jReset(); return; } }
-    const h = -S.P.y; if (h > R2.best) R2.best = h; const z = JC.zoneAt(S.L, S.P.y); if (z !== R2.zone) { if (R2.zone >= 0 && z > R2.zone) jBanner('🌲 구역 ' + (z + 1) + ' · ' + JC.ZONES[z], ''); R2.zone = z; }
+    const h = -S.P.y; if (h > R2.best) R2.best = h; const z = JC.zoneAt(S.L, S.P.y); if (z !== R2.zone) { if (R2.zone >= 0 && z > R2.zone) { jBanner('🌲 구역 ' + (z + 1) + ' · ' + JC.ZONES[z], ''); try { sfx.door(); } catch (e) {} } R2.zone = z; }
     shake = Math.max(0, shake - k); flash = Math.max(0, flash - .02 * k); R2.camY += (S.P.y - 500 - R2.camY) * Math.min(1, .14 * k); jTease(S, k); if (R2.banT > 0) R2.banT -= k; if (R2.hitT > 0) R2.hitT -= k;
     for (let i = R2.fx.length - 1; i >= 0; i--) { const f = R2.fx[i]; f.l += k; f.x += f.vx * k; f.y += f.vy * k; f.vy += .2 * k; if (f.l > f.T) R2.fx.splice(i, 1); }
     R2.saveT += k; if (R2.saveT > 300) { R2.saveT = 0; jSave(); }
