@@ -9,7 +9,7 @@ const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComp
   await pg.goto('http://localhost:8298/index.html?test=1'); await pg.waitForTimeout(2500); await pg.evaluate(() => document.getElementById('opening')?.click()); await pg.waitForTimeout(800);
   execSync('rm -rf /tmp/뽑기; mkdir -p /tmp/뽑기'); let k = 0; const shot = async () => { await pg.screenshot({ path: `/tmp/뽑기/${String(k++).padStart(2, '0')}.png` }); };
   await pg.evaluate(() => { Snd.mute && Snd.mute(true); UI.closeModal(); st.stage = st.best = 30; st.gems = 3000; st.pity = JB.C.PITY - 1; st.seen.curTip = 1; document.querySelector('#tabs [data-tab="hero"]')?.click(); UI.render(true); });
-  await pg.waitForTimeout(400); await pg.evaluate(() => { UI.closeModal(); document.querySelector('#tabbody [data-act="pull10"]')?.click(); });
+  await pg.waitForTimeout(400); await pg.evaluate(() => { UI.closeModal(); (UI.heroView = 'pull', UI.render(true), document).querySelector('#tabbody [data-act="pull10"]')?.click(); });
   const S1 = []; for (let i = 0; i < 26; i++) { S1.push(await pg.evaluate(() => { const e = document.getElementById('summonfx'); return e ? e.className + '|' + getComputedStyle(e).getPropertyValue('--c').trim() : ''; })); await shot(); await pg.waitForTimeout(170); if (i === 20) await pg.evaluate(() => { const e = document.getElementById('starfx'); if (e && e.className) e.click(); }); }
   for (let i = 0; i < 30 && !(await pg.evaluate(() => document.getElementById('modal').style.display === 'flex')); i++) { await pg.evaluate(() => { for (const id of ['summonfx', 'starfx']) { const e = document.getElementById(id); if (e && e.classList.contains('tapok')) e.click(); } }); await pg.waitForTimeout(300); }
   await pg.waitForTimeout(1200); await shot();
@@ -18,7 +18,7 @@ const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComp
   const g0 = await pg.evaluate(() => st.gems); await pg.evaluate(() => document.querySelector('#modal .again [data-act^="pull"]')?.click()); await pg.waitForTimeout(500); await shot(); const g1 = await pg.evaluate(() => st.gems);
   for (let i = 0; i < 40 && !(await pg.evaluate(() => document.getElementById('modal').style.display === 'flex')); i++) { await pg.evaluate(() => { for (const id of ['summonfx', 'starfx']) { const e = document.getElementById(id); if (e && e.className) e.click(); } }); await pg.waitForTimeout(250); }
   // 마정석이 없을 때: 상점 길
-  await pg.evaluate(() => { UI.closeModal(); st.gems = JB.C.GACHA_COST; UI.render(true); document.querySelector('#tabbody [data-act="pull1"]')?.click(); });
+  await pg.evaluate(() => { UI.closeModal(); st.gems = JB.C.GACHA_COST; UI.render(true); (UI.heroView = 'pull', UI.render(true), document).querySelector('#tabbody [data-act="pull1"]')?.click(); });
   for (let i = 0; i < 40 && !(await pg.evaluate(() => document.getElementById('modal').style.display === 'flex')); i++) { await pg.evaluate(() => { for (const id of ['summonfx', 'starfx']) { const e = document.getElementById(id); if (e && e.className) e.click(); } }); await pg.waitForTimeout(250); }
   await pg.waitForTimeout(900); await shot();
   const m2 = await pg.evaluate(() => ({ shop: !!document.querySelector('#modal [data-act="shopGo"]') })); await pg.evaluate(() => document.querySelector('#modal [data-act="shopGo"]')?.click()); await pg.waitForTimeout(700); await shot();
