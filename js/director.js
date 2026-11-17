@@ -309,6 +309,8 @@ function foeAct(f, dt, front) {   /* 종류별 행동 */
   if (f.kind === 'flyer') { const h = HF.list[0]; if (h && f.x < h.x + 260) { f.tx2 = h.x + 60; f.x += ((h.x + 60) - f.x) * Math.min(1, dt * 1.5); if (f.actT <= 0 && Math.abs(f.x - h.x) < 120) { f.actT = rnd(1.4, 2.2); HF.hurt(h, 1, false); } } }
 }
 /* 밀고 밀림: 새 무리가 오면 적이 몰아붙여 우리 줄이 밀려나고(−80), 잡아 나갈수록 앞으로 밀고 나감(+130). 보스전은 남은 체력 · 남은 시간을 견줘 늦으면 지배자 쪽으로 밀림(최대 −170) · 앞서면 밀어붙임 */
+/* 11-17 14:3x 첫인상 ⓒ 판 사이 행군(대표님 01:56 · 03:42 「변화가 없어 보인다」 · 작업기록 6번): 새 무리가 들어오는 1.1초 동안 배경이 왼쪽으로 흐르고 군단 · 영웅 · 망자병이 제자리에서 걸음 — 「군단이 진군해 다음 적을 만난다」. 보스 · 처음 3초 · 시범 영상(TRAILER)은 안 함 */
+function marchUpdate(dt) { if (TRAILER || st.boss || S.phase !== 'battle') { S.marchK = 0; S.bgOff = Math.max(0, (S.bgOff || 0) - 60 * dt); return; } const t = S.t - (S.waveT0 || -9), L = 1.4; S.marchK = S.t > 3 && t >= 0 && t < L ? Math.sin(Math.PI * t / L) : 0; S.bgOff = Math.min(340, (S.bgOff || 0) + S.marchK * 330 * dt - (S.marchK ? 0 : 22 * dt)); if (S.bgOff < 0) S.bgOff = 0; }
 function pushUpdate(dt) { if (TRAILER) { S.push = 0; return; } let tg = 0;
   if (st.boss && S.giant && S.giant.on && !S.giant.dead && st.boss.phase === 'fight') { const T0 = st.boss.timer0 || (st.boss.timer0 = Math.max(st.boss.timer, 1)), hf = clamp(st.hp / Math.max(1, st.maxHp), 0, 1), tf = clamp(st.boss.timer / T0, 0, 1); tg = clamp(70 - 520 * (hf - tf), -120, 90); }
   else if (!st.boss && S.phase === 'battle') { const p = Math.max(1 - clamp(S.foes.filter(f => !f.dead && !f.flee).length / Math.max(1, S.foeN || 1), 0, 1), clamp((S.t - (S.waveT0 || 0) - 1.6) / 5, 0, 1)), fresh = S.t - (S.waveT0 || 0) < 1.6; tg = fresh ? -80 : -80 + 170 * ease(Math.min(1, p * 1.15)); if (S.foes.some(f => f.charge > 0 && !f.dead)) tg -= 50; }
@@ -628,7 +630,7 @@ function viewUpdate(realDt) {
   if (S.phase !== 'cast' && S.phase !== 'stare') S.dark = Math.max(0, S.dark - realDt * 0.8);
   if (st.tide > 0) { if (Math.random() < 0.3) { const a = S.army[(Math.random() * S.army.length) | 0]; if (a) S.parts.push({ x: a.x, y: a.y - 40, vx: 0, vy: -60, life: 0.6, age: 0, size: 3, col: '#9fffd0', g: 0, add: true, kind: 'dot', rot: 0, vr: 0, real: true }); } }
 
-  pushUpdate(dt); if (Math.abs((S.push || 0) - (S.pushF || 0)) > 6) { S.pushF = S.push; formation(true); }
+  marchUpdate(dt); pushUpdate(dt); if (Math.abs((S.push || 0) - (S.pushF || 0)) > 6) { S.pushF = S.push; formation(true); }
   syncArmy(dt); if (typeof MN !== 'undefined') MN.update(dt); if (S.phase === 'battle') syncFoes(); HF.update(dt); LM.update(dt);   /* 전장의 수하 · 지배자 작은 마법 */
   formT += dt; if (formT > 0.7) { formT = 0; formation(); }
   // 군단 움직임

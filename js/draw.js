@@ -123,7 +123,9 @@ function drawSky() {
     const im = regionBg() || ART.bg, asp = im.width / im.height, hz = GROUND + 20, v = VIS;
     const HZ = 0.65;   /* 02:30 새 그림체 배경은 땅이 그림 65%부터 */ const h = Math.max((hz - v.y0) / HZ, (v.y1 - hz) / (1 - HZ), (v.x1 - v.x0) / asp, H + 60) * 1.02, w = h * asp;
     const br = 1 + 0.012 * Math.sin(S.t * 0.25), pan = Math.sin(S.t * 0.04) * w * 0.012, act2 = st && st.stage > 80; if (act2) ctx.filter = 'brightness(.5) saturate(1.5) hue-rotate(-18deg) contrast(1.15)';   /* 11-14 배경이 아주 천천히 숨 쉬고 흐름 · 2막은 어둡고 붉게 */
-    ctx.drawImage(im, (v.x0 + v.x1) / 2 - w * br / 2 + pan, hz - HZ * h * br, w * br, h * br); ctx.filter = 'none'; return;
+    { const MO = 340, vw = v.x1 - v.x0, sc2 = Math.max(1, (vw + MO + 30) / (w * br)), W2 = w * br * sc2, H2 = h * br * sc2, off = clamp(S.bgOff || 0, 0, MO), x0 = (v.x0 + v.x1) / 2 - (vw + MO + 30) / 2 + pan * 0.3 - off + MO / 2;   /* 11-17 14:4x 행군: 배경이 왼쪽으로 흐름(최대 340) — 그림을 그만큼 넓게 그려 끝이 안 보이게. 처음엔 좌우 뒤집어 이어 붙였더니 이음매에 나무가 거울처럼 보였음(사진) → 이어 붙이지 않고, 싸우는 동안 천천히 제자리로 */
+      ctx.drawImage(im, x0 + (vw + MO + 30 - W2) / 2, hz - HZ * H2, W2, H2); }
+    ctx.filter = 'none'; return;
   }
   const g = ctx.createLinearGradient(0, 0, 0, GROUND);
   g.addColorStop(0, '#07030f'); g.addColorStop(0.55, '#1a0b2e'); g.addColorStop(1, '#3a1638');
@@ -388,7 +390,7 @@ function drawSkel(a) {
   if (a.big && !a.fly) { const TC = ['#9aa0a6', '#5be37a', '#4aa8ff', '#b56cff', '#ffcc33'][a.g || 0], pu = 0.75 + 0.25 * Math.sin(S.t * 3 + a.ph); ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35 * pu; ctx.fillStyle = TC; ctx.beginPath(); ctx.ellipse(a.x, a.y - 2, 50 * sc, 11 * sc, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 0.7; ctx.strokeStyle = TC; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(a.x, a.y - 2, 50 * sc, 11 * sc, 0, 0, 7); ctx.stroke();
     if ((a.g || 0) >= 2) { ctx.globalAlpha = pu; ctx.drawImage(glowSpr(TC), a.x - 90 * sc, a.y - 170 * sc, 180 * sc, 180 * sc); }   /* 11-17 08:1x 관문㉚ 렉(그림시간.js: 진화 소환수 빛이 프레임마다 14ms/4배 느린 CPU) → 같은 빛을 64칸 그림으로 한 번 만들어 늘려 그림 */ ctx.restore(); }   /* 01:20 소환수: 진화 단계 색 발밑 고리(회 · 초 · 파 · 보 · 금), 3단계부터 몸 빛 */
   /* 걷기(11-13 대표님 「걷는 게 엄청 부자연스럽다」): 서 있으면 숨쉬기만, 움직이면 움직인 거리만큼 다리를 번갈아 내딛고 걸음마다 살짝 출렁 */
-  const mv = a.px === undefined ? 0 : Math.abs(a.x - a.px); a.px = a.x; a.wph = (a.wph ?? a.ph) + Math.min(mv, 6) * 0.1; a.wamp = mv > 0.15 ? 1 : lerp(a.wamp || 0, 0, 0.2);   /* 11-17 10:3x 미끄럼재기: 걷기 시작 1~2장 미끄러짐(소환수 2~9%) → 움직이면 바로 걸음 */ a.back = a.x < (a.px0 ?? a.x) - 0.05; a.px0 = a.x;
+  const mv = (a.px === undefined ? 0 : Math.abs(a.x - a.px)) + (a.fly ? 0 : (S.marchK || 0) * 3.5);   /* 행군 중엔 제자리 걸음 */ a.px = a.x; a.wph = (a.wph ?? a.ph) + Math.min(mv, 6) * 0.1; a.wamp = mv > 0.15 ? 1 : lerp(a.wamp || 0, 0, 0.2);   /* 11-17 10:3x 미끄럼재기: 걷기 시작 1~2장 미끄러짐(소환수 2~9%) → 움직이면 바로 걸음 */ a.back = a.x < (a.px0 ?? a.x) - 0.05; a.px0 = a.x;
   const bob = a.fly ? 0 : (1 - a.wamp) * Math.sin(S.t * 2.6 + a.ph) * 0.8 - a.wamp * Math.abs(Math.sin(a.wph)) * 3.5 + (S.phase === 'cast' && S.cast > TB + 1.2 ? -Math.abs(Math.sin(S.t * 8 + a.cheer)) * 12 : 0);
   const hop = a.hop > 0 ? -Math.sin((1 - a.hop / 0.6) * Math.PI) * 34 : 0;   // 원정 성공 때 함성 뜀
   if (a.hurt > 0) a.hurt = Math.max(0, a.hurt - 1 / 60);

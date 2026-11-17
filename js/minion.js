@@ -35,7 +35,7 @@ const MN = {
   drawCracks() { for (const c of (S.cracks || [])) { const a = 1 - c.t / 1.2; ctx.save(); ctx.globalAlpha = a * 0.9; ctx.translate(c.x, c.y); ctx.fillStyle = 'rgba(20,6,30,.85)'; ctx.beginPath(); ctx.ellipse(0, 0, 34, 9, 0, 0, 7); ctx.fill(); ctx.strokeStyle = 'rgba(197,139,255,.9)'; ctx.lineWidth = 2; ctx.beginPath(); for (let j = 0; j < 5; j++) { const an = j * 1.26 + 0.3; ctx.moveTo(0, 0); ctx.lineTo(Math.cos(an) * 38, Math.sin(an) * 10); } ctx.stroke(); ctx.restore(); } },
   draw(m) {
     const sc = lerp(0.85, 1.12, m.d), at = m.sw > 0, M = VS.sumv1; if (!M || !need('sumv1_idle')) return;
-    const mv = Math.abs(m.x - (m.px ?? m.x)), bob = mv > 0.3 ? -Math.abs(Math.sin(S.t * 14 + m.ph)) * 4 : Math.sin(S.t * 2.6 + m.ph) * 0.8;
+    const mv = Math.abs(m.x - (m.px ?? m.x)) + (S.marchK || 0) * 3.5, bob = mv > 0.3 ? -Math.abs(Math.sin(S.t * 14 + m.ph)) * 4 : Math.sin(S.t * 2.6 + m.ph) * 0.8;
     ctx.save(); ctx.translate(m.x - (m.hurt > 0 ? 5 : 0), m.y + bob + (1 - m.rise) * 70);
     if (m.rise < 1) { ctx.beginPath(); ctx.rect(-80, -200, 160, 200); ctx.clip(); }   /* 땅 위로만 보이게 — 땅을 뚫고 올라옴 */
     ctx.globalAlpha = Math.min(1, m.rise * 1.6);
