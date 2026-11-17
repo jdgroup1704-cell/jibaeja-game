@@ -47,7 +47,7 @@ function draw() {
   drawLord(); drawStaff(); if (!TRAILER) drawAtmoFront();
   if (!litLord && S.dark > 0) { ctx.fillStyle = `rgba(4,0,12,${S.dark})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
   if (S.tint > 0) { ctx.fillStyle = `rgba(20,0,45,${0.45 * S.tint})`; ctx.fillRect(VIS.x0, VIS.y0, VIS.x1 - VIS.x0, VIS.y1 - VIS.y0); }
-  drawShock(); drawRings(); if (!S.rings.length) drawFxSun(); drawSlams(); drawElite(); drawSlashes(); drawSun(); drawParts(); drawRises(); drawWave(); HF.drawTags(); drawLordTag(); drawBossBar();   /* 11-16 22:1x 「지배자」 이름표도 효과 위로(효과가 이름표를 가렸음) */  drawWorldTexts();   /* 11-15 이름표 · 보스 막대는 효과(바닥 고리 · 충격 · 파편)와 지배자 몸 위에 — 눈 확인: 분홍 고리 · 지배자 몸이 이름표를 덮었음 */ drawBubble(); if (typeof drawOverlay === 'function') drawOverlay();
+  drawShock(); drawRings(); if (!S.rings.length) drawFxSun(); drawSlams(); drawElite(); drawSlashes(); drawSun(); drawParts(); drawRises(); drawWave(); drawSweep(); HF.drawTags(); drawLordTag(); drawBossBar();   /* 11-16 22:1x 「지배자」 이름표도 효과 위로(효과가 이름표를 가렸음) */  drawWorldTexts();   /* 11-15 이름표 · 보스 막대는 효과(바닥 고리 · 충격 · 파편)와 지배자 몸 위에 — 눈 확인: 분홍 고리 · 지배자 몸이 이름표를 덮었음 */ drawBubble(); if (typeof drawOverlay === 'function') drawOverlay();
   ctx.restore();
   // 화면에 붙는 것 (카메라 영향 없음)
   ctx.setTransform(s, 0, 0, s, (TRAILER && cv.height > cv.width * 1.2) ? cv.width / 2 - W / 2 * s : ox, oy);   // 세로 광고: 화면 글자는 늘 가운데
@@ -395,8 +395,8 @@ function drawSkel(a) {
   const hop = a.hop > 0 ? -Math.sin((1 - a.hop / 0.6) * Math.PI) * 34 : 0;   // 원정 성공 때 함성 뜀
   if (a.hurt > 0) a.hurt = Math.max(0, a.hurt - 1 / 60);
   const swk = a.sw > 0 ? Math.sin((1 - a.sw / SW_T) * Math.PI) : (a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.6 : 0);   /* 맞으면 뒤로 움찔 */   /* 휘두르기: 발을 축으로 앞으로 기울였다 돌아옴 */
-  const swq = a.sw > 0 ? 1 - a.sw / SW_T : 0, lgx = a.lg && a.sw > 0 && !a.big ? (swq < 0.3 ? Math.sin(swq / 0.3 * Math.PI / 2) : 1 - ease((swq - 0.3) / 0.7)) * 34 : 0;   /* 11-17 08:1x 순서 ③ 「때릴 때 튀어 나감」(누가 때리는지 14번): 근접 베기는 0.13초에 34 앞으로 튀어 나가 치고 천천히 제자리로 — 전엔 10만 기울어 서서 치는 것처럼 보였음 */   /* 10:3x 큰 소환수(a.big)는 그림 쪽에서 이미 -12 → +40 내디딤이 있어 겹치면 74까지 나가 적 몸에 파고듦 → 작은 병사만 */
-  ctx.save(); ctx.translate(a.x + swk * 10 + lgx, a.y + bob + hop + (1 - a.rise) * 40);
+  const swq = a.sw > 0 ? 1 - a.sw / SW_T : 0, lgx = a.lg && a.sw > 0 && !a.big ? (swq < 0.3 ? Math.sin(swq / 0.3 * Math.PI / 2) : 1 - ease((swq - 0.3) / 0.7)) * 34 : 0; let lgx2 = lgx; if (lgx2) for (const h of HF.list) { const dx = h.x - a.x; if (dx > 0 && dx < 170 && Math.abs(h.y - a.y) < 70) lgx2 = Math.min(lgx2, Math.max(0, dx - 112)); }   /* 16:1x 관문⑲ 소환1↔세라핀 16%: 바로 앞에 선 영웅 몸으로 튀어 들지 않게 */   /* 11-17 08:1x 순서 ③ 「때릴 때 튀어 나감」(누가 때리는지 14번): 근접 베기는 0.13초에 34 앞으로 튀어 나가 치고 천천히 제자리로 — 전엔 10만 기울어 서서 치는 것처럼 보였음 */   /* 10:3x 큰 소환수(a.big)는 그림 쪽에서 이미 -12 → +40 내디딤이 있어 겹치면 74까지 나가 적 몸에 파고듦 → 작은 병사만 */
+  ctx.save(); ctx.translate(a.x + swk * 10 + lgx2, a.y + bob + hop + (1 - a.rise) * 40);
   const wkey = (a.evo && need('evo' + a.evo)) ? '' : a.c >= 0 && ART['cls' + a.c] ? 'cls' + a.c : 'skel', legs = !!LEGS[wkey];   /* 다리 나눠 그리는 병과는 휘두를 때 윗몸만 숙이고 발은 땅에 붙임 */
   if (a.fly) ctx.rotate(a.fly.r); else if (swk && !legs && !(ART.sk4_idle && !a.evo)) ctx.rotate(swk * 0.42);
   ctx.globalAlpha = a.rise;
@@ -1034,6 +1034,11 @@ function drawSun() {
     for (let i = 0; i < 8; i++) { const a = -S.t * 1.6 + i * 0.785, rr = r * (1.08 + 0.12 * Math.sin(S.t * 3 + i)); ctx.fillStyle = i % 2 ? 'rgba(255,220,255,.9)' : 'rgba(190,120,255,.85)'; ctx.beginPath(); ctx.arc(x + Math.cos(a) * rr, y + Math.sin(a) * rr, r * 0.045, 0, 7); ctx.fill(); }
     ctx.restore(); ctx.strokeStyle = 'rgba(230,200,255,.9)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke(); }
 }
+function drawSweep() { const w = S.sweepW; if (!w) return; const k = Math.min(1, w.t / w.life), x = w.x0 + (w.x1 - w.x0) * k, fade = w.t > w.life ? Math.max(0, 1 - (w.t - w.life) / 0.35) : 1, top = GROUND - 120, bot = GY(760);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createLinearGradient(x - 260, 0, x + 30, 0); g.addColorStop(0, 'rgba(120,40,255,0)'); g.addColorStop(0.75, `rgba(170,90,255,${0.45 * fade})`); g.addColorStop(0.95, `rgba(240,220,255,${0.9 * fade})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(x - 260, top, 290, bot - top);
+  ctx.strokeStyle = `rgba(255,245,255,${0.9 * fade})`; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x + 20, top); ctx.quadraticCurveTo(x + 70, (top + bot) / 2, x + 20, bot); ctx.stroke(); ctx.restore(); }   /* 11-17 쓸어 담기 빛의 벽 */
 function drawWave() {
   const w = S.wave; if (!w || w.r > 2200) return;
   ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = `rgba(230,210,255,${Math.max(0, 1 - w.r / 2200)})`; ctx.lineWidth = 30 * (1 - w.r / 2200) + 2;
