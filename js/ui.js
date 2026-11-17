@@ -297,6 +297,7 @@ const UI = {
         if (!t && ks.length) { const cards = this.tab === 'up' ? ks.map(k => document.querySelector(`#tabbody .ucard[data-arg="${k}"]`)).filter(Boolean) : []; t = this.tab === 'up' ? cards[0] || null : document.querySelector('#tabs [data-tab="up"]'); }   /* 11-15 각성 뒤 가장 싼 강화가 카드로 안 보이는 것(수확)이면 손가락이 강화 탭 ↔ 각성 탭을 오갔음 → 카드로 보이는 것 중 가장 싼 것 */
         if (!t && this.tab === 'crypt') t = document.querySelector('#tabbody [data-act="dunGo"].gold, #tabbody [data-act="keepGo"].gold:not([disabled])');   /* 벽(15판)에서 100초 멈춤 → 빨간 점 난 탭 · 그 안의 금빛 단추 */
         if (!t) { const d = [...document.querySelectorAll('#tabs button')].find(b => b.querySelector('.dot') && b.dataset.tab !== this.tab); if (d) t = d; }
+        if (!t && (st.tombQ || []).length) t = document.querySelector('#slots .tomb');   /* 11-18 02:1x 사람 흉내 7분: 첫 각성 뒤 영혼이 모일 때까지 107초 동안 짚을 게 없었는데 무덤은 5개 남아 있었음 → 할 게 없으면 무덤 */
       } }
     if (t && t.offsetParent !== null) {   /* 11-15 대표님 사진 「머를 갈키는거야?」: 짚을 단추(영웅 모집)가 위 「목표」 띠 밑에 가려져 손가락이 띠를 가리킴(아래 탭 줄에 가려지는 것도 같은 일) → 손가락 자리에서 맨 위에 있는 게 그 단추인지 확인, 아니면 목록 칸만 굴려 가운데로, 그래도 가려지면 손가락을 안 띄움 */
       const spot = r => [r.left + r.width * 0.5, r.top + r.height * 0.55], seen = r => { const [x, y] = spot(r); if (!r.width || y < 0 || y > innerHeight) return false; const e = document.elementFromPoint(x, y); return !!e && (e === t || t.contains(e) || e.closest('#finger')); };
@@ -386,7 +387,7 @@ const UI = {
       for (const b of $('tabs').children) b.classList.toggle('hint', b.dataset.tab === tabWant && this.tab !== tabWant);
       { const ab = document.querySelector('#tabbody [data-act="awaken"]'); if (ab) ab.classList.toggle('hint', !ab.disabled); }
       { const gb = document.querySelector('#tabbody [data-act="grave"]'); if (gb) gb.classList.toggle('hint', g === L.guide.grave && !gb.disabled); }
-      for (const cb of document.querySelectorAll('#tabbody [data-act="claim"]')) cb.classList.toggle('hint', !st.awakens && !cb.disabled);
+      for (const cb of document.querySelectorAll('#tabbody [data-act="claim"]')) cb.classList.toggle('hint', !cb.disabled);   /* 11-18 02:3x 사람 흉내 7분: 각성 뒤 빨간 점을 따라 임무 탭에 왔는데 받을 임무 둘에 손가락이 없어 11초 멈춤 → 각성 뒤에도 받기는 짚음 */
       { const any = !!document.querySelector('#tabbody .btn.hint, #tabs button.hint'), qb = document.querySelector('#tools [data-x="quick"]'); if (qb) qb.classList.toggle('hint', !any && !st.awakens && JB.quickCost(st) === 0 && S.t - (S.lastNew || 0) > 30); }   /* 누를 게 없이 30초 넘으면 무료 「빠른 보상」을 깜빡임 */
       { const pb = document.querySelector('#tabbody [data-act="pull10"]:not([disabled])') || document.querySelector('#tabbody [data-act="pull1"]:not([disabled])'); for (const x of document.querySelectorAll('#tabbody [data-act^="pull"]')) x.classList.toggle('hint', x === pb && !st.awakens); }
       if (this.tab === 'hero' && !document.querySelector('#tabbody .hint')) { const want = planBetter ? 'squad' : canPull ? 'pull' : null, sb = want && document.querySelector(`#tabbody [data-act="hview"][data-arg="${want}"]`); if (sb) sb.classList.add('hint'); }   /* 11-18 01:0x 사람3분.js: 보스 앞 「진형 바꾸면 더 셈」으로 영웅 탭에 데려왔는데 처음 보이는 칸이 「모집」이라 짚을 게 없어 15~18초 멈춤(두 번) → 「진형」 칸 단추를 짚음 */

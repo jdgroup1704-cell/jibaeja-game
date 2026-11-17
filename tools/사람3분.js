@@ -11,7 +11,7 @@ const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComp
     const mo = new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) { if (n.nodeType !== 1) continue; if (n.classList.contains('toast')) add('알림', n.textContent); if (n.id === 'tombfx') add('유품', n.textContent); } });
     mo.observe(document.body, { childList: true, subtree: true });
     let pw = ''; setInterval(() => { const e = document.getElementById('pwrup'); if (e && e.classList.contains('on') && e.textContent !== pw) { pw = e.textContent; add('힘▲', pw); } const rc = document.getElementById('rcard'); if (rc && rc.offsetWidth && rc.textContent !== window.__rc) { window.__rc = rc.textContent; add('보상', rc.textContent); } }, 250); });
-  const T0 = Date.now(); const taps = []; let modalSince = 0, idle = 0, idleMax = [0, 0], cur = 0;
+  const T0 = Date.now(); const taps = [], whyL = []; let modalSince = 0, idle = 0, idleMax = [0, 0], cur = 0;
   await pg.evaluate(() => document.getElementById('opening')?.click()); taps.push([0, '첫 화면']);
   while (Date.now() - T0 < SEC * 1000) {
     await pg.waitForTimeout(900); const t = Math.round((Date.now() - T0) / 1000);
@@ -23,10 +23,10 @@ const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComp
       return { none: 1, stage: st.stage, why: [document.getElementById('finger') ? document.getElementById('finger').className : '-', (st.tombQ || []).length, !!document.querySelector('#slots .tomb'), S.phase, st.raised, UI.tab, [...document.querySelectorAll('.hint')].map(h => h.tagName + '.' + h.className.replace(/ /g, '.') + ':' + (h.textContent || '').trim().slice(0, 8)).join(','), [...document.querySelectorAll('#tabbody [data-act="claim"]')].map(c => c.disabled ? 0 : 1).join('')].join('/') };
     });
     if (r.modal) { if (!modalSince) modalSince = t; if (t - modalSince >= 2) { const got = await pg.evaluate(() => { const c = [...document.querySelectorAll('#modal button, #modal .btn')].find(x => !x.disabled && /받기|모두 받기|받아요/.test(x.textContent)); if (c) { c.click(); return c.textContent.trim().slice(0, 12); } return ''; }); if (got) { taps.push([t, '창 안: ' + got]); await pg.waitForTimeout(600); } await pg.evaluate(() => UI.closeModal()); taps.push([t, '창 닫음: ' + r.modal.slice(0, 14)]); modalSince = 0; } continue; } modalSince = 0;
-    if (r.tap) { taps.push([t, r.tap]); idle = 0; if (process.env.DBG) console.error(t, '누름', r.tap); } else { if (process.env.DBG) console.error(t, r.why); idle++; if (idle > idleMax[0]) idleMax = [idle, t - idle]; }
+    if (r.tap) { taps.push([t, r.tap]); idle = 0; if (process.env.DBG) console.error(t, '누름', r.tap); } else { if (process.env.DBG) console.error(t, r.why); if (idle % 10 === 9) whyL.push(t + ' ' + r.why); idle++; if (idle > idleMax[0]) idleMax = [idle, t - idle]; }
   }
   const res = await pg.evaluate(() => ({ 새것: __new, 판: st.stage, 최고: st.best, 무덤남음: (st.tombQ || []).length, 장비: (st.gear || {}).n || 0, 영웅: Object.keys(st.heroes || {}).length }));
   const t0n = res.새것.length ? res.새것[0][0] : 0; const nov = res.새것.map(x => [x[0] - t0n, x[1], x[2]]);
   let gap = [0, 0], prev = 0; for (const x of nov) { if (x[0] - prev > gap[0]) gap = [x[0] - prev, prev]; prev = x[0]; }
-  console.log(JSON.stringify({ 판: res.판, 최고: res.최고, 누른수: taps.length, 무덤연수: nov.filter(x => x[1] === '유품').length, 무덤남음: res.무덤남음, 장비: res.장비, 영웅: res.영웅, 힘오름: nov.filter(x => x[1] === '힘▲').length, 알림: nov.filter(x => x[1] === '알림').length, 새것없는가장긴틈: gap, 누를것없는가장긴틈초: idleMax, 누름: taps.map(x => x[0] + ' ' + x[1]).slice(0, 80), 새것: nov.map(x => x.join(' ')).slice(0, 80), 오류: errs.slice(0, 3) }, null, 0));
+  console.log(JSON.stringify({ 판: res.판, 최고: res.최고, 누른수: taps.length, 무덤연수: nov.filter(x => x[1] === '유품').length, 무덤남음: res.무덤남음, 장비: res.장비, 영웅: res.영웅, 힘오름: nov.filter(x => x[1] === '힘▲').length, 알림: nov.filter(x => x[1] === '알림').length, 새것없는가장긴틈: gap, 누를것없는가장긴틈초: idleMax, 누름: taps.map(x => x[0] + ' ' + x[1]).slice(-120), 새것: nov.map(x => x.join(' ')).slice(-120), 멈춤이유: whyL.slice(-30), 오류: errs.slice(0, 3) }, null, 0));
   await b.close(); srv.close(); })();
