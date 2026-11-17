@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118031908'; let updReady = null;
+  const BUILD = '1118032231'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -4481,7 +4481,7 @@
         if (P.ground && P.ground.dx) P.x += P.ground.dx; if (P.ground && P.ground.cv) P.x += P.ground.cv; if (P.ground && P.ground.gone) P.ground = null;
         P.x = clamp(P.x + P.vx + (S.wind || 0), WL, WR); if (P.ground && P.vx) P.walk += Math.abs(P.vx) * .08;
         const oy = P.y; P.y += P.vy; const was = P.ground; P.ground = null;
-        if (P.tbD > 0) { P.tbN = (P.tbN || 0) + 1; if (P.y >= P.tbY + P.tbD || P.tbN > 100) { S.tbDrop = Math.max(0, P.y - P.tbY); P.tbD = 0; if (!P.stun) P.tb = 0; S.ev.push('tbland'); } }
+        if (P.tbD > 0) { P.tbN = (P.tbN || 0) + 1; if (P.y >= P.tbY + P.tbD || P.tbN > 120) { S.tbDrop = Math.max(0, P.y - P.tbY); P.tbD = 0; if (!P.stun) P.tb = 0; S.ev.push('tbland'); } }
         if (P.vy >= 0 && !(P.tb && (P.stun > 0 || P.tbD > 0))) { const cand = L.bk[Math.floor(P.y / 100)] || []; for (const p of cand) if (!(p.gone > 0) && P.x + PW / 2 > p.x && P.x - PW / 2 < p.x + p.w && oy <= p.y + .01 && P.y >= p.y) { P.y = p.y; P.vy = 0; P.ground = p; if (p.k === 'crumble' && !p.ct && !(p.gone > 0)) p.ct = 42; if (!was) { const drop = P.y - P.peak; if (drop > 260) { S.falls++; S.bigFall = Math.max(S.bigFall, drop); S.ev.push('fall'); } else S.ev.push('land'); } break; } }
         if (P.ground && P.ground.k === 'thorn') { if (S.tp !== P.ground) { if (S.tp) S.tp.tt = 0; S.tp = P.ground; S.tp.tt = 0; } if (++S.tp.tt > 46) { S.tp.tt = 0; S.ev.push('thorn'); knock(S, P.face || 1, -2.6, -7.5, 26, 'thorn'); } } else if (S.tp && (P.ground || P.vine)) { S.tp.tt = 0; S.tp = null; }
         if (P.ground) P.peak = P.y; else P.peak = Math.min(P.peak, P.y);
@@ -4492,7 +4492,7 @@
         // 번개(8 · 10구역): 빨간 줄로 미리 알려 주고 0.9초 뒤 떨어짐
         if (ltp) { S.ltT = (S.ltT || 0) + 1; if (S.ltT > ltp && !S.lt) { S.ltT = 0; S.rs = (S.rs * 16807 + 11) % 2147483647; S.lt = { x: clamp(P.x + P.vx * 12 + (S.rs % 64) - 32, 24, 426), t: 54 }; S.ev.push('zapw'); } }
         if (S.lt) { S.lt.t--; if (S.lt.t === 0) { S.ev.push('zap'); if (Math.abs(S.lt.x - P.x) < 23) knock(S, P.x < S.lt.x ? -1 : 1, 3.4, -6, 30, 'bolt'); } else if (S.lt.t < -14) S.lt = null; } }
-      for (const h of L.hog) { const p = h.p; if (Math.abs(p.y - P.y) > 140) continue; const hx = hogX(h, S.fr); h.x = hx; if (h.tr) { const c = (S.fr + h.ph) % h.per; h.bt = c >= h.per - 34 ? 2 : c >= h.per - 60 ? 1 : 0; if (h.bt === 2 && Math.abs(hx - P.x) < 27 && P.y > p.y - 30 && P.y < p.y + 4) { if (knock(S, P.x < hx ? -1 : 1, 4.4, -5.5, 26, 'trap') && P.y < -300) { if (!P.tb) S.ev.push('tumble'); P.tb = 1; P.tbY = P.y; P.tbD = 200; P.tbN = 0; } break; } continue; } if (Math.abs(hx - P.x) < 17 && P.y > p.y - 26 && P.y < p.y + 4) { knock(S, P.x < hx ? -1 : 1, 4.4, -5.5, 26, 'hog'); break; } }
+      for (const h of L.hog) { const p = h.p; if (Math.abs(p.y - P.y) > 140) continue; const hx = hogX(h, S.fr); h.x = hx; if (h.tr) { const c = (S.fr + h.ph) % h.per; h.bt = c >= h.per - 34 ? 2 : c >= h.per - 60 ? 1 : 0; if (h.bt === 2 && Math.abs(hx - P.x) < 27 && P.y > p.y - 30 && P.y < p.y + 4) { if (knock(S, P.x < hx ? -1 : 1, 5.2, -5.5, 30, 'trap') && P.y < -400) { if (!P.tb) S.ev.push('tumble'); P.tb = 1; P.tbY = P.y; P.tbD = 300; P.tbN = 0; } break; } continue; } if (Math.abs(hx - P.x) < 17 && P.y > p.y - 26 && P.y < p.y + 4) { knock(S, P.x < hx ? -1 : 1, 4.4, -5.5, 26, 'hog'); break; } }
       if (!(P.stun > 0)) { for (const b of L.bee) { if (Math.abs(b.y - P.y) > 200) continue; const bx = b.x0 + Math.sin(S.fr * b.s + b.ph) * b.a; if (Math.abs(bx - P.x) < 18 && b.y > P.y - PH - 8 && b.y < P.y + 6) { knock(S, P.x < bx ? -1 : 1, 4.6, -5, 26, b.bd ? 'bird' : 'bee'); break; } }
         for (const q of L.spi) { if (Math.abs(q.y0 - P.y) > 260) continue; const qy = q.y0 + (1 - Math.cos(S.fr * q.s + q.ph)) * q.a; if (Math.abs(q.x - P.x) < 18 && qy > P.y - PH - 8 && qy < P.y + 6) { knock(S, P.x < q.x ? -1 : 1, 4.6, -4, 26, 'spi'); break; } } }
       for (let i = S.ban.length - 1; i >= 0; i--) { const b = S.ban[i]; b.vy += BG2; b.x += b.vx; b.y += b.vy; b.r += .3; if (Math.abs(b.x - P.x) < PW / 2 + 9 && b.y > P.y - PH - 6 && b.y < P.y + 4 && !(P.stun > 0)) { S.ban.splice(i, 1); knock(S, b.vx > 0 ? 1 : -1, 5.2, -5.5, 30, b.ac ? 'acorn' : 'ban'); continue; } if (b.y > P.y + 900) S.ban.splice(i, 1); }
