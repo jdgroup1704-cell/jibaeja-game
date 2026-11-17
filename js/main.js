@@ -45,6 +45,7 @@ function offlineCheck() {
   if (JB.unlocked(st, 'lab')) wait.push(st.lab.cur ? (now >= st.lab.cur.end ? R.labDone(L.lab.names[st.lab.cur.id]) : null) : R.labIdle);
   if (JB.unlocked(st, 'crypt') && st.crypt.keys > 0) wait.push(R.keys(st.crypt.keys));
   if (JB.unlocked(st, 'map') && st.map.tokens > 0) wait.push(R.tokens(st.map.tokens));
+  if (secs > 1800 && !TRAILER) { const once = () => { document.removeEventListener('pointerdown', once, true); setTimeout(() => { try { Snd.voiceCd('v_lback', 60, 0); } catch (e) {} }, 350); }; document.addEventListener('pointerdown', once, true); }   /* 21:3x 30분 넘게 비웠다 오면 지배자 「돌아왔는가. 그동안 내 군단은 쉬지 않았다」(첫 손댐 뒤 — 그 전엔 휴대폰이 소리를 막음) */
   const bg = JB.backGift(st, secs, now);   /* 11-15 돌아온 사람 보상(따로 금빛 칸) */
   const list = wait.filter(Boolean), more = (bg ? `<div class="ready backg">${L.offline.back(bg.days, bg.gems, bg.bones)}</div>` : '') + (list.length ? `<div class="ready"><b>${R.title}</b>${list.map(x => `<div>· ${x}</div>`).join('')}</div>` : '');
   const O = L.offline, ch = g.chest, card = (ic, n, v) => `<div class="oc"><img src="art/${ic}.webp" alt=""><b>${v}</b><small>${n}</small></div>`;

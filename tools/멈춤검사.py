@@ -4,6 +4,13 @@
 # 🤖 이 하나라도 남아 있으면 종료 코드 1 → 답장을 끝내지 말고 그 일을 계속한다.
 # 쓰는 법: python 멈춤검사.py 작업기록.md
 import re, sys
+# 21:2x 대표님 「영어하지마 한글ㅡㅡ」(마지막 두 답장이 영어였음) → 답장 초안을 /tmp/답장.md에 쓰고 「--답장 /tmp/답장.md」로 같이 검사: 영어 낱말(링크 · 단위 빼고) 5개 넘으면 멈출 수 없음
+if '--답장' in sys.argv:
+    i = sys.argv.index('--답장'); rp = sys.argv[i + 1]; del sys.argv[i:i + 2]
+    rt = re.sub(r'https?://\S+|`[^`]*`|\b(fps|ms|px|LUFS|dB|Opus|ElevenLabs|Midnight|Cave|Sujin|Bright|Energetic|Eleven|v\d+|mp3|mp4|jpg|png|md|js|py|sh)\b', ' ', open(rp, encoding='utf-8').read())
+    en = re.findall(r'[A-Za-z]{3,}', rt); ko = len(re.findall(r'[가-힣]', rt))
+    if len(en) > 5 or ko < 10: print(f'✗ 답장이 한글이 아님: 영어 낱말 {len(en)}개 · 한글 {ko}자 — {en[:8]}'); sys.exit(1)
+    print(f'🔤 답장 한글 통과(영어 낱말 {len(en)}개 · 한글 {ko}자)')
 p = sys.argv[1] if len(sys.argv) > 1 else "작업기록.md"
 t = open(p, encoding="utf-8").read()
 m = re.search(r"^## 0-1\..*?$(.*?)(?=^## )", t, re.S | re.M)
