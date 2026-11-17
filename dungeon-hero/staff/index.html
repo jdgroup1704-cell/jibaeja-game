@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118042154'; let updReady = null;
+  const BUILD = '1118042547'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -5429,7 +5429,7 @@
     const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, B.id === 'dev' ? '#04140a' : '#1a0408'); g.addColorStop(1, '#06040a'); ctx.fillStyle = g; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(140, 300, 220, B.col, .22 + .06 * Math.sin(t * .05)); ctx.restore();
     if (S && S.ok) { const hh = 360, w = S.img.width * hh / S.img.height; ctx.drawImage(S.img, 140 - w / 2 + Math.sin(t * .03) * 3, 116, w, hh); }
-    txt('⚔️ 주간 보스 토벌전', W / 2, 40, 26, '#ffd8b0', FT); tfit('이번 주 · ' + B.n + ' 「' + B.t + '」', W / 2, 74, 16, `rgb(${B.c2})`, W - 30, FB, 'center');
+    tfit('⚔️ 주간 보스 토벌전', 24, 40, 26, '#ffd8b0', W - 160, FT, 'left'); tfit('이번 주 · ' + B.n + ' 「' + B.t + '」', 24, 74, 16, `rgb(${B.c2})`, W - 48, FB, 'left');
     let y = 128; const X = 262; tfit('기술', X, y, 14, '#c8a888', 170, FB, 'left'); y += 24; B.sk.concat([B.ult]).forEach((k, i) => { tfit((i === B.sk.length ? '🔥 ' : '· ') + B.skn[k], X, y, 15, i === B.sk.length ? `rgb(${B.col})` : '#fff', 170, FT, 'left'); y += 24; });
     y += 8; tfit('60초 동안 넣은 피해량으로', X, y, 12.5, '#c8b8a0', 170, FB, 'left'); tfit('이번 주 순위를 겨뤄요', X, y + 18, 12.5, '#c8b8a0', 170, FB, 'left');
     y = 492; ctx.fillStyle = 'rgba(30,14,18,.92)'; rrect(16, y, W - 32, 64, 14); ctx.fill(); ctx.strokeStyle = `rgba(${B.col},.6)`; ctx.lineWidth = 2; ctx.stroke();
@@ -5445,6 +5445,7 @@
       txt(A2.why === 'time' ? '⏱️ 60초 끝!' : '💥 쓰러졌어요', W / 2, Y + 42, 26, '#ffe6c8', FT); tfit(A2.B.n + ': 「' + A2.B.say[2] + '」', W / 2, Y + 78, 13.5, `rgb(${A2.B.c2})`, W - 100, FB, 'center');
       txt('💥 ' + A2.dmg.toLocaleString(), W / 2, Y + 138, 36 + 12 * (1 - q), '#fff', FT); if (A2.nb) txt('🆕 이번 주 최고 기록!', W / 2, Y + 182, 18, '#7aff9a', FT); else tfit('이번 주 최고 💥 ' + A2.best.toLocaleString(), W / 2, Y + 182, 15, '#c8b8a0', W - 100, FB, 'center');
       tfit('참가 보상 💰 +' + A2.gold.toLocaleString() + ' · 🔷 +3', W / 2, Y + 222, 16, '#ffd34d', W - 100, FT, 'center');
+      { const L = raidRank || [], me = fbUser && fbUser.uid, mi = L.findIndex(q => q.id === me); tfit(mi >= 0 ? '🏆 이번 주 ' + (mi + 1) + '위 / ' + L.length + '명' : raidBusy ? '순위 불러오는 중…' : fb && fbReady ? '순위에 올리는 중…' : '서버에 연결되면 순위가 나와요', W / 2, Y + 254, 15, mi >= 0 && mi < 3 ? '#ffe27a' : '#e8d8c8', W - 100, FT, 'center'); if (!raidBusy && mi < 0 && fb && fbReady && t - A2.t0 > 120 && !A2.rl) { A2.rl = 1; raidRankLoad(); } }
       button('확인', 110, Y + CH - 76, W - 220, 50, () => { raidRes = null; }, true); } }
   { const _dr193 = draw; draw = function () { if (state !== 'raid') return _dr193(); buttons = []; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#07060a'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy); ctx.imageSmoothingEnabled = true;
       ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip(); try { drawRaid(); } catch (e) { txt('토벌전 오류: ' + (e && e.message), W / 2, 400, 14, '#f88', FB); } ctx.restore(); ctx.imageSmoothingEnabled = false; }; }
@@ -5516,7 +5517,7 @@
     tile(72, po, '120,255,170', '인내의 숲', po ? (meta.jp ? '이어 오르기' : '숨은 점프 맵') : '10층부터', po && !st.clear ? (st.tries ? '도전!' : 'NEW') : '',
       (cx, cy, on) => { ctx.save(); if (!on) ctx.globalAlpha = .45; jSpr('portal', cx - 30, cy - 30, 60, 58); ctx.restore(); },
       () => { if (po) { floorPop = true; patPop = true; } else townPop = { txt: '🌲 인내의 숲', sub: '10층을 넘기면 열려요 · 꼭대기에 큰 보상', t0: t }; });
-    { const RB = rdBoss(), on = (meta.best || 0) >= 10, rl = rdLeft(); tile(W - 72 - w, on, RB.col, '토벌전', on ? RB.n : '10층부터', on && rl > 0 ? '' + rl : '',
+    { const RB = rdBoss(), on = (meta.best || 0) >= 10, rl = rdLeft(), rb = rdM().best; tile(W - 72 - w, on, RB.col, '토벌전', on ? (rb ? '💥' + kfmt(rb) : RB.n) : '10층부터', on && rl > 0 ? '' + rl : '',
       (cx, cy, on2) => { ctx.save(); if (!on2) ctx.globalAlpha = .45; ctx.globalCompositeOperation = 'lighter'; glow(cx, cy, 36, RB.col, .4); ctx.restore(); const S = RDIMG[RB.id]; ctx.save(); if (!on2) ctx.globalAlpha = .45; if (S && S.ok) { const hh = 64, ww = S.img.width * hh / S.img.height; ctx.imageSmoothingEnabled = true; ctx.drawImage(S.img, cx - ww / 2, cy - hh / 2 - 4, ww, hh); ctx.imageSmoothingEnabled = false; } else txt('⚔️', cx, cy + 2, 38, '#fff', FT); ctx.restore(); },
       () => { if (on) raidOpen(); else townPop = { txt: '⚔️ 주간 보스 토벌전', sub: '10층을 넘기면 열려요 · 60초 피해량 순위', t0: t }; }); } }
 
