@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118013139'; let updReady = null;
+  const BUILD = '1118014352'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -5166,7 +5166,8 @@
     ['boss', '👑', n => '보스 ' + n + '마리', () => { let s = 0; const d = meta.dex || {}; for (let i = 1; i <= 12; i++) s += d['b' + i] || 0; return s; }, [3, 10, 25, 50, 100]],
     ['dex', '👾', n => '도감 ' + n + '칸 발견', () => { try { return dexGot()[0]; } catch (e) { return 0; } }, [6, 12, 20, 30, 43]],
     ['wpn', '🗡️', n => '무기 +' + n + ' 강화', () => (meta.eq && meta.eq.w) || 0, [5, 10, 20, 30, 40, 50]],
-    ['hid', '✨', n => '히든 스킬 ' + n + '개', () => (meta.hid || []).length, [1, 3, 5, 7, 10, 14]]];
+    ['hid', '✨', n => '히든 스킬 ' + n + '개', () => (meta.hid || []).length, [1, 3, 5, 7, 10, 14]],
+    ['zone', '🗺️', n => '도감 지역 ' + n + '곳 완성', () => { const d = meta.dex || {}; return DEXW.filter(w => w[1].every(m => d[m[0]])).length; }, [1, 2, 3, 4, 5]]];
   const achRw = i => [Math.max(50, Math.round(idleGoldRate() * [30, 60, 90, 120, 180, 240, 300, 360, 480][Math.min(8, i)])), [2, 3, 5, 8, 12, 16, 20, 25, 30][Math.min(8, i)]];
   const achCur = a => { const got = (meta.ach && meta.ach[a[0]]) || 0; return { i: got, need: a[4][got], v: a[3]() }; };
   const achCan = () => { try { let n = 0; for (const a of ACH) { const c = achCur(a); if (c.need !== undefined && c.v >= c.need) n++; } return n; } catch (e) { return 0; } };
@@ -5174,13 +5175,13 @@
   function drawAch() { ctx.fillStyle = 'rgba(5,3,8,.9)'; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
     const X = 22, Y = 112, CW = W - 44, CH = 600; ctx.fillStyle = '#1e1630'; rrect(X, Y, CW, CH, 22); ctx.fill(); ctx.strokeStyle = '#ffc864'; ctx.lineWidth = 3; ctx.stroke();
     txt('🏅 업적', W / 2, Y + 36, 28, '#ffd27a', FT); txt('한 번씩만 받는 보상 · 단계가 오를수록 커져요', W / 2, Y + 66, 13, '#c8b8a0');
-    ACH.forEach((a, k) => { const c = achCur(a), done = c.need === undefined, ok = !done && c.v >= c.need, y = Y + 86 + k * 72;
-      ctx.fillStyle = ok ? 'rgba(24,70,40,.92)' : done ? 'rgba(30,36,50,.9)' : 'rgba(40,34,70,.92)'; rrect(X + 14, y, CW - 28, 64, 12); ctx.fill(); ctx.strokeStyle = ok ? '#8dffab' : 'rgba(200,180,255,.3)'; ctx.lineWidth = 2; ctx.stroke();
-      txt(a[1], X + 42, y + 32, 24, '#fff', FB, 'center', 'rgba(0,0,0,0)');
+    ACH.forEach((a, k) => { const c = achCur(a), done = c.need === undefined, ok = !done && c.v >= c.need, y = Y + 84 + k * 65;
+      ctx.fillStyle = ok ? 'rgba(24,70,40,.92)' : done ? 'rgba(30,36,50,.9)' : 'rgba(40,34,70,.92)'; rrect(X + 14, y, CW - 28, 60, 12); ctx.fill(); ctx.strokeStyle = ok ? '#8dffab' : 'rgba(200,180,255,.3)'; ctx.lineWidth = 2; ctx.stroke();
+      txt(a[1], X + 42, y + 30, 24, '#fff', FB, 'center', 'rgba(0,0,0,0)');
       tclip(done ? '모두 달성!' : a[2](c.need), X + 66, y + 18, 15.5, done ? '#8a90a4' : '#fff', CW - 190, FT, 'left'); txt((c.i + (done ? 0 : 1)) + '/' + a[4].length + '단계', X + CW - 132, y + 18, 11, '#a89ac8', FB, 'right');
       if (!done) { const p = Math.min(1, c.v / c.need); ctx.fillStyle = 'rgba(0,0,0,.5)'; rrect(X + 66, y + 32, CW - 200, 10, 5); ctx.fill(); ctx.fillStyle = ok ? '#5fe08a' : '#ffc864'; rrect(X + 66, y + 32, Math.max(8, (CW - 200) * p), 10, 5); ctx.fill(); const [g, s] = achRw(c.i); txt(kfmt(Math.min(c.v, c.need)) + ' / ' + kfmt(c.need) + '   💰' + kfmt(g) + ' 🔷' + s, X + 66, y + 53, 11.5, '#ffe6a8', FB, 'left'); }
-      button(done ? '완료' : ok ? '받기' : '진행 중', X + CW - 112, y + 12, 90, 40, () => achGet(a), ok, !ok); });
-    if (t - achNoteT < 150) txt(achNote, W / 2, Y + CH - 72, 15, '#9affb0', FB);
+      button(done ? '완료' : ok ? '받기' : '진행 중', X + CW - 112, y + 10, 90, 40, () => achGet(a), ok, !ok); });
+    if (t - achNoteT < 150) tfit(achNote, W / 2, Y + CH - 57, 14, '#9affb0', CW - 30, FB, 'center');
     button('← 임무로', W / 2 - 80, Y + CH - 48, 160, 38, () => { ach178 = false; }, false); }
 
   // ===================== 빌드 179: 처음 보는 보스 =====================
