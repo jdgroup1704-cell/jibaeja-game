@@ -2120,7 +2120,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1117113841'; let updReady = null;
+  const BUILD = '1117114436'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
@@ -3253,16 +3253,16 @@
     if (runSave) { button('▶ 이어하기 (' + runSave.floor + '층 · Lv ' + runSave.lv + ')', 40, y, W - 80, 56, resumeRun, true); }
     else { const bt = meta.lastBuild ? 68 : 0; if (cp > 1) button('🚩 ' + cp + '층부터 도전!', 40, y, W - 80 - bt, 56, () => startRun(cp), true); else button('⚔️ 모험 시작 (1층부터)', 40, y, W - 80 - bt, 56, () => startRun(1), true);
       if (bt) { button('', W - 40 - 60, y, 60, 56, buildToggle, false); txt(meta.buildNew ? '🎲' : '🔁', W - 70, y + 21, 22, '#fff', FB, 'center', 'rgba(0,0,0,0)'); txt(meta.buildNew ? '새 스킬' : '지난 스킬', W - 70, y + 46, 12.5, '#ffe0b0', FB); } }
-    y += 58;
+    y += 59;
     { const opts = []; if (cp > 1) opts.push(['🗺️ 층 고르기 · ⭐ 추천 ' + flRec() + '층', () => { floorPop = true; floorSel = 0; floorPg = 99; }]);
-      const n = opts.length, gap = 8, bw = n ? (W - 80 - gap * (n - 1)) / n : 0; opts.forEach((o, i) => button(o[0], 40 + i * (bw + gap), y, bw, 31, o[1], false));
+      const n = opts.length, gap = 8, bw = n ? (W - 80 - gap * (n - 1)) / n : 0; opts.forEach((o, i) => { button('', 40 + i * (bw + gap), y, bw, 42, o[1], false); tfit(o[0], 40 + i * (bw + gap) + bw / 2, y + 22, 20, '#ffe9b0', bw - 20, FT, 'center'); });
       if (!n) txt(meta.best <= 1 ? '화면을 끌면 움직여요 · 공격은 자동이에요' : '쓰러져도 마지막으로 간 층부터 다시 시작해요', W / 2, y + 17, 13, '#c8a888'); }
-    if (fbOK()) { const m = chatMsgs[0], nw3 = m && m.ms > chatSeen && !(fbUser && m.uid === fbUser.uid); button('', 22, 626, W - 44, 72, chatOpen, false); { const L3 = [chatMsgs[2], chatMsgs[1], m].filter(Boolean);
-        if (!m) tclip('💬 채팅 · 눌러서 첫 마디를 남겨 보세요', W / 2, 662, 15, '#cfe0f0', W - 88, FB, 'center');
-        else { L3.forEach((q, i) => { const y = 643 + (3 - L3.length + i) * 21, last = i === L3.length - 1, nm = q.name + ': '; ctx.font = '15px ' + FB; const nwid = Math.min(150, ctx.measureText(nm).width); tclip(nm, 36, y, 15, last ? '#ffd27a' : '#c8a868', 150, FB, 'left'); tclip(q.text, 36 + nwid, y, 15, last ? (nw3 ? '#ffffff' : '#eef4ff') : '#b8c4d8', W - 132 - nwid, FB, 'left'); });
-          ctx.fillStyle = 'rgba(255,255,255,.12)'; rrect(W - 92, 632, 60, 24, 12); ctx.fill(); txt('💬 채팅', W - 62, 644, 12.5, '#ffe6a8', FB); }
-        if (nw3) { ctx.fillStyle = '#ff3b3b'; ctx.beginPath(); ctx.arc(W - 34, 632, 5, 0, 6.283); ctx.fill(); } } }
-    else { const tip = TIPS63[Math.floor(Date.now() / 6000) % TIPS63.length]; tclip('💡 ' + tip, W / 2, 662, 14, '#b8a488', W - 36, FB, 'center'); }
+    if (fbOK()) { const m = chatMsgs[0], nw3 = m && m.ms > chatSeen && !(fbUser && m.uid === fbUser.uid); button('', 22, 638, W - 44, 60, chatOpen, false); { const L3 = [chatMsgs[2], chatMsgs[1], m].filter(Boolean);
+        if (!m) tclip('💬 채팅 · 눌러서 첫 마디를 남겨 보세요', W / 2, 668, 15, '#cfe0f0', W - 88, FB, 'center');
+        else { L3.forEach((q, i) => { const y = 652 + (3 - L3.length + i) * 18.5, last = i === L3.length - 1, nm = q.name + ': '; ctx.font = '14.5px ' + FB; const nwid = Math.min(150, ctx.measureText(nm).width); tclip(nm, 36, y, 14.5, last ? '#ffd27a' : '#c8a868', 150, FB, 'left'); tclip(q.text, 36 + nwid, y, 14.5, last ? (nw3 ? '#ffffff' : '#eef4ff') : '#b8c4d8', W - 132 - nwid, FB, 'left'); });
+          ctx.fillStyle = 'rgba(255,255,255,.12)'; rrect(W - 92, 642, 60, 22, 11); ctx.fill(); txt('💬 채팅', W - 62, 653, 12.5, '#ffe6a8', FB); }
+        if (nw3) { ctx.fillStyle = '#ff3b3b'; ctx.beginPath(); ctx.arc(W - 34, 642, 5, 0, 6.283); ctx.fill(); } } }
+    else { const tip = TIPS63[Math.floor(Date.now() / 6000) % TIPS63.length]; tclip('💡 ' + tip, W / 2, 668, 14, '#b8a488', W - 36, FB, 'center'); }
     // 6) 맨 아래 고정 메뉴 5칸
     ctx.fillStyle = 'rgba(8,6,12,.92)'; ctx.fillRect(-ox / scale, 700, innerWidth / scale, (innerHeight - oy) / scale - 700 + 2); ctx.fillStyle = 'rgba(255,210,140,.25)'; ctx.fillRect(-ox / scale, 700, innerWidth / scale, 1.5);
     { const na = affordable().length, er = eqRecommend(), nb = bagBetter();
