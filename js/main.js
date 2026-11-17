@@ -56,7 +56,7 @@ function offlineCheck() {
 }
 
 // ───────── 시험용 봇: 처음 하는 사람처럼 단순하게 ─────────
-const BOT = { t: 0, log: [] };
+const BOT = { t: 0, log: [] }; let pwT = 0;
 /* 봇 놀이는 뽑기 · 무덤 · 보물 운을 씨앗으로 고정(?seed=숫자, 기본 1): 바꾼 것 때문인지 운 때문인지 가르려고 */
 if (AUTO) { let sd = (+Q.get('seed') || 1) >>> 0; const rnd = () => { sd = (sd + 0x6D2B79F5) >>> 0; let t = sd; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; for (const k of ['raiseGrave', 'pull', 'treasure']) { const f = JB[k]; JB[k] = (st, a, r) => k === 'pull' ? f(st, a, r || rnd) : f(st, a || rnd); } }
 function botStep() {
@@ -92,6 +92,7 @@ function frame(now) {
   EX.tick(real, dt); if (typeof SO !== 'undefined') SO.tick(real);
   viewUpdate(dt); if (typeof Saver !== 'undefined' && Saver.is) Saver.tick(); else if (!window.DEMO_SKIP) draw();   /* 절전 중엔 그리지 않음 */
   uiT += real; if (uiT > (typeof Saver !== 'undefined' && Saver.is ? 2 : 0.25)) { uiT = 0; UI.render(); }
+  pwT += real; if (pwT > 0.4) { pwT = 0; const p = JB.dps(Object.assign({}, st, { tide: 0, frozen: 0 })); if (S.pw0 && p > S.pw0 * 1.004 && !UI.awakening && typeof UI.pwrUp === 'function') UI.pwrUp(S.pw0, p); S.pw0 = p; }   /* 11-17 23:2x 처음 3분 비교 「전투력이 올라가는 순간」: 강화 · 장비 · 영웅으로 군단 공격이 오르면 그 자리에서 「▲ +8%」 */
   saveT += real; if (saveT > 5) { saveT = 0; save(); if (JB.newDay(st, dayNo())) UI.toast(L.mission.title, L.ui.newMission); }
   if (AUTO) { BOT.t += dt; botT += dt; if (botT > 0.5) { botT = 0; botStep(); } }
   requestAnimationFrame(frame);

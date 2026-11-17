@@ -455,6 +455,11 @@ const UI = {
     this.openModal(`<h3>${L.gear.slots[id]}</h3>${it ? `<p style="text-align:center"><b class="gq g${it.g}">${L.gear.grades[it.g]} ${L.gear.slots[id]} +${it.lv || 0}</b></p><p style="text-align:center">${L.gear.stat[sl.stat]} +${pc}%<br><span class="muted">${L.gear.ilv(L.stage(it.ilv))}</span></p>
       ${(it.lv || 0) < JB.GEAR.maxLv ? `<button class="btn big gold" data-act="gearUp" data-arg="${id}" ${G.stones < JB.gearUpCost(it) ? 'disabled' : ''} style="width:100%">${L.gear.up(JB.gearUpCost(it))}</button>` : `<p class="muted" style="text-align:center">${L.gear.max}</p>`}` : `<p class="muted" style="text-align:center">${L.gear.empty}</p>`}<p class="muted mini" style="text-align:center">${L.gear.hint}</p>`);
   },
+  pwrUp(a, b) {   /* 군단 공격이 오르면 전장 아래쪽에 「군단 공격 1.2만 ▲ +8%」 — 1.2초 안에 또 오르면 처음 값부터 합쳐 보여 줌 */
+    const wrap = $('stagewrap'); let e = $('pwrup'); const now = performance.now(); if (!e) { e = document.createElement('div'); e.id = 'pwrup'; wrap.appendChild(e); }
+    if (!(this.pwBase && now - this.pwT < 1300)) this.pwBase = a; this.pwT = now; const pc = (b / this.pwBase - 1) * 100;
+    e.innerHTML = `${L.pwrUp}<b>${fmt(b)}</b><i>▲ +${pc >= 10 ? Math.round(pc) : pc.toFixed(1)}%</i>`; e.classList.remove('on'); void e.offsetWidth; e.classList.add('on');
+  },
   tombOpen(btn) {   /* 무덤 열기: 뼛조각 1 → 유품(장비) 1 · 좋은 건 자동 장착(밸런스는 제단과 같음) · 보이는 건 그 자리에서 솟는 유품 + 등급 빛 + 전후 값 */
     const x = JB.tombOpen(st); if (!x) return; const it = x.it, sl = JB.GEAR_SLOTS.find(q => q.id === it.slot); (st.seen = st.seen || {}).tomb = 1;
     const ART = { staff: 'gear_staff', crown: 'gear_crown', ring: 'gear_ring', armor: 'gear_armor', amulet: 'gear_amulet', cloak: 'gear_cloak' }, dg = (v, w) => { let d = sl.stat === 'cd' || v < 0.1 ? 1 : 0; while (w != null && d < 3 && (v * 100).toFixed(d) === (w * 100).toFixed(d)) d++; return d; }, pct = (v, w) => (v * 100).toFixed(dg(v, w)) + '%';   /* 22:0x 「−1.1% → −1.1%」처럼 같아 보이면 자릿수를 늘림 */

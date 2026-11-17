@@ -420,7 +420,7 @@ function bossArrive(lord) {
 }
 function bossWait(lord) {
   if (st.spellReady <= 0 && JB.unlocked(st, 'autoCast') && st.autoCast) return;   /* 대마법 자동이면 「누르세요」 화면 없이 규칙이 바로 자동 영창(21:07 대표님 「자동 없어 귀찮아」) */
-  if (st.spellReady > 0) { S.phase = 'fight'; const sr = st.spellReady; setTimeout(() => say(L.spell.ready(Math.ceil(Math.max(1, sr - 1.6))), W / 2, 230, { size: 32, col: '#d9c2ff', life: 1.8, vy: 0, screen: true }), 1600); return; }
+  if (st.spellReady > 0) { S.phase = 'fight'; const sr = st.spellReady, bw = S.bubble && S.bubble.age < S.bubble.life ? (S.bubble.life - S.bubble.age) * 1000 + 150 : 0, dl = Math.max(1600, Math.min(3500, bw)); setTimeout(() => say(L.spell.ready(Math.ceil(Math.max(1, sr - dl / 1000))), W / 2, 230, { size: 32, col: '#d9c2ff', life: 1.8, vy: 0, screen: true }), dl); return; }   /* 11-17 23:5x 영상_무덤 49초: 보스전 시작 「대마법 ○초」가 영웅 말풍선(「저 거대한 것이…」)과 같은 높이에 겹침 → 말풍선이 떠 있으면 사라진 뒤에 띄움 */
   const long = !st.seen.castLong || lord;
   if (long) { S.phase = 'stare'; S.stare0 = S.t; S.ts = 0.25; Snd.droneTo(0.008, 0.6); Snd.stareIn(); camTo(W / 2 + 70, H / 2, NARROW() ? 1 : 1.12, 0.5);   /* 얼굴만 확 당기던 것(3.4배) → 전장 전체가 보이게 살짝만 다가감(11-14 대표님 「얼굴만 딱 확대 — 별로」) */ }
   else showPrompt();

@@ -59,5 +59,7 @@ echo "㊸ 알림 상자(지적장부 C7 · 11-17 22:0x): 「새로 열림」 등
 pkill -f chrome 2>/dev/null
 echo "㊹ 로봇 오류 사냥(11-17 23:0x 대표님 21:24 「오류 못 찾으니까 니가 진화해」): 봇이 8배속으로 3분 플레이하며 탭 · 상점 · 메뉴를 돌아가며 열고 매번 — 이상한 글(NaN · undefined) · 재화 이상 · 단추 겹침(창 · 펼친 메뉴가 위에 뜬 것 빼고) · 글자 넘침 · 화면 밖 단추 · 오류 0"; R=$(timeout 260 node 오류사냥.js $D 3 8 593 2>/dev/null); echo "$R" | python3 -c "import json,sys; r=json.load(sys.stdin); e=[x for x in r['오류'] if 'vibrate' not in x]; p=r['문제']; print('  본 화면 %d · %s판 · 문제 %d · 오류 %d' % (r['본화면'], r['끝']['best'], len(p), len(e))); [print('  ✗ '+x) for x in (p+e)[:6]]; sys.exit(1 if p or e else 0)" && echo "  오류 사냥 통과" || { echo "  ✗ 오류 사냥(사진 /home/claude/rec/사냥/)"; F=1; }
 pkill -f chrome 2>/dev/null
+echo "㊺ 군단 공격 오름(11-17 23:2x 처음 3분 비교 「세졌다」는 순간): 소환 강화를 사면 「군단 공격 ○ ▲ +○%」가 뜸 · 전장 안 · 기술 줄 · 대마법 · 아래 칸 · 무덤 유품과 안 겹침 · 1.3초 뒤 사라짐 · 오류 0"; R=$(timeout 90 node 힘오름재기.js $D | tail -1); echo "  $R" | cut -c1-220; echo "$R" | python3 -c "import json,sys; r=json.load(sys.stdin); m=r['표시'] or {}; bad=[k for k,ok in [('뜸',r['가장보임']>0.9 and '▲' in m.get('글','')),('전장 안',m.get('전장안')),('가림',not m.get('가림',[1])),('사라짐',r['사라짐']),('오류',not r['오류'])] if not ok]; print('  군단 공격 오름 통과' if not bad else '  ✗ 군단 공격 오름: '+' · '.join(bad)); sys.exit(1 if bad else 0)" || F=1
+pkill -f chrome 2>/dev/null
 echo "⑬ 직접 플레이 영상(고친 뒤 찍고 본 것 적기) — 11-15 19:56 「기능들도 전부 영상으로 직접 플레이 체크」"; python3 영상확인검사.py $1 || F=1
 [ $F = 0 ] && echo "관문 통과" || { echo "관문 실패"; exit 1; }
