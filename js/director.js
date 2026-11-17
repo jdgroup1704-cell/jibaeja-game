@@ -310,7 +310,7 @@ function foeAct(f, dt, front) {   /* 종류별 행동 */
 }
 /* 밀고 밀림: 새 무리가 오면 적이 몰아붙여 우리 줄이 밀려나고(−80), 잡아 나갈수록 앞으로 밀고 나감(+130). 보스전은 남은 체력 · 남은 시간을 견줘 늦으면 지배자 쪽으로 밀림(최대 −170) · 앞서면 밀어붙임 */
 /* 11-17 14:3x 첫인상 ⓒ 판 사이 행군(대표님 01:56 · 03:42 「변화가 없어 보인다」 · 작업기록 6번): 새 무리가 들어오는 1.1초 동안 배경이 왼쪽으로 흐르고 군단 · 영웅 · 망자병이 제자리에서 걸음 — 「군단이 진군해 다음 적을 만난다」. 보스 · 처음 3초 · 시범 영상(TRAILER)은 안 함 */
-function marchUpdate(dt) { if (TRAILER || st.boss || S.phase !== 'battle') { S.marchK = 0; S.bgOff = Math.max(0, (S.bgOff || 0) - 60 * dt); return; } const t = S.t - (S.waveT0 || -9), L = 1.4; S.marchK = S.t > 3 && t >= 0 && t < L ? Math.sin(Math.PI * t / L) : 0; S.bgOff = Math.min(340, (S.bgOff || 0) + S.marchK * 330 * dt - (S.marchK ? 0 : 22 * dt)); if (S.bgOff < 0) S.bgOff = 0; }
+function marchUpdate(dt) { if (S.wave && S.phase === 'battle') S.wave.r += dt * 1700;   /* 쓸어 담기 충격파 */ if (TRAILER || st.boss || S.phase !== 'battle') { S.marchK = 0; S.bgOff = Math.max(0, (S.bgOff || 0) - 60 * dt); return; } const t = S.t - (S.waveT0 || -9), L = 1.4; S.marchK = S.t > 3 && t >= 0 && t < L ? Math.sin(Math.PI * t / L) : 0; S.bgOff = Math.min(340, (S.bgOff || 0) + S.marchK * 330 * dt - (S.marchK ? 0 : 22 * dt)); if (S.bgOff < 0) S.bgOff = 0; }
 function pushUpdate(dt) { if (TRAILER) { S.push = 0; return; } let tg = 0;
   if (st.boss && S.giant && S.giant.on && !S.giant.dead && st.boss.phase === 'fight') { const T0 = st.boss.timer0 || (st.boss.timer0 = Math.max(st.boss.timer, 1)), hf = clamp(st.hp / Math.max(1, st.maxHp), 0, 1), tf = clamp(st.boss.timer / T0, 0, 1); tg = clamp(70 - 520 * (hf - tf), -120, 90); }
   else if (!st.boss && S.phase === 'battle') { const p = Math.max(1 - clamp(S.foes.filter(f => !f.dead && !f.flee).length / Math.max(1, S.foeN || 1), 0, 1), clamp((S.t - (S.waveT0 || 0) - 1.6) / 5, 0, 1)), fresh = S.t - (S.waveT0 || 0) < 1.6; tg = fresh ? -80 : -80 + 170 * ease(Math.min(1, p * 1.15)); if (S.foes.some(f => f.charge > 0 && !f.dead)) tg -= 50; }
@@ -327,7 +327,12 @@ function syncFoes() {
   const alive = S.foes.filter(f => !f.dead && !f.flee);
   /* 죽는 적은 화면 안 맨 앞부터(전엔 맨 뒤 = 화면 밖 적부터 죽어서 싸우는 게 안 보였음). 화면 안에 아직 없으면 들어올 때까지 미룸 */
   const front = alive.filter(f => f.x < VX1 - 140 && S.t - (f.born || 0) > 0.7).sort((a, b) => a.x - b.x);   /* A판 03:18: 큰 적이 화면 끝에서 바로 죽어 안 보였음 → 화면 안쪽까지 들어와 0.7초는 싸운 뒤 쓰러짐 */
+  if (!TRAILER && aliveWant <= 1 && front.length >= 2 && S.sweptW !== S.foeWave && S.t - (S.waveT0 || 0) > 2) { S.sweptW = S.foeWave; sweepFx(front); return; }   /* 11-17 15:0x 첫인상 ⓑ 쓸어 담기(작업기록 6번 · 대표님 「적 모양」 답 없음 → 기본 쓸어 담기): 무리 체력이 마지막 한 마리치 남으면 화면 안 남은 적을 한 번에 쓸어 버림 */
   for (let i = 0; i < Math.min(alive.length - aliveWant, front.length); i++) { front[i].dead = true; killFx(front[i]); }
+}
+function sweepFx(list) {   /* 지배자 지팡이에서 보라 충격파가 오른쪽으로 쓸고 지나가며 남은 적이 차례로(0.06초 간격, 가까운 적부터) 날아가 쓰러지고 영혼이 한꺼번에 빨려 듦 */
+  const x0 = Math.min(...list.map(f => f.x)) - 120; S.wave = { x: x0, y: 600, r: 0 }; S.flash = Math.max(S.flash || 0, 0.25); punch(0.06, 10, 30); Snd.boom && Snd.boom();
+  list.forEach((f, i) => setTimeout(() => { if (f.dead) return; f.kbT = 0.3; f.x += 60; f.dead = true; killFx(f); burst(f.x, f.y - 50, 12, { col: ['#c58bff', '#e8dcff', '#ffffff'], vmin: 120, vmax: 420, up: 120, lmax: 0.5 }); }, 80 + i * 60));
 }
 /* 11-14 대표님 「확실한 타격감 싹 잡자」: 히트 스톱(아주 짧게 느려짐) + 흔들림 + 휴대폰 진동을 한 번에 */
 function punch(stop, shake, vib) {
