@@ -6,7 +6,7 @@
 const BV = {
   bubble(text, life = 2.4, k = 0) {
     const g = S.giant; if (!g || !text) return;
-    if (k < 16 && typeof UI !== 'undefined' && UI.busy && UI.busy()) { setTimeout(() => this.bubble(text, life, k + 1), 250); return; }   /* 11-17 04:24 「거대한 적이 나타났다」와 「드디어 왔구나」가 한 자리에 겹쳤음 */
+    if (k < 16 && ((typeof NOTICE !== 'undefined' && NOTICE.busy()) || (typeof UI !== 'undefined' && UI.busy && UI.busy()))) { setTimeout(() => this.bubble(text, life, k + 1), 250); return; }   /* 11-17 04:24 「거대한 적이 나타났다」와 「드디어 왔구나」가 한 자리에 겹쳤음 */
     let e = document.getElementById('bvb'); if (!e) { e = document.createElement('div'); e.id = 'bvb'; document.body.appendChild(e); }
     e.textContent = text; e.classList.remove('on'); void e.offsetWidth; e.classList.add('on'); this.bT = life; this.place();
   },
@@ -28,10 +28,7 @@ const BV = {
   phase2() {
     const b = st.boss; b.ph2 = 1; S.ph2 = 1;
     const nm = typeof bossName === 'function' ? bossName() : L.boss.name(L.regions[regionOf(st.stage)], b.lord);
-    let c = document.getElementById('bph2'); if (!c) { c = document.createElement('div'); c.id = 'bph2'; c.innerHTML = '<b></b><small></small>'; document.body.appendChild(c); }
-    c.querySelector('b').textContent = L.bph2.card; c.querySelector('small').textContent = L.bph2.sub(nm);
-    const r = cv.getBoundingClientRect(); c.style.left = (r.left + r.width / 2) + 'px'; c.style.top = (r.top + r.height * 0.3) + 'px';
-    c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); setTimeout(() => c.classList.remove('on'), 1600);
+    NOTICE.banner(L.bph2.card, L.bph2.sub(nm), { pri: 2, ms: 1600, cls: 'red', col: '#ffe2d0', glow: '#ff2a2a' });   /* 11-18 새 틀: 2페이지도 알림 줄로 */
     S.shake = Math.max(S.shake, 14); S.flash = Math.max(S.flash || 0, 0.25); Snd.slam && Snd.slam(0.7); Snd.smp && Snd.smp('stare', 0.6, 0, 0.9);
     S.giant.rage = 1; S.raged = true;
     setTimeout(() => { if (st.boss) this.bubble(this.line(1), 2.2); }, 1600);   /* 11-16 15:4x 폰: 「2페이지」 카드(1.6초)와 분노 대사가 겹쳤음 → 카드가 사라진 뒤 */

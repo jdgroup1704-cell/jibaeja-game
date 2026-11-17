@@ -1,7 +1,7 @@
 // node 쓰는그림.js 폴더 → 순서 #10 그림체 교체 대상: 실제 플레이(1-1 · 3-10 · 보스 · 영웅 4)에서 화면에 그려진 그림 이름과 횟수
 const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path'); const dir = process.argv[2], PORT = 8191;
-const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
 http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(PORT);
 (async () => { const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const pg = await (await b.newContext({ viewport: { width: 360, height: 593 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.addInitScript(() => { window.__D = {}; const od = CanvasRenderingContext2D.prototype.drawImage; CanvasRenderingContext2D.prototype.drawImage = function (im, ...a) { const s = im && im.src; if (s) { const n = decodeURIComponent(s.split('/').pop().split('?')[0]); __D[n] = (__D[n] || 0) + 1; } return od.call(this, im, ...a); }; });

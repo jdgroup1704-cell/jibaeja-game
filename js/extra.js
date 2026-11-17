@@ -121,7 +121,7 @@ const EX = {
     const NAR = innerWidth < 500, dotR = /class="[^"]*(ready|dot)/.test(sR.split('</button>').slice(1).join('</button>')), sR2 = NAR ? sR.replace('</button>', '</button>' + `<button data-x="more" class="more${this.moreOpen ? ' on' : ''}${dotR ? ' dot' : ''}"><b class="mi">${this.moreOpen ? '✕' : '≡'}</b>${this.moreOpen ? L.ui.close || '닫기' : L.ui.more || '메뉴'}</button>`) : sR;
     const tw = `<div class="col l">${sL}</div><div class="col r${NAR ? ' nar' : ''}${this.moreOpen ? ' open' : ''}">${sR2}</div>`; if ($('tools').dataset.w !== tw) { $('tools').dataset.w = tw; $('tools').innerHTML = tw; }   /* 11-14: 전장 좌우 가장자리 아이콘 기둥(왼쪽 보상·상점, 오른쪽 배속·설정). 같으면 안 건드림(누르는 중 사라짐 방지) */
     const m = Math.round(JB.C.MORALE_MAX * (st.morale || 0) * 100);
-    if (m > 0) ($('hud').querySelector('.r2') || $('hud')).insertAdjacentHTML('beforeend', `<span class="chip mor" title="${L.moraleTip}">${L.morale(m)}</span>`);   /* 위 띠 둘째 줄(자원 옆)에 — 셋째 줄이 생기지 않게 */
+    if (m > 0) ($('hud').querySelector('.r2') || $('hud')).insertAdjacentHTML('beforeend', `<span class="chip mor" title="${L.moraleTip}">🔥+${m}%</span>`);   /* 위 띠 둘째 줄(자원 옆)에 — 셋째 줄이 생기지 않게 */
   },
   // 매 화면: 보물 기사 · 자동 강화
   tick(real, dt) {

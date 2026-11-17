@@ -43,6 +43,7 @@ function burst(x, y, n, o) {
 function ringCam() { const narrow = cv.width / Math.max(1, cv.height) < 1.6; if (!narrow) return [820, 340]; const R = 310 * NS(), dx = Math.min(Math.max(0, RC.x + R + 15 - (VW.x + VW.w)), Math.max(0, 196 + LDX() - 105 - VW.x));   /* 11-16 08:44 「영창 깨지고」: 마법진 쪽으로 옮기면 지배자가 왼쪽 끝에서 반쯤 잘림 → 지배자 몸이 화면 안에 남는 만큼만 */ return [W / 2 + dx, H / 2]; }   /* 11-16 위로 올리면 지배자가 아래 단추 뒤로 내려감 → 위아래는 그대로 */   /* 18:22 마법진이 들어올 만큼만 옮김(전엔 마법진을 가운데로 → 지배자가 왼쪽 밖으로 잘림) */
 function camTo(x, y, z, dur) { S.camT = { fx: S.cam.x, fy: S.cam.y, fz: S.cam.z, x, y, z, t: 0, dur }; }
 function say(text, x, y, o = {}) {
+  if (o.screen && typeof NOTICE !== 'undefined' && !TRAILER) { NOTICE.say(text, o); return; }   /* 11-18 새 틀: 화면 큰 글자는 모두 알림 줄 하나로(한 번에 하나) */
   if (!o.screen && !o.must && PHN() && typeof text === 'string' && !/^[-+]?[\d.]/.test(text) && text.length > 1 && S.texts.some(t => !t.screen && typeof t.text === 'string' && !/^[-+]?[\d.]/.test(t.text) && t.age < t.life * 0.7 && Math.abs(t.x - x) < 260)) return;   /* 11-17 09:1x 순서 ② 싸움터 글자 정리(눈 사진: 「방패 치기!」 「피의 일섬」 「연사!」 「치명타」가 한 자리에 겹쳐 뜸): 폰은 가까운 곳(260)에 기술 이름이 떠 있으면 새 이름은 건너뜀 · 피해 숫자 동시 4 → 3 */
   if (!o.screen && typeof fmtD !== 'undefined' && text === fmtD.s && fmtD.v != null) {   /* 11-16 09:15 「화면 난리」(후반 사진: 8.9억 · 11억 · 4.4경이 유닛을 덮음): 피해 숫자는 화면에 동시 4개 · 크기 보통 21 · 큰 것 27까지 */
     if (S.texts.filter(t => !t.screen && t.val != null && t.age < t.life).length >= (PHN() ? 3 : 4) && !S.texts.some(t => !t.screen && t.val != null && t.age < 0.3 && Math.abs(t.x - x) < 90 && Math.abs(t.y - y) < 70)) { fmtD.v = null; return; }
@@ -80,6 +81,7 @@ function bondTalk(id) {
 }
 function heroSay(kind, id) {
   if (TRAILER) return;   // 광고 영상에선 말풍선 안 띄움
+  if (typeof NOTICE !== 'undefined' && !heroSay.wait && NOTICE.busy()) { heroSay.wait = 1; setTimeout(() => { heroSay.wait = 0; heroSay(kind, id); }, Math.min(2600, Math.max(200, NOTICE.until - performance.now() + 150))); return; }   /* 11-18 새 틀: 알림 줄이 떠 있으면 말풍선은 그 뒤에 */
   const who = id || st.squad.filter(Boolean)[Math.floor(Math.random() * st.squad.filter(Boolean).length)];
   if (!who) return;
   const h = L.heroes[who]; if (!h) return;
@@ -413,7 +415,7 @@ function bossArrive(lord) {
   if ((AUTO || st.settings.autoSquad) && JB.bossTraits(st.stage).length) { const bs = JB.bestSquad(st); st.squad = st.squad.map((_, i) => bs[i] || null); }   /* 봇 · 「추천 진형 자동」을 켠 사람은 보스 앞에서 추천 진형으로 */
   S.phase = 'arrive'; S.foes.forEach(f => f.flee = true); Snd.voiceCd && Snd.voiceCd('v_boss', 90, 0.6);   /* 04:40 보스 등장 「감히 여기까지 오다니!」(드리미나 AI 오디오), 90초에 한 번 */
   Object.assign(S.giant, { x: 1500, alpha: 1, dead: false, slam: 0, raise: 0, charge: 0, wind: 0, windFn: null, on: true, t0: S.t });
-  S.warn = { t: 0 }; S.giant.rage = 0; S.giant.step = 0; S.raged = false; S.shock = [];   /* 보스 긴장감(11-14 대표님 「보스 나오는데 긴장감도 없고 너무 단순」): 붉은 경고 띠 · 쿵쿵 발소리 · 분노 */
+  S.warn = { t: 0 }; if (typeof NOTICE !== 'undefined' && !TRAILER) NOTICE.banner(L.boss.warn || '경고', '', { pri: 2, ms: 1500, cls: 'red', col: '#ffd0c8', glow: '#ff2a2a' }); S.giant.rage = 0; S.giant.step = 0; S.raged = false; S.shock = [];   /* 보스 긴장감(11-14 대표님 「보스 나오는데 긴장감도 없고 너무 단순」): 붉은 경고 띠 · 쿵쿵 발소리 · 분노 */
   const vs = !TRAILER && typeof UI !== 'undefined' && UI.vsShow && UI.vsShow(lord);   /* 00:55 대표님이 보낸 버섯커 키우기: 보스 앞 「VS」 화면(지배자 ↔ 보스 대각선) */
   Snd.rumble(2); S.shake = 6; if (!vs) setTimeout(() => say(lord ? L.boss.lord : L.boss.arrive, W / 2, H * 0.4, { size: 50, col: '#ffe9a8', glow: '#ff3a2a', life: 1.8, vy: 0, stamp: true, screen: true }), (st.autoCast && JB.unlocked(st, 'autoCast')) ? 250 : 1100);   // 19:58 대마법 자동이면 영창이 먼저 떠서 「나타났다」가 뒤로 밀렸음 → 바로 // 이름은 경고 띠 뒤에 화면 가운데 도장처럼
   if (Math.random() < 0.6) setTimeout(() => heroSay('boss'), 2800);   // 수하 말은 경고가 끝난 뒤(겹치지 않게)
@@ -585,7 +587,7 @@ function regionCard(stage) {
   const rg = regionOf(stage), act = Math.floor((stage - 1) / 80), n = Math.floor((stage - 1) % 80 / 10) + 1, el = $('rcard'); if (!el) return;
   const bg = REGION_BG[rg] ? `art/bg_${REGION_BG[rg]}.jpg` : 'art/bg.jpg', ek = ELITE_OF[rg];
   el.innerHTML = `<div class="rc-bg" style="background-image:url(${bg})"></div><div class="rc-in"><div class="rc-ch">${act ? (act + 1) + '막 · ' : ''}제${n}장</div><div class="rc-nm">${L.regions[rg]}</div><div class="rc-ln"></div>${ek ? `<div class="rc-row">${L.rcard.elite} <b>${L.foes.elite[ek].name}</b> — ${L.foes.elite[ek].skill.replace(/!$/, '')}</div>` : ''}<div class="rc-row">${L.rcard.boss(L.sn(stage + 9))}</div>${act ? `<div class="rc-row hot">${L.rcard.hard}</div>` : ''}</div>`;
-  el.classList.remove('on'); void el.offsetWidth; el.classList.add('on'); clearTimeout(regionCard.t); regionCard.t = setTimeout(() => el.classList.remove('on'), 3400);
+  el.classList.remove('on'); void el.offsetWidth; if (typeof NOTICE !== 'undefined') NOTICE.hold(3400, 3); el.classList.add('on'); clearTimeout(regionCard.t); regionCard.t = setTimeout(() => el.classList.remove('on'), 3400);
 }
 /* 11-16 16:39 대표님 「보스가 때리면 좀 임팩트도 있게 · 그냥 스킬만 그림처럼 나가면 끝나고」: 보스 공격이 닿는 순간 — 멈칫 + 큰 흔들림 + 화면 가장자리 붉게 번쩍 + 충격파 + 우리 줄이 뒤로 밀려남 + 우리 편 머리 위 피해 숫자 */
 function bossImpact(pw) { if (TRAILER || UI.awakening) return; pw = pw || 1; punch(0.07 + 0.06 * pw, 10 + 10 * pw, [50, 25, 60]); S.redFlash = Math.max(S.redFlash || 0, 0.35 + 0.2 * pw); S.push = (S.push || 0) - 45 * pw; S.pushF = -999;

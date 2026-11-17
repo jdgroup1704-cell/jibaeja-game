@@ -3,7 +3,7 @@
 const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const dir = process.argv[2], stg = +(process.argv[3] || 9);
-const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.webp': 'image/webp' };
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.webp': 'image/webp' };
 const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(8157);
 (async () => {
   const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' });

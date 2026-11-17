@@ -16,7 +16,7 @@ const UI = {
     { const g = $('grip'); let y0 = null; const on = () => document.getElementById('app').classList.contains('fold');
       g.addEventListener('pointerdown', e => { y0 = e.clientY; }); g.addEventListener('pointerup', e => { const dy = y0 == null ? 0 : e.clientY - y0; y0 = null; Snd.init(); Snd.smp('click', 0.4); this.setFold(Math.abs(dy) < 8 ? !on() : dy > 0); });   /* 손잡이: 누르면 바꾸고, 아래로 끌면 전장 크게 · 위로 끌면 목록 크게 */
       this.setFold(true); }   /* 11-14 18:08 대표님 「밑에 창을 위아래 내릴 수 있으니 헷갈려, 어떤 소비자가 저걸 만지면서 해」: 올리내리기 없앰, 늘 같은 배치 */   /* 11-14 14:49 대표님 「다른 게임도 화면이 이렇게 작나?」: 처음부터 전장 크게(세로 화면 약 46%). 손잡이로 목록 크게 고르면 그걸 기억 */
-    if (!TRAILER) { const sw = $('stagewrap'); sw.appendChild($('skillbar')); $('panel').prepend($('goal')); }   /* 스킬 줄 · 목표를 전장 안으로 */
+    /* 11-18 새 틀: 기술 줄은 싸움터 밖 자기 칸(싸움터를 덮지 않음) · 목표 줄은 아래 칸 맨 위(index.html에서 이미 그 자리) */   /* 스킬 줄 · 목표를 전장 안으로 */
     $('reraise').addEventListener('click', e => { e.stopPropagation(); Snd.init(); const n = raiseFallen(); if (n) { Snd.smp('rise', 0.4); S.shake = Math.max(S.shake, 4); } });   /* 쓰러진 해골 바로 일으키기 */
     $('goal').addEventListener('click', e => { e.stopPropagation(); Snd.init(); const r = e.target.closest('[data-gi]'); if (r && $('goal').classList.contains('ready')) { this.act('claim', r.dataset.gi); this.render(true); return; } if (JB.unlocked(st, 'mission')) { this.tab = 'mission'; this.seenTab.mission = 1; this.render(true); } });
     $('cast').addEventListener('click', e => { e.stopPropagation(); if (!$('cast').classList.contains('on')) return; Snd.init(); castPressed(); }); this.showCast(false);
@@ -63,7 +63,7 @@ const UI = {
       return `<div class="row vipr${i === v ? ' on' : ''}${i < v ? ' got' : ''}"><div class="vlw"><b class="vl">${V.lv(i)}</b><small class="vp">${V.priceT(V.price[i])}</small></div><div class="grow"><div class="ds">${p}</div>${extra}</div>${art ? `<img class="vipimg" src="art/${art}.webp" alt="">` : ''}</div>`; }).join('');
     this.openModal(`<h3>${L.vip.title}</h3><p><b class="vipnow">${L.vip.now(v)}</b></p>${bar}<p class="muted small">${L.vip.note}</p><div class="viplist">${rows}</div>` + (TEST ? `<button class="btn" data-x="vipTest">${L.vip.test}</button>` : ''));
   },
-  toast(title, body) { if (typeof S !== 'undefined' && (S.phase === 'cast' || bossFight() || S.phase === 'prompt' || S.phase === 'stare' || S.warn || (S.texts && S.texts.some(t => t.screen && t.size >= 30 && t.age < t.life)))) { (this.toastQ = this.toastQ || []).push([title, body]); return; }   /* 대마법 연출 중엔 알림이 마법진을 가리지 않게 미뤘다가 끝나면 띄움 */
+  toast(title, body) { if (typeof S !== 'undefined' && ((typeof NOTICE !== 'undefined' && NOTICE.until - performance.now() > 300) || S.phase === 'cast' || bossFight() || S.phase === 'prompt' || S.phase === 'stare' || S.warn || (S.texts && S.texts.some(t => t.screen && t.size >= 30 && t.age < t.life)))) { (this.toastQ = this.toastQ || []).push([title, body]); return; }   /* 대마법 연출 중엔 알림이 마법진을 가리지 않게 미뤘다가 끝나면 띄움 */
     if (typeof S !== 'undefined') S.lastNew = S.t;   /* 박자 감독이 보는 「마지막 새 것」 */
     const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = `<b>${title}</b>${body}`; $('toast').appendChild(d); setTimeout(() => d.remove(), 3500); while ($('toast').children.length > 2) $('toast').firstChild.remove(); },
   feed(t) { this.feedLines.unshift(t); this.feedLines.length = Math.min(this.feedLines.length, 4); $('feed').innerHTML = this.feedLines.map(x => `<div>${x}</div>`).join(''); },
@@ -114,7 +114,7 @@ const UI = {
       + `<div class="vl"><img src="art/lordA.webp" alt=""><span class="vnm">${myName}</span></div>`
       + `<div class="vr"><div class="vdrop"><img src="art/${img}.webp" alt=""></div><svg class="vcrack" viewBox="0 0 200 40"><polyline points="100,2 88,14 96,20 78,34" /><polyline points="100,2 114,12 108,22 130,36" /><polyline points="100,2 70,8 52,4" /><polyline points="100,2 140,6 160,14" /></svg><div class="vdust"></div></div><span class="vnm vb">${name}<small>${sub || ''}</small></span>`
       + `<b class="vsx">VS</b><div class="vspark">${sp}</div>${line ? `<div class="vline">「${line}」</div>` : ''}<div class="vflash"></div>`;
-    el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); el.onclick = () => { el.classList.remove('go'); clearTimeout(this.vsT); this.vsDone && this.vsDone(); this.vsDone = null; };
+    if (typeof NOTICE !== 'undefined') NOTICE.hold(2700, 3); el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); el.onclick = () => { el.classList.remove('go'); clearTimeout(this.vsT); this.vsDone && this.vsDone(); this.vsDone = null; };
     if (typeof Snd !== 'undefined') { Snd.slam && setTimeout(() => Snd.slam(0.9), 420); Snd.smp && setTimeout(() => Snd.smp('boom', 0.6, 0, 0.7), 620); }
     setTimeout(() => { if (typeof S !== 'undefined') S.shake = Math.max(S.shake || 0, 16); }, 420); return el;
   },
@@ -125,7 +125,7 @@ const UI = {
     clearTimeout(this.vsT); this.vsDone = null; this.vsT = setTimeout(() => el.classList.remove('go'), 2600); return true;
   },
   cutIn(id, name, col) {
-    const now = performance.now(); if (now - (this.cutT || 0) < 7000 /* 23:55 4초 → 7초: 너무 자주 가림 */ || (S.bubble && S.bubble.age < (S.bubble.life || 3.2)) || document.querySelector('#toast .toast') || $('reraise').classList.contains('on') /* 23:59 겹침재기: 말풍선 · 일으켜라 알약과 86~93% 겹침 → 그땐 띠 대신 영웅 머리 위 글자 */ || S.warn || S.phase !== 'battle' && S.phase !== 'fight' || UI.awakening || TRAILER || ($('rcard') && $('rcard').classList.contains('on'))) return false;   /* 21:45 「제2장」 지역 카드 위에 기술 띠가 겹쳐 글자가 가려짐 → 카드 동안엔 안 띄움 */ this.cutT = now;
+    const now = performance.now(); if ((typeof NOTICE !== 'undefined' && NOTICE.busy()) || now - (this.cutT || 0) < 7000 /* 23:55 4초 → 7초: 너무 자주 가림 */ || (S.bubble && S.bubble.age < (S.bubble.life || 3.2)) || document.querySelector('#toast .toast') || $('reraise').classList.contains('on') /* 23:59 겹침재기: 말풍선 · 일으켜라 알약과 86~93% 겹침 → 그땐 띠 대신 영웅 머리 위 글자 */ || S.warn || S.phase !== 'battle' && S.phase !== 'fight' || UI.awakening || TRAILER || ($('rcard') && $('rcard').classList.contains('on'))) return false;   /* 21:45 「제2장」 지역 카드 위에 기술 띠가 겹쳐 글자가 가려짐 → 카드 동안엔 안 띄움 */ this.cutT = now;
     let el = $('cutin'); if (!el) { el = document.createElement('div'); el.id = 'cutin'; $('stagewrap').appendChild(el); }
     el.style.setProperty('--c', col); el.innerHTML = `<div class="ci-bg"></div><img src="art/hero_${id}.webp" alt=""><div class="ci-t"><small>${L.heroes[id].name}</small><b>${name}</b></div>`;
     el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); clearTimeout(this.cutHide); this.cutHide = setTimeout(() => el.classList.remove('go'), 900);   /* 끝나면 치움(투명하게 남아 있지 않게) */ Snd.smp && Snd.smp('stamp', 0.25, 0, 1.3); return true;
@@ -154,6 +154,7 @@ const UI = {
     if (a === 'autoGrave') this.autoGrave = !this.autoGrave;
     if (a === 'altar') { if (JB.altarUp(st, Date.now())) Snd.smp('summon', 0.5); }
     if (a === 'altarOdds') this.altarOdds();
+    if (a === 'tombOpen') { this.tombOpen(document.querySelector('#slots .tomb') || document.getElementById('stagewrap')); this.render(true); return; }   /* 11-18 강화 칸 넷째 칸에서 무덤 열기 */
     if (a === 'adBones') { if ((st.adBones || 0) < JB.C.AD_BONES.max) EX.ad(() => { const n = JB.adBones(st); if (n) { Snd.smp('rise', 0.6); this.toast(L.grave.title, `${L.bones} +${n}`); } this.render(true); }); }
     if (a === 'altarRush') { if (JB.altarRush(st, Date.now())) { Snd.smp('summon', 0.6); Snd.chime(1319); this.toast(L.grave.title, L.grave.altar(st.altar)); } }
     if (a === 'pull1' || a === 'pull10') this.pull(a === 'pull10' ? 10 : 1);
@@ -308,10 +309,11 @@ const UI = {
     f.classList.remove('on');
   },
   guideText() {
+    if (st.awakens > 0 && !(performance.now() < this.guideUntil && this.guideKey)) return '';   /* 11-18 새 틀: 각성한 사람에게 싸움터 아래 안내 띠(「군단이 알아서 싸워요…」)는 그만 — 후반 사진에서 늘 영웅 이름을 덮음 */
     if (performance.now() < this.guideUntil && this.guideKey) return L.guide[this.guideKey];
     if (st.raised < JB.C.RAISE_TAPS) return '';   /* 19:47 큰 「일으켜라」 단추 바로 위에 같은 말 안내가 또 → 단추만 */
     if (S.phase === 'prompt') return L.guide.boss;
-    if (JB.unlocked(st, 'hero') && !this.seenTab.hero) return L.guide.hero;
+    if (JB.unlocked(st, 'hero') && !this.seenTab.hero && !st.awakens && Object.keys(st.heroes || {}).length <= 1) return L.guide.hero;   /* 11-18 새 틀 후반 저장 사진: 각성 6 · 영웅 7인데 다시 켤 때마다 「영웅이 생겼어요」 → 처음 영웅 때만 */
     if (JB.unlocked(st, 'grave') && st.graveCount === 0) return L.guide.grave;
     if (JB.canAwaken(st)) return L.guide.awaken;
     if (st.retreat) return this.wallTip();
@@ -420,15 +422,20 @@ const UI = {
     const sum = (k, n) => { let t = 0; for (let i = 0; i < Math.max(1, n); i++) t += JB.upCost(k, st.up[k] + i); return t; };
     const head = `<div class="bulk">${[1, 10, 0].map(b => `<button data-act="bulk" data-arg="${b}" class="${B === (b || 999) ? 'on' : ''}">${b ? '×' + b : L.ui.bulkMax}</button>`).join('')}</div>`;
     /* 00:58 대표님 「버섯커처럼 아래가 그림 칸 · 간단」: 글자 줄 목록 → 큰 그림 카드 한 줄(그림 · 이름 · 단계 · 짧은 효과 · 값 단추). 지팡이는 금테 */
-    const vis = keys.filter(k => !shut.includes(k) || k === shut[0]);
-    const rows = `<div class="ucards" style="grid-template-columns:repeat(${vis.length},minmax(0,1fr))">` + vis.map(k => {
+    const G2 = document.getElementById('app').classList.contains('fold');   /* 11-18 03:0x 대표님 02:56 「한 줄 카드 셋 — 어떤 게임이 이렇게 답답하냐 · 처음 본다 · 너무 작다」(17:45에 이어 두 번째) → 폰은 2열 × 2줄 큰 칸 · 네 강화를 다 보여 줌(잠긴 건 「○판에 열림」) · 칸마다 지금 → 다음 */
+    const vis = G2 ? keys.filter(k => !shut.includes(k)).concat(shut) : keys.filter(k => !shut.includes(k) || k === shut[0]);
+    const effOf = (k, s2) => ({ summon: () => fmt(JB.armySize(s2)), bone: () => '×' + fmt(JB.unitAtk(s2)), magic: () => '×' + fmt(Math.pow(JB.C.MAGIC_MUL, s2.up.magic)), harvest: () => '×' + fmt(Math.pow(JB.C.HARVEST_MUL, s2.up.harvest)) }[k]());
+    const rows = `<div class="ucards${G2 ? ' g2' : ''}" style="grid-template-columns:repeat(${G2 ? 2 : vis.length},minmax(0,1fr))">` + vis.map(k => {
       const u = L.ups[k], lv = st.up[k];
-      if (!JB.unlocked(st, k)) return `<div class="ucard off"><img src="art/u_${k}.webp" alt=""><div class="un">${u.name}</div><div class="ul">${L.lockedAt(JB.C.UNLOCK[k])}</div></div>`;
+      if (!JB.unlocked(st, k)) return `<div class="ucard off"><img src="art/u_${k}.webp" alt=""><div class="un">${u.name}</div><div class="ul">${L.lockedAt(JB.C.UNLOCK[k])}</div>${G2 ? `<div class="ud">${u.desc('…').replace(/[+×]…/, '').trim()}</div>` : ''}</div>`;
       const n = cnt(k), c = sum(k, n), tier = Math.min(5, Math.floor(lv / 10)), isM = k === 'magic';
       const eff = { summon: () => L.ui.armyN(JB.armySize(st)), bone: () => '×' + fmt(JB.unitAtk(st)), magic: () => '×' + fmt(Math.pow(JB.C.MAGIC_MUL, lv)), harvest: () => '×' + fmt(Math.pow(JB.C.HARVEST_MUL, lv)) }[k]();
       const name = isM ? `<b class="st${tier}">${L.staff.tiers[tier]}</b>` : u.name, ic = isM ? `art/st_${tier}.webp` : `art/u_${k}.webp`, ok = n >= 1 && st.souls >= c;
-      return `<div class="ucard${isM ? ' main t' + tier : ''}${ok ? ' can' : ''}" data-act="buy" data-arg="${k}"><span class="ulv">${L.lv(lv)}</span><img src="${ic}" alt=""><div class="un">${name}</div><div class="ue">${eff}</div><button class="btn buy${isM ? ' gold' : ''}" data-act="buy" data-arg="${k}" style="--p:${Math.floor(clamp(st.souls / Math.max(1, c), 0, 1) * 10) * 10}%" ${ok ? '' : 'disabled'}>${n > 1 ? `<small>×${n}</small>` : ''}${IC('i_soul')}${fmt(c)}</button></div>`;
-    }).join('') + '</div>' + (shut.length > 1 ? `<p class="muted mini">${L.moreLocked(shut.length - 1)}</p>` : '');
+      const nx = G2 ? effOf(k, Object.assign({}, st, { up: Object.assign({}, st.up, { [k]: lv + Math.max(1, n) }) })) : '', e2 = G2 ? `<div class="ue">${effOf(k, st)} <i>→</i> <b>${nx}</b></div>` : `<div class="ue">${eff}</div>`;
+      return `<div class="ucard${isM ? ' main t' + tier : ''}${ok ? ' can' : ''}" data-act="buy" data-arg="${k}"><span class="ulv">${L.lv(lv)}</span><img src="${ic}" alt=""><div class="un">${name}${G2 && k === 'summon' ? ` <small class="unk">${L.ui.effK.summon}</small>` : ''}</div>${e2}<button class="btn buy${isM ? ' gold' : ''}" data-act="buy" data-arg="${k}" style="--p:${Math.floor(clamp(st.souls / Math.max(1, c), 0, 1) * 10) * 10}%" ${ok ? '' : 'disabled'}>${n > 1 ? `<small>×${n}</small>` : ''}${IC('i_soul')}${fmt(c)}</button></div>`;
+    }).join('') + (G2 && vis.length % 2 ? (() => { const tq = (st.tombQ || []).length, on = JB.unlocked(st, 'gear');   /* 강화는 셋뿐이라 넷째 칸은 무덤(버섯커 램프 자리) */
+      return on ? `<div class="ucard tombc${tq ? ' can' : ''}" data-act="tombOpen"><span class="ulv">${L.tombCell.n(tq)}</span><img src="art/t_grave.webp" alt=""><div class="un">${L.tombCell.name}</div><div class="ue">${tq ? L.tombCell.has : L.tombCell.none}</div><button class="btn buy${tq ? ' tombgo' : ''}" data-act="tombOpen" ${tq ? '' : 'disabled'}>${L.tombCell.open}</button></div>`
+        : `<div class="ucard off"><img src="art/t_grave.webp" alt=""><div class="un">${L.tombCell.name}</div><div class="ul">${L.lockedAt(JB.C.UNLOCK.gear)}</div><div class="ud">${L.tombCell.lockD}</div></div>`; })() : '') + '</div>' + (!G2 && shut.length > 1 ? `<p class="muted mini">${L.moreLocked(shut.length - 1)}</p>` : '');
     const dex = JB.dexOf(st), dn = dex.f.filter(Boolean).length + dex.l.filter(Boolean).length;
     const evo = JB.armySize(st) >= JB.C.EVO.minArmy ? `<div class="row ur"><img class="uic" src="art/cls0.webp" alt=""><div class="grow"><div class="nm">${L.evo.title} <span class="lvb">${L.evo.mul(JB.evoMul(st).toFixed(2))}</span></div><div class="bar2"><i style="width:${(st.evoXp || 0) / JB.C.EVO.waves * 100}%"></i></div><div class="ds">${L.evo.next(JB.C.EVO.waves - (st.evoXp || 0))}</div></div><button class="btn buy gold" data-act="evoAd" ${(st.evoAd || 0) >= JB.C.EVO.adMax ? 'disabled' : ''}>${L.ui.evoAdShort}<small>${st.evoAd || 0}/${JB.C.EVO.adMax}</small></button></div>` : '';
     const lsn = JB.LSKINS.filter(s => JB.lskinOwned(st, s.id)).length;
@@ -465,9 +472,9 @@ const UI = {
   tombOpen(btn) {   /* 무덤 열기: 뼛조각 1 → 유품(장비) 1 · 좋은 건 자동 장착(밸런스는 제단과 같음) · 보이는 건 그 자리에서 솟는 유품 + 등급 빛 + 전후 값 */
     const x = JB.tombOpen(st); if (!x) return; const it = x.it, sl = JB.GEAR_SLOTS.find(q => q.id === it.slot); (st.seen = st.seen || {}).tomb = 1; st.seen.tombN = (st.seen.tombN || 0) + 1;
     const ART = { staff: 'gear_staff', crown: 'gear_crown', ring: 'gear_ring', armor: 'gear_armor', amulet: 'gear_amulet', cloak: 'gear_cloak' }, dg = (v, w) => { let d = sl.stat === 'cd' || v < 0.1 ? 1 : 0; while (w != null && d < 3 && (v * 100).toFixed(d) === (w * 100).toFixed(d)) d++; return d; }, pct = (v, w) => (v * 100).toFixed(dg(v, w)) + '%';   /* 22:0x 「−1.1% → −1.1%」처럼 같아 보이면 자릿수를 늘림 */
-    const old = x.equipped ? x.prev : null, sg = sl.stat === 'cd' ? '−' : '+', line = x.equipped ? `${L.gear.stat[sl.stat].replace(/ −$/, '')} ${old ? sg + pct(old, x.val) + ' → ' : ''}${sg}${pct(x.val, old || null)} <i class="up">▲</i>` : `${L.gear.salv(x.stones)}`;
+    const old = x.equipped ? x.prev : null, sg = sl.stat === 'cd' ? '−' : '+', same = x.equipped && old && Math.abs(x.val - old) <= Math.max(x.val, old) * 0.002, line = same ? `${L.gear.stat[sl.stat].replace(/ −$/, '')} ${sg}${pct(x.val)} · ${L.tombSame}` : x.equipped ? `${L.gear.stat[sl.stat].replace(/ −$/, '')} ${old ? sg + pct(old, x.val) + ' → ' : ''}${sg}${pct(x.val, old || null)} <i class="up">▲</i>` : `${L.gear.salv(x.stones)}`;
     const wrap = $('stagewrap'), br = btn.getBoundingClientRect(), wr = wrap.getBoundingClientRect(); let fx = $('tombfx'); if (fx) fx.remove(); fx = document.createElement('div'); fx.id = 'tombfx'; fx.className = 'tg' + it.g + (x.equipped ? ' eq' : '');
-    fx.style.left = Math.max(70, Math.min(wr.width - 70, br.left - wr.left + br.width / 2)) + 'px'; fx.style.top = (br.top - wr.top) + 'px';
+    fx.style.left = Math.max(70, Math.min(wr.width - 70, br.left - wr.left + br.width / 2)) + 'px'; fx.style.top = Math.min(wr.height - 40, btn === wrap ? wr.height * 0.78 : br.top - wr.top) + 'px';
     fx.innerHTML = `<div class="beam"></div><img src="art/${ART[it.slot]}.webp" alt=""><div class="nm">${L.gear.grades[it.g]} ${L.gear.slots[it.slot]}${x.equipped ? ` · <b>${L.gear.on}</b>` : ''}</div><div class="dv">${line}</div>`;
     wrap.appendChild(fx); clearTimeout(this.tombT); this.tombT = setTimeout(() => fx.remove(), it.g >= 3 ? 2300 : 1500);
     Snd.smp && Snd.smp('rise', 0.35); if (it.g >= 4) { Snd.chime(1568); setTimeout(() => Snd.chime(2093), 140); S.shake = Math.max(S.shake, 7); S.flash = Math.max(S.flash || 0, 0.35); } else if (it.g >= 3) { Snd.chime(1568); S.shake = Math.max(S.shake, 4); } else if (x.equipped) Snd.chime(1175);

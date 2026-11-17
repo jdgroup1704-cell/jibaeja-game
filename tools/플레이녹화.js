@@ -3,7 +3,7 @@
 // 구간: 0~15초 처음 시작(일으켜라 · 강화 누르기) → 15~45초 3-10 싸움(영웅 4명 때리기 · 지배자 · 군단) → 45초~ 1-10 보스(군단으로 싸우며 약점 누르기 「반격!」) 잡기 · 망자 거인 일어남 · 솟아 내려찍기 · 자랑 카드
 const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path'), { execSync } = require('child_process'); const dir = process.argv[2], name = process.argv[3] || 'play';
-const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
 const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(8177);
 (async () => { const V = '/tmp/녹화'; execSync(`rm -rf ${V}; mkdir -p ${V} /home/claude/rec/영상`);
   const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const ctx = await b.newContext({ viewport: { width: 360, height: 593 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, recordVideo: { dir: V, size: { width: 360, height: 593 } } }); const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));

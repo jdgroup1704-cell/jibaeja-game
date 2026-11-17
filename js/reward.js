@@ -5,7 +5,7 @@ const RW = {
   n: 0, arrived: 0,
   pos(wx, wy) { const r = cv.getBoundingClientRect(), k = r.width / cv.width; return { x: r.left + (wx * view.s + view.ox) * k, y: r.top + (wy * view.s + view.oy) * k, r }; },
   show(de, gx, gy, k = 0) {
-    if (!de) return; if (k < 60 && typeof UI !== 'undefined' && UI.busy && UI.busy()) { setTimeout(() => this.show(de, gx, gy, k + 1), 300); return; }   /* 11-17 04:24 「보스 격파!」가 자리 비움 창 · 대마법 이름 위에 겹쳤음 → 비면 띄움 */
+    if (!de) return; if (k < 60 && ((typeof NOTICE !== 'undefined' && NOTICE.busy()) || (typeof UI !== 'undefined' && UI.busy && UI.busy()))) { setTimeout(() => this.show(de, gx, gy, k + 1), 300); return; }   /* 11-17 04:24 「보스 격파!」가 자리 비움 창 · 대마법 이름 위에 겹쳤음 → 비면 띄움 */
     this.n++;
     if (typeof Snd !== 'undefined' && Snd.smp && !TRAILER) { const n = [1, 2, 3, 4, 5].filter(i => i !== RW.lastV); const v = n[Math.floor(Math.random() * n.length)]; RW.lastV = v; Snd.voiceCd('v_lwin' + v, 6, 1.1); }   /* 11-17 18:5x 💡 보스를 깨면 지배자 목소리 한 줄(일레븐랩스 Midnight Cave · 3일차 영상과 같은 목소리) — 「다음은… 누구냐」 등 5줄 · 같은 줄 연달아 X · 1.1초 뒤(영웅 말과 안 겹치게) */
     const p = this.pos(Math.min(gx, VW.x + VW.w * 0.6), gy - 160), r = p.r;
@@ -13,7 +13,7 @@ const RW = {
     /* 가운데 큰 띠 */
     const b = document.createElement('div'); b.className = 'rwban';
     b.innerHTML = `<b>${L.rw.title}</b><div>${items.map(([, ic, v, nm]) => `<span><img src="art/${ic}.webp" alt="">${nm} <em>+${v}</em></span>`).join('')}</div>`;
-    b.style.left = (r.left + r.width / 2) + 'px'; const rc = document.getElementById('rcard'), chap = (rc && rc.classList.contains('on')) || (st.stage > 1 && st.stage % 10 <= 1); b.style.top = (r.top + r.height * (chap ? 0.15 : 0.42)) + 'px';   /* 지역 보스면 「제N장」 카드 제목을 덮지 않게 위로(보상_관문 사진) */
+    b.style.left = (r.left + r.width / 2) + 'px'; const rc = document.getElementById('rcard'), chap = (rc && rc.classList.contains('on')) || (st.stage > 1 && st.stage % 10 <= 1); b.style.top = (r.top + r.height * 0.32) + 'px'; if (typeof NOTICE !== 'undefined') NOTICE.hold(2100, 3); { const bv = document.getElementById('bvb'); if (bv) bv.classList.remove('on'); }   /* 11-18 새 틀: 늘 같은 자리 · 떠 있는 2.1초 동안 다른 알림은 기다림 */   /* 지역 보스면 「제N장」 카드 제목을 덮지 않게 위로(보상_관문 사진) */
     document.body.appendChild(b); setTimeout(() => b.classList.add('out'), 1700); setTimeout(() => b.remove(), 2100);
     /* 아이콘이 보스 자리에서 튀어 올랐다가 위 띠 숫자 칸으로 */
     items.forEach(([cur, ic], j) => {

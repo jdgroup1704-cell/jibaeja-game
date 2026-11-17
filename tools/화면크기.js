@@ -2,7 +2,7 @@
 // 순서 #3(대표님 「너무 확대 · 판이 안 보인다」「화면 너무 좁아 재미없다」「작은 폰 큰 폰 · 웹으로 보여 줘」): 화면마다 전장이 차지하는 높이 비율 · 화면 밖으로 잘린 유닛 수 · 유닛 키(픽셀)를 잼
 const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path'), { execSync } = require('child_process'); const dir = process.argv[2];
-const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
 const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(8179);
 const VPS = [['작은폰', 360, 640, 2, true], ['대표님폰', 360, 593, 2, true], ['큰폰', 412, 891, 2.6, true], ['PC', 430, 900, 1, false]]   /* 16:12부터 PC는 폰 틀(가로 430 · 세로 900)을 키워 보여 줌 → 그 틀로 잼 */;
 (async () => { const T = '/tmp/화면크기'; execSync(`rm -rf ${T}; mkdir -p ${T}`); const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const out = [];

@@ -1,0 +1,233 @@
+/* 지배자 키우기 — 새 틀(11-18 03:2x 대표님 「전부 새로 짜라 · 틀을 완전 다시 짜라」) · 설계서: v90설계/새틀설계.md
+   규칙: 화면은 칸으로 나눔(위 띠 · 싸움터 · 기술 줄 · 아래 칸 · 탭 줄). 무엇도 자기 칸 밖으로 못 나감. 폰 덧댐(@media 폰 전용 px 옮기기) 금지 — 크기는 칸 비율과 clamp로만. */
+:root{
+  --bg:#0d0618; --bg2:#160a26; --card:#1f1233; --card2:#2a1846; --line:#3d2563; --line2:#5b3a8f;
+  --txt:#efe6ff; --sub:#b7a6d6; --dim:#7d6c9c; --gold:#ffd76a; --gold2:#f0a92a; --vio:#8c5cff; --vio2:#5a2fc0; --green:#5dff8f; --red:#ff5a5a;
+  --hud:38px; --skill:46px; --tabs:50px; --goal:30px; --cards:clamp(150px,25vh,250px); --bottom:calc(var(--goal) + var(--tabs) + var(--cards));
+  --r:12px; --font:'Noto Sans KR','Noto Sans CJK KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#05010a;overflow:hidden;font-family:var(--font);color:var(--txt);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button{font-family:inherit;color:inherit;cursor:pointer}
+
+/* ── 틀: 폰 한 장(PC는 가운데 430 폭) ── */
+#app{position:relative;margin:0 auto;width:100%;max-width:430px;height:100%;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+#hud{flex:0 0 var(--hud);height:var(--hud);position:relative;z-index:6;display:flex;align-items:center;padding:0 6px;background:linear-gradient(#1d0f33,#120822);border-bottom:1px solid var(--line)}
+#stagewrap{flex:1 1 0;min-height:0;position:relative;overflow:hidden;background:#0b0414}
+#grip{display:none!important}
+#skillbar{flex:0 0 var(--skill);height:var(--skill);position:relative;z-index:5;display:flex;align-items:center;gap:6px;padding:0 8px;background:linear-gradient(#150a25,#0f0720);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+#panel{flex:0 0 var(--bottom);height:var(--bottom);min-height:0;position:relative;z-index:5;display:flex;flex-direction:column;background:linear-gradient(#1a0d2d,#120820)}
+#goal{flex:0 0 var(--goal);height:var(--goal);display:flex;align-items:center;gap:6px;padding:0 10px;font-size:13px;border-bottom:1px solid #2a1846;overflow:hidden;white-space:nowrap}
+#goal:empty{display:none}
+#tabbody{flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;padding:6px 8px 8px;-webkit-overflow-scrolling:touch}
+#feed{display:none!important}
+#tabs{flex:0 0 var(--tabs);height:var(--tabs);display:grid;grid-template-columns:repeat(6,1fr);background:#0e0619;border-top:1px solid var(--line)}
+
+/* ── 위 띠: 재화 ── */
+#hud .r1{display:flex;align-items:center;gap:4px;width:100%;min-width:0}
+#hud .chip{display:inline-flex;align-items:center;gap:3px;height:28px;padding:0 8px;border-radius:15px;background:#25143c;border:1px solid var(--line);font-size:13.5px;font-weight:800;white-space:nowrap;min-width:0;flex:0 1 auto}
+#hud .chip img.ic{width:20px;height:20px}
+#hud .sp{flex:1 1 0}
+#hud .stg,#hud #rank{display:none}
+
+/* ── 싸움터 ── */
+#battle{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:manipulation}
+#ver{position:absolute;right:4px;bottom:2px;font-size:9px;color:#ffffff55;z-index:2;pointer-events:none}
+#testbar{display:none}
+/* 판 표시: 싸움터 맨 위 가운데 */
+#stbig{position:absolute;left:50%;top:4px;transform:translateX(-50%);z-index:4;text-align:center;pointer-events:none;text-shadow:0 2px 0 #000,0 0 8px #000}
+#stbig .l1{display:flex;align-items:center;justify-content:center;gap:6px}
+#stbig .l1 b{font-size:clamp(24px,7vw,32px);font-weight:900;color:#fff;line-height:1}
+#stbig .l1 b i.act{display:none}#stbig .l1 b i.dash{display:inline-block;width:10px;height:3px;background:#fff;vertical-align:middle;margin:0 3px}
+#stbig small{display:block;font-size:12px;font-weight:800;color:#ffcf8a;margin-top:1px}
+.pips{display:inline-flex;gap:3px;vertical-align:middle}.pips i{width:8px;height:8px;border-radius:50%;background:#3a2160;border:1px solid #6b42a8}.pips i.on{background:#b07bff}.pips i.now{background:#ffd76a;box-shadow:0 0 6px #ffd76a}
+/* 위 단추: 왼쪽 둘 · 오른쪽 둘 — 한 줄(세로 기둥 없음) */
+#tools{position:absolute;left:0;right:0;top:4px;height:0;z-index:5;pointer-events:none}
+#tools .col{position:absolute;top:0;display:flex;gap:4px;pointer-events:auto}
+#tools .col.l{left:4px}#tools .col.r{right:4px}
+#tools .col.r.open{flex-direction:column;align-items:flex-end;background:#12082099;border-radius:12px;padding:2px}
+#tools button{width:38px;height:40px;border:0;background:none;padding:0;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-size:9.5px;font-weight:800;color:#fff;text-shadow:0 1px 2px #000,0 0 3px #000;line-height:1}
+#tools button img{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 2px #000)}
+#tools button .dot,#tools button.dot::after{position:absolute;top:0;right:2px;width:9px;height:9px;border-radius:50%;background:var(--red);content:''}
+#tools .col.r:not(.open) > button:not(.more):not(:first-child){display:none}
+/* 보스 막대: 싸움터 맨 위(판 표시 자리 대신) */
+#bossbar{position:absolute;left:52px;right:52px;top:6px;z-index:4;display:none}
+#bossbar.on,#bossbar[style*="block"]{display:block}
+#bossbar .hd{display:flex;justify-content:space-between;font-size:12px;font-weight:900;text-shadow:0 1px 2px #000}
+#bossbar .bar{position:relative;height:10px;border-radius:5px;background:#2a0e0e;border:1px solid #6a2020;overflow:hidden;margin-top:2px}
+#bossbar .fill,#bossbar .ghost{position:absolute;left:0;top:0;bottom:0}#bossbar .fill{background:linear-gradient(#ff6a5a,#c8202a)}#bossbar .ghost{background:#ffe3a0aa}
+#bossbar .pc{position:absolute;right:4px;top:-2px;font-size:10px;font-weight:900}
+#bossbar .t{font-size:11px;color:#ffd2a0;text-align:center;margin-top:1px}
+
+/* ── 알림 칸(싸움터 위쪽 · 한 번에 하나 — js/notice.js가 줄 세움) ── */
+#toast{position:absolute;left:12px;right:12px;top:52px;z-index:7;display:flex;flex-direction:column;align-items:center;pointer-events:none}
+#toast .toast{max-width:100%;padding:5px 12px;border-radius:12px;background:rgba(22,8,40,.94);border:1.5px solid var(--vio);font-size:12.5px;line-height:1.35;text-align:center;box-shadow:0 4px 14px #0008;animation:tin .25s ease-out}
+#toast .toast:not(:last-child){display:none}
+#toast .toast b{color:var(--gold);margin-right:4px}
+@keyframes tin{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}
+#guide{position:absolute;left:12px;right:12px;bottom:8px;z-index:4;text-align:center;pointer-events:none}
+#guide:not(:empty){padding:5px 10px;border-radius:14px;background:rgba(14,6,26,.82);border:1px solid #6a4aa8;font-size:12.5px}
+#stagewrap:has(#toast .toast) > #guide{opacity:0}
+#reraise{display:none!important}
+
+/* ── 기술 줄 ── */
+#slots{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:5px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+#slots::-webkit-scrollbar{display:none}
+#slots button{flex:0 0 38px;width:38px;height:38px;border-radius:50%;padding:0;border:2px solid #4a2a78;background:radial-gradient(circle at 50% 35%,#5a2f99,#26103f 70%);color:#e9dcff;font-size:11.5px;font-weight:900;line-height:1.05;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#slots button.on{border-color:var(--gold);box-shadow:0 0 10px #ffd76a88;color:#fff3c4}
+#slots button.auto{background:radial-gradient(circle at 50% 35%,#c99a2e,#6b4a10 75%);border-color:var(--gold);color:#fff6d8;font-size:10.5px}#slots button.auto.off{filter:grayscale(.7) brightness(.7)}
+#slots button.lock{background:#1a1028;border-color:#2c1846;color:#6f5c8c;font-size:9.5px;font-weight:700}
+#slots button.rer{background:radial-gradient(circle at 50% 35%,#2f9e5c,#0d3a22 75%);border-color:#5dff8f;color:#eafff1}
+#slots button.tomb{position:relative;overflow:visible;background:radial-gradient(circle at 50% 40%,#3a2a55,#120a20 75%);border-color:#9a7cff}
+#slots button.tomb img{width:78%;margin-top:-4px;filter:drop-shadow(0 0 4px #a46cff)}
+#slots button.tomb b{position:absolute;right:-4px;bottom:-3px;min-width:17px;height:17px;border-radius:9px;background:#e9e1d0;color:#2a1640;font-size:10.5px;line-height:17px;padding:0 3px;box-shadow:0 0 0 2px #1a0d2c}
+#slots button.tomb.hint{animation:hintp 1s ease-in-out infinite}
+#skillbar.raise #slots{display:none}
+#raiseBtn{display:none;flex:1 1 0;height:44px;border-radius:22px;border:2px solid var(--gold);background:linear-gradient(#7d4dff,#4a1fb0);font-size:17px;font-weight:900;color:#fff;line-height:1.05}
+#raiseBtn small{display:block;font-size:11px;font-weight:700;color:#e3d6ff}
+#cast{flex:0 0 74px;width:74px;height:46px;border-radius:23px;border:2px solid #6a4aa8;background:radial-gradient(circle at 50% 35%,#4a2a7a,#1d0d33 75%);font-size:15px;font-weight:900;color:#d9c8ff;line-height:1.05;padding:0;display:flex!important;flex-direction:column;align-items:center;justify-content:center}
+#cast small{font-size:9.5px;font-weight:700;color:#a897c8}
+#cast.ready,#cast.go{border-color:var(--gold);background:radial-gradient(circle at 50% 35%,#ffcf5a,#a05a10 80%);color:#fff;animation:hintp 1s ease-in-out infinite}
+@keyframes hintp{0%,100%{box-shadow:0 0 0 0 #ffd76a00}50%{box-shadow:0 0 0 5px #ffd76a55}}
+
+/* ── 탭 줄 ── */
+#tabs button{border:0;background:none;padding:4px 0 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:12.5px;font-weight:800;color:#a897c8;position:relative}
+#tabs button img{width:26px;height:26px;object-fit:contain;opacity:.75}
+#tabs button.on{color:#fff;background:linear-gradient(#3a1f63,#1d0f33);border-top:2px solid var(--gold)}#tabs button.on img{opacity:1}
+#tabs button.lock{opacity:.4}
+#tabs button .dot{position:absolute;top:4px;right:calc(50% - 20px);width:9px;height:9px;border-radius:50%;background:var(--red)}
+#tabs button.hint{animation:hintp 1s ease-in-out infinite}
+
+/* ── 아래 칸 공통 ── */
+#goal .gk{color:var(--gold);font-weight:900}#goal .gt{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}#goal .gb{display:none}#goal .gr{flex:0 0 auto;padding:2px 10px;border-radius:12px;background:#2a1846;border:1px solid var(--line2);font-weight:900;font-size:12.5px}
+.btn{border:0;border-radius:10px;padding:8px 12px;background:linear-gradient(#7d4dff,#5a2fc0);color:#fff;font-weight:900;font-size:14px;box-shadow:0 3px 0 #2e1270}
+.btn.gold{background:linear-gradient(#ffd76a,#f0a92a);color:#3a1a00;box-shadow:0 3px 0 #8a5a10}
+.btn:disabled{filter:grayscale(.8) brightness(.6);box-shadow:none}
+.btn.hint:not(:disabled){animation:hintp 1s ease-in-out infinite}
+.bulk{display:flex;justify-content:flex-end;gap:5px;margin:0 0 6px}
+.bulk button{min-width:52px;height:30px;border-radius:9px;border:1.5px solid var(--line2);background:#1d1030;font-weight:900;font-size:14px;color:#cdb8ff}
+.bulk button.on{border-color:var(--gold);color:#ffe9a8;background:#2e1a4a}
+
+/* ── 강화: 2열 × 2줄 큰 칸 ── */
+#panel.t-up #tabbody{display:flex;flex-direction:column;overflow:hidden}
+.ucards{display:grid;grid-template-columns:1fr 1fr!important;grid-auto-rows:1fr;gap:7px;flex:1 1 0;min-height:0}
+.ucard{position:relative;display:grid;grid-template-columns:clamp(40px,6.4vh,56px) minmax(0,1fr);grid-template-rows:auto auto 1fr;column-gap:7px;row-gap:1px;align-items:center;align-content:space-between;padding:7px;border-radius:var(--r);background:linear-gradient(#2a1846,#1b0f2e);border:1.5px solid var(--line2);min-height:0;overflow:hidden}
+.ucard.main{background:linear-gradient(#3a2810,#22160a);border-color:#c99a2e}
+.ucard img{grid-row:1/3;grid-column:1;width:clamp(40px,6.4vh,56px);height:clamp(40px,6.4vh,56px);object-fit:contain}
+.ucard .un{grid-column:2;grid-row:1;font-size:clamp(14px,2.35vh,18px);font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.ucard .un small.unk{font-size:.68em;font-weight:700;color:var(--sub);margin-left:2px}
+.ucard .ue{grid-column:2;grid-row:2;font-size:clamp(12.5px,1.95vh,15px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:#e8dcff}
+.ucard .ue i{font-style:normal;color:var(--dim);margin:0 1px}.ucard .ue b{color:var(--green)}
+.ucard .ulv{position:absolute;top:3px;left:3px;font-size:9.5px;font-weight:800;padding:0 .35em;border-radius:6px;background:#000a;color:#fff;z-index:1}
+.ucard .btn.buy{grid-column:1/3;grid-row:3;align-self:end;width:100%;height:clamp(32px,5.4vh,44px);padding:0 6px;font-size:clamp(14.5px,2.5vh,17px);display:flex;align-items:center;justify-content:center;gap:4px}
+.ucard .btn.buy img{width:18px;height:18px}
+.ucard .btn.buy small{font-size:.75em;opacity:.85}
+.ucard.off{opacity:.62;filter:grayscale(.55)}
+.ucard.off .ul{grid-column:2;grid-row:2;font-size:12px;color:#cdb8ff}
+.ucard.off .ud{grid-column:1/3;grid-row:3;align-self:end;text-align:center;font-size:12px;color:#a897c8;padding:.5em 0;border:1px dashed #4a3470;border-radius:10px}
+.ucard.tombc{background:linear-gradient(#2a1b44,#170d28);border-color:#8a6cff}
+.ucard.tombc .btn.buy.tombgo{background:linear-gradient(#9a6cff,#5a2fc0);animation:hintp 1.4s ease-in-out infinite}
+.ucard.hint,.ucard.can .btn.buy.hint{animation:hintp 1s ease-in-out infinite}
+
+/* ── 창(모달): 화면 안 상자 하나 ── */
+#modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:#000a;padding:14px}
+#modal .box{width:min(400px,100%);max-height:88vh;overflow-y:auto;border-radius:16px;background:linear-gradient(#24123c,#170b28);border:1.5px solid var(--line2);padding:16px 14px;box-shadow:0 10px 40px #000}
+#modal h3{margin:0 0 10px;text-align:center;font-size:20px;color:#ffe9a8}
+
+/* ── 손가락 · 시작 화면 ── */
+
+/* 낡은 CSS의 칸 규칙이 살아남아 틀을 흔들지 않게 */
+#app.tall,#app.fold{}
+
+/* 1차 사진 고침(03:4x): 칸 순서 고정 · 위 띠 한 줄 · 강화 칸 키우기(배수 단추를 목표 줄 오른쪽으로) */
+#hud{order:1}#stagewrap{order:2}#skillbar{order:3}#panel{order:4}#opening{order:9}
+#hud .r1,#hud .r2{display:contents}
+#hud .chip.shopc{order:0;background:linear-gradient(#5a2f99,#3a1a6a);border-color:#8c5cff}
+#hud .r2 .chip{order:1}
+#hud .chip.vip{order:3;margin-left:auto}
+#hud .sp{display:none}
+#hud .chip b.plus{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#2fbf5c;color:#fff;font-size:13px;margin-left:2px}
+#panel.t-up #goal{padding-right:176px}
+#panel.t-up .bulk{position:absolute;top:2px;right:8px;margin:0;z-index:2}
+#panel.t-up .bulk button{height:30px;min-width:50px}
+#panel.t-up #tabbody{padding-top:7px}
+
+/* ── 알림 줄(js/notice.js) — 싸움터 위쪽 30% 자리 하나 ── */
+#notice{position:absolute;left:8px;right:8px;top:31%;z-index:8;transform:translate(0,-50%);text-align:center;pointer-events:none;opacity:0}
+#notice.on{animation:ntc var(--ms,1700ms) ease-out forwards}
+#notice b{display:block;font-size:30px;font-weight:900;line-height:1.1;color:var(--c,#ffe9a8);-webkit-text-stroke:1.2px #1a0630;text-shadow:0 0 14px var(--g,#8a3cff),0 3px 4px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#notice small{display:inline-block;margin-top:4px;padding:3px 12px;border-radius:9px;background:rgba(20,6,34,.9);border:1px solid var(--g,#8a3cff);font-size:13.5px;font-weight:800;color:#f0e6ff;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#notice.red small{background:rgba(80,6,10,.9);border-color:#ff5a4a;color:#ffd2b0}
+@keyframes ntc{0%{opacity:0;transform:translate(0,-50%) scale(1.4)}12%{opacity:1;transform:translate(0,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(0,-60%) scale(.98)}}
+#bph2{display:none!important}
+
+/* ── 보스 격파 카드: 싸움터 가운데 위쪽 · 화면 폭 안 ── */
+.rwban{position:fixed;z-index:9;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;text-align:center;padding:10px 18px 12px;border-radius:16px;background:linear-gradient(#3a1f63ee,#1d0f33ee);border:2px solid #ffd76a;box-shadow:0 6px 24px #000a;max-width:min(330px,88vw);animation:rwIn .3s cubic-bezier(.2,1.5,.4,1) forwards}
+.rwban b{display:block;font-size:30px;font-weight:900;color:#ffe9a8;text-shadow:0 0 10px #ff9a2a,0 2px 2px #000;white-space:nowrap}
+.rwban div{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:center;margin-top:4px}
+.rwban span{display:flex;align-items:center;gap:4px;font-size:14px;font-weight:700;color:#e8dcff;white-space:nowrap}
+.rwban span img{width:22px;height:22px}.rwban em{font-style:normal;font-weight:900;font-size:18px;color:#fff3c4}
+@keyframes rwIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+/* ── VS 카드: 싸움터 칸을 꽉 채우는 상자 하나 · 그림은 반쪽 상자 안에 맞춰 넣기(넘침 · 잘림 없음) ── */
+#stagewrap #vsfx{position:absolute;inset:0;z-index:30;overflow:hidden}
+#stagewrap #vsfx .vl,#stagewrap #vsfx .vr{position:absolute;top:0;bottom:0;width:52%;overflow:hidden}
+#stagewrap #vsfx .vl{left:0}#stagewrap #vsfx .vr{right:0}
+#stagewrap #vsfx .vdrop{position:absolute;inset:0}
+#stagewrap #vsfx .vl img,#stagewrap #vsfx .vr img{position:absolute;left:4%;right:4%;top:8%;bottom:20%;width:92%;height:72%;object-fit:contain;object-position:center bottom}
+#stagewrap #vsfx .vl img{transform:scaleX(-1)}
+#stagewrap #vsfx .vl .vnm{position:absolute;left:6px;right:auto;top:6px;bottom:auto;font-size:14px}
+#stagewrap #vsfx > .vnm.vb{position:absolute;left:0;right:0;bottom:2%;height:18%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:clamp(17px,5.4vw,22px);text-align:center;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#stagewrap #vsfx > .vnm.vb small{font-size:.62em}
+#stagewrap #vsfx .vsx{top:40%;font-size:clamp(48px,15vw,72px)}
+#stagewrap #vsfx .vspark{top:40%}
+#stagewrap #vsfx .vline{left:52%;right:4%;top:4%;max-width:none;font-size:12.5px}
+#stagewrap #vsfx .vcrack,#stagewrap #vsfx .vdust{display:none}
+
+/* 기술 띠(cutin): 싸움터 위쪽 띠 하나 */
+#cutin{position:absolute;left:0;top:38%;width:80%;height:56px;pointer-events:none;z-index:7;display:none}
+.bulk button.auto{display:inline-flex;align-items:center;gap:3px;padding:0 8px;min-width:0}
+.bulk button.auto img{width:20px;height:20px;object-fit:contain}
+.bulk button.auto.on{border-color:var(--green);color:#d8ffe4;background:#123322}
+#panel.t-up #goal{padding-right:236px}
+/* 목록 줄(누르는 줄은 button이라 흰 바탕이 나왔음) */
+button.row{width:100%;border:1px solid var(--line);border-radius:12px;background:linear-gradient(90deg,#24123c,#170b28);margin:0 0 6px;padding:9px 10px;text-align:left;color:var(--txt);font-size:13.5px}
+button.row.lrow img.ic{width:24px;height:24px}
+button.row.hint{border-color:var(--gold);animation:hintp 1s ease-in-out infinite}
+#tabbody h4{margin:8px 2px 4px;font-size:13px;color:var(--sub)}
+#guide{font-size:12px!important}
+#bvb{max-width:58%!important;font-size:12.5px!important;padding:5px 10px!important;line-height:1.3}
+#panel.t-up #goal,#panel.t-up #goal:empty{display:flex!important}
+
+/* 03:4x 대표님 「아래 무기 · 소환 칸도 엄청 크자나」 → 2×2 큰 칸을 버리고 장르 방식 낮은 줄 목록(한 줄에 하나 · 그림 · 이름 · 단계 · 지금 → 다음 · 오른쪽 값 단추) */
+.ucards{display:flex!important;flex-direction:column;gap:5px;overflow-y:auto;flex:1 1 0;min-height:0}
+.ucard{flex:0 0 auto;height:clamp(44px,7.4vh,58px);display:grid!important;grid-template-columns:38px minmax(0,1fr) 104px!important;grid-template-rows:1fr 1fr!important;column-gap:8px;row-gap:0;align-items:center;align-content:center;padding:4px 6px 4px 8px!important;border-radius:11px}
+.ucard img{grid-row:1/3!important;grid-column:1!important;width:38px!important;height:38px!important}
+.ucard .un{grid-column:2!important;grid-row:1!important;align-self:end;font-size:14.5px!important;line-height:1.2}
+.ucard .ue{grid-column:2!important;grid-row:2!important;align-self:start;font-size:12.5px!important;line-height:1.3}
+.ucard .btn.buy{grid-column:3!important;grid-row:1/3!important;align-self:center;width:104px;height:clamp(38px,6vh,46px)!important;font-size:15px!important;margin:0!important;border-radius:10px}
+.ucard .ulv{position:static!important;grid-column:2;grid-row:1;justify-self:end;align-self:end;background:none!important;color:var(--gold)!important;font-size:11px!important;padding:0!important}
+.ucard.off .ul{grid-column:2!important;grid-row:2!important;align-self:start;font-size:12px!important}
+.ucard.off .ud{grid-column:3!important;grid-row:1/3!important;align-self:center;font-size:11px!important;padding:.4em .2em!important}
+.ucard .btn.buy img,.ucard .btn.buy img.ic{width:18px!important;height:18px!important;grid-row:auto!important;grid-column:auto!important}
+
+#raiseBtn{height:40px!important}#cast{height:40px!important}
+/* 위 띠가 넘침(오류사냥 · 사기 +4% 칩이 잘림) → 칩을 줄이고 넘치면 아이콘 숫자만 */
+#hud{gap:3px;overflow:hidden}
+#hud .chip{height:26px;padding:0 6px;font-size:12.5px;gap:2px;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:clip}
+#hud .chip img.ic{width:18px;height:18px;flex:0 0 auto}
+#hud .chip.mor{font-size:11.5px;padding:0 5px}
+#hud .chip.shopc{padding:0 6px 0 4px}
+#hud .chip.mor{flex:0 0 auto;overflow:visible;color:#ffb36a}
+#hud .chip.vip{flex:0 0 auto;padding:0 3px;overflow:visible}
+#hud .chip.vip img.ic{width:20px;height:20px}
+
+/* ── 가로 배치(PC · 태블릿 가로 · 03:59 대표님 「가로 버전 모드 니 생각」 → 폰은 세로 그대로, 넓은 가로 화면만) ── */
+@media (min-width:900px) and (min-aspect-ratio:4/3){
+  #app{max-width:none;display:grid!important;grid-template-columns:minmax(0,1fr) 400px;grid-template-rows:var(--hud) var(--skill) minmax(0,1fr);grid-template-areas:"hud hud" "stage skill" "stage panel"}
+  #hud{grid-area:hud}#stagewrap{grid-area:stage;border-right:1px solid var(--line)}#skillbar{grid-area:skill;border-top:0}#panel{grid-area:panel;height:auto!important;flex:none}
+  #panel #tabbody{flex:1 1 0}
+}
+#panel.t-up #tabbody{padding:4px 8px 3px!important}
+.ucards{gap:4px!important}
+#stagewrap:has(#notice.on) #toast,#stagewrap:has(#vsfx.go) #toast{opacity:0;transition:opacity .15s}   /* 알림 줄이 떠 있으면 작은 알림은 숨김(눈_새틀5 3-10: 「새로 열림」이 「군단 힘 100 돌파!」 밑에 겹침) */

@@ -1,7 +1,7 @@
 // 봇으로 각성 시각 · 그때 최고 판 기록: node 각성간격.js 폴더 [게임 분=60] [배속=8]
 const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path'); const dir = process.argv[2], mins = +(process.argv[3] || 60), sp = +(process.argv[4] || 8);
-const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.jpg': 'image/jpeg', '.webp': 'image/webp' };
 const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(8182);
 (async () => { const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const pg = await (await b.newContext({ viewport: { width: 360, height: 593 } })).newPage();
   await pg.goto(`http://localhost:8182/index.html?bot=1&speed=${sp}&seed=7`); await pg.waitForTimeout(2000);

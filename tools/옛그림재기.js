@@ -1,7 +1,7 @@
 // node 옛그림재기.js 폴더 → 관문 ㉗(11-16 09:15 「검은 종이 인형 지배자」 · 「역탑 검수랑 차이 심하네」): 처음 15초 · 3-10 40초 · 후반 저장(귀빈 8 · 2막 · 영웅 8 · 보스 대마법) 40초 동안 그림 파일을 바로 그린 이름과 횟수(새 줄그림은 구워 그려서 안 셈 = 여기 나오는 건 정지 그림 · 옛 그림)
 const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path'); const dir = process.argv[2], PORT = 8212;
-const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png' };
 http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); r.end(d); }); }).listen(PORT);
 (async () => { const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const pg = await (await b.newContext({ viewport: { width: 360, height: 593 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.addInitScript(() => { window.__D = {}; const od = CanvasRenderingContext2D.prototype.drawImage; CanvasRenderingContext2D.prototype.drawImage = function (im, ...a) { const s = im && im.src; if (s) { const n = decodeURIComponent(s.split('/').pop().split('?')[0]); __D[n] = (__D[n] || 0) + 1; } return od.call(this, im, ...a); }; });

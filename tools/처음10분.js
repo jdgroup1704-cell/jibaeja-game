@@ -1,7 +1,7 @@
 // 처음 하는 사람처럼 10분(처음5분.js 늘린 것, 11-15): 손가락이 가리키는 곳만 누르며 게임 시간 10분(2배속 → 실제 5분). 12장 띠 + 누른 기록 + 30초마다 판 · 손가락 없이 지난 가장 긴 시간
 const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path'), { execSync } = require('child_process'); const dir = process.argv[2];
-const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': p.endsWith('.js') ? 'text/javascript' : p.endsWith('.html') ? 'text/html' : 'image/webp' }); r.end(d); }); }).listen(8179);
+const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } r.writeHead(200, { 'Content-Type': p.endsWith('.js') ? 'text/javascript' : p.endsWith('.html') ? 'text/html' : p.endsWith('.css') ? 'text/css' : 'image/webp' }); r.end(d); }); }).listen(8179);
 (async () => { const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const pg = await (await b.newContext({ viewport: { width: 360, height: 593 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })).newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
   await pg.goto('http://localhost:8179/index.html?speed=2'); await pg.waitForTimeout(2500); await pg.evaluate(() => document.getElementById('opening')?.click());
   const shots = [5, 30, 55, 80, 105, 130, 155, 180, 205, 230, 260, 295], fr = [], log = []; let t0 = Date.now(), si = 0, lastAct = 0, maxGap = [0, 0], nextSum = 30;

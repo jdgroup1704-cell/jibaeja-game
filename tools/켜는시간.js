@@ -2,7 +2,7 @@
 const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const dir = process.argv[2], KB = +(process.argv[3] || 1600), RTT = +(process.argv[4] || 150), PORT = 8201;
-const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png', '.json': 'application/json' };
+const MIME = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.png': 'image/png', '.json': 'application/json' };
 const zlib = require('zlib'), GZ = process.env.GZ !== '0';   /* 실제 올리는 곳(claude.ai)처럼 글 파일(js · html)은 압축해서 보냄 — GZ=0이면 압축 없이 */
 const srv = http.createServer((q, r) => { const p = path.join(dir, decodeURIComponent(q.url.split('?')[0])); fs.readFile(p, (e, d) => { if (e) { r.writeHead(404); r.end(); return; } const ext = path.extname(p), h = { 'Content-Type': MIME[ext] || 'application/octet-stream' }; if (GZ && /\.(js|html|json)$/.test(ext) && /gzip/.test(q.headers['accept-encoding'] || '')) { h['Content-Encoding'] = 'gzip'; d = zlib.gzipSync(d); } r.writeHead(200, h); r.end(d); }); }).listen(PORT);
 (async () => { const b = await chromium.launch({ executablePath: '/usr/bin/google-chrome' }); const ctx = await b.newContext({ viewport: { width: 360, height: 593 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }); const pg = await ctx.newPage(); const errs = []; pg.on('pageerror', e => errs.push(e.message));
