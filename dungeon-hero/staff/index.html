@@ -1877,7 +1877,7 @@
   let bookPg = 0;
   function drawBook() {
     ctx.fillStyle = '#120c18'; ctx.fillRect(-ox / scale, -oy / scale, innerWidth / scale, innerHeight / scale);
-    txt('📖 히든 스킬 비법', W / 2, 44, 30, '#ffb0ff', FT);
+    tfit('📖 히든 스킬 비법', 216, 44, 30, '#ffb0ff', 208, FT, 'center');
     txt('무기를 Lv5(최대)까지 올리면', W / 2, 78, 15, '#e8d8c0');
     txt('다음 레벨업에 보라색 ★히든 카드가 나와요!', W / 2, 98, 15, '#ffd0ff');
     let y = 112;
@@ -2213,7 +2213,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118023206'; let updReady = null;
+  const BUILD = '1118023626'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'];
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
     try { sessionStorage.setItem('dh-upd-try', JSON.stringify({ v: updReady, t: Date.now() })); } catch (e) {} try { localStorage.setItem('dh-upd', MENU.includes(state) ? state : '1'); } catch (e) {} location.replace(location.pathname + '?v=' + updReady + '&t=' + Date.now() + (AUTO || /nophone=1/.test(location.search || '') ? '&nophone=1' : '')); }
