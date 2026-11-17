@@ -487,7 +487,7 @@ function drawSkel(a) {
 }
 function drawFoe(f) {   /* 01:35 「딱딱탁」: 맞으면 0.16초 뒤로 튕겼다 돌아옴 */
   const kp = f.kbT > 0 ? 1 - f.kbT / 0.16 : 1, kx = f.kbT > 0 ? (kp < 0.2 ? kp / 0.2 : 1 - (kp - 0.2) / 0.8) * 28 : 0; if (f.kbT > 0) f.kbT -= 1 / 60;   /* 09:40 맞는 순간 확 밀렸다(0.03초) 천천히 돌아옴 · 28 */
-  if (kx) { ctx.save(); ctx.translate(f.x + kx, f.y); ctx.rotate(kx / 28 * 0.12); ctx.translate(-f.x, -f.y); } drawFoe0(f); if (kx) ctx.restore();   /* 밀리며 뒤로 젖혀짐 */
+  if (kx) { ctx.save(); ctx.translate(f.x + kx, f.y); ctx.rotate(kx / 28 * 0.12); ctx.translate(-f.x, -f.y); } { const zf = typeof SZ !== 'undefined' && !f.boss ? SZ.foe : 1; if (zf !== 1) { ctx.save(); ctx.translate(f.x, f.y); ctx.scale(zf, zf); ctx.translate(-f.x, -f.y); } drawFoe0(f); if (zf !== 1) ctx.restore(); } if (kx) ctx.restore();   /* 11-18 새 틀 크기 표: 적도 SZ.foe(우리 편을 줄이자 적 방패병이 훨씬 커 보였음 — 그림점검 3-10) */   /* 밀리며 뒤로 젖혀짐 */
 }
 /* 11-16 #25 대표님 11:30 「강화 계속 별 높이면 모습도 바뀌는 거야?」: 큰 소환수도 승급 단계가 눈에 보이게 — 쌓인 승급(st.evo)을 높은 단계부터 소환수에게 나눠 줌(저장 · 다시 켜도 그대로)
    1 구울 초록 발밑 문양 · 2 뼈 골렘 푸른 문양 + 영혼 알갱이 · 3 망령 기사 보라 이중 문양 + 뒤 기운 · 4 리치 금빛 + 떠 있는 왕관 — 그림을 다시 굽지 않고 겹쳐 그림(메모리 그대로) */
