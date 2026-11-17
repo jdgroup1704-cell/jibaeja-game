@@ -3,7 +3,7 @@
    힘 계산은 그대로(보이는 것만) — 1-1 「일으켜라」 한 번에 2마리씩 솟고, 그 뒤엔 판이 오를수록 10 → 18마리 */
 const MN = {
   list: [], cd: 0,
-  want() { const r = Math.min(st.raised || 0, JB.C.RAISE_TAPS); if ((st.best || 1) <= 1) return Math.min(14, 2 + r * 2); return Math.min(14, 10 + Math.floor((st.best || 1) / 3)); },
+  want() { const r = Math.min(st.raised || 0, JB.C.RAISE_TAPS); if ((st.best || 1) <= 1) return Math.min(14, 2 + r * 2); return Math.min(10, 8 + Math.floor((st.best || 1) / 15)); },   /* 11-17 10:4x 「쫄따구가 너무 많다」: 1-1(처음 1분 · 관문㉞ 10↑)은 그대로, 그 뒤엔 14 → 8~10 */
   spawn(n, x, y) {
     for (let i = 0; i < n && this.list.length < 14; i++) {
       const d = Math.random(), m = { x: (x ?? 320 + rnd(0, 140)) + rnd(-50, 50), y: GY0(GROUND + 40, 680, d), d, ph: rnd(0, 7), rise: 0, sw: 0, cd: rnd(0, 0.6), hurt: 0, k: (Math.random() * 3) | 0, born: S.t };
@@ -40,7 +40,10 @@ const MN = {
     if (m.rise < 1) { ctx.beginPath(); ctx.rect(-80, -200, 160, 200); ctx.clip(); }   /* 땅 위로만 보이게 — 땅을 뚫고 올라옴 */
     ctx.globalAlpha = Math.min(1, m.rise * 1.6);
     const fi = at ? svAtkF((0.5 - m.sw) / 0.5 * 0.55) * (M.n.attack - 1) / 19 : Math.floor(vsIdle(m.ph, 4, M.n.idle));
-    vsDraw('sumv1', at && need('sumv1_attack') ? 'attack' : 'idle', fi, 96 * sc, SV_TINT.d, 0, false);   /* 겹쳐 그리기 없이(렉 · 관문 ㉚) */
+    const K = m.k || 0, T = [SV_TINT.d, SV_TINT[2], SV_TINT[3]][K], hk = 96 * sc * [1, 0.9, 1.1][K];   /* 11-17 10:4x 대표님 「같은 병사가 너무 많다」(5번): 망자병 떼가 전부 같은 보라 해골 → 세 갈래(보라 · 서리 · 독)로 빛깔 · 키를 다르게(빛깔 그림은 한 번 구워 다시 씀) */
+    m.wf = ((m.wf ?? m.ph * 9) + Math.min(mv, 8) * 16 / 75) % 16;
+    if (!at && mv > 0.3 && VS.sumv1w && need('sumv1_walk')) vsDraw('sumv1w', 'walk', m.wf, hk, T, 0, true);   /* 11-17 미끄럼: 달려갈 때 숨쉬기 그림으로 미끄러졌음 → 걷기 그림 */
+    else vsDraw('sumv1', at && need('sumv1_attack') ? 'attack' : 'idle', fi, hk, T, 0, false);   /* 겹쳐 그리기 없이(렉 · 관문 ㉚) */
     ctx.restore(); ctx.globalAlpha = 1;
   },
   reset() { this.list = []; },
