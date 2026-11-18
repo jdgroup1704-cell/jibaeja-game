@@ -91,9 +91,9 @@ const KINDS = {
 };
 /* 지역(판) 3곳 — 이기면 다음 지역이 열림 */
 const CHAPTERS = [
-  { name: '버려진 묘지', sub: '제1장', boss: '황금 성기사 단장', bs: 'paladin', tint: null, hp: 1 },
-  { name: '피의 늪', sub: '제2장', boss: '피의 군주', bs: 'bossBlood', tint: 'rgba(120,0,20,.28)', hp: 1.8 },
-  { name: '얼음 성채', sub: '제3장', boss: '서리 왕', bs: 'bossIce', tint: 'rgba(40,120,200,.22)', hp: 2.7 },
+  { name: '버려진 묘지', sub: '제1장', boss: '황금 성기사 단장', bs: 'paladin', tint: null, hp: 1, lines: ['죽은 자는 흙으로 돌아가라!', '빛이여… 나를 버리지 마라!', '이 몸도… 일어나는가…'] },
+  { name: '피의 늪', sub: '제2장', boss: '피의 군주', lines: ['내 늪에 발을 들였구나, 해골 왕.', '피가… 끓어오른다!', '내 피를… 가져가라…'], bs: 'bossBlood', tint: 'rgba(120,0,20,.28)', hp: 1.8 },
+  { name: '얼음 성채', sub: '제3장', boss: '서리 왕', lines: ['얼어붙어라. 영원히.', '이 추위가… 나를 배신하는가!', '봄은… 오지 않는다…'], bs: 'bossIce', tint: 'rgba(40,120,200,.22)', hp: 2.7 },
 ];
 function newRun() {
   const U = META.up;
@@ -179,7 +179,7 @@ function killFoe(f) {
   for (let i = 0; i < (f.boss ? 30 : f.elite ? 8 : 1); i++) G.orbs.push({ x: f.x + rnd(-8, 8) * (i ? 3 : 0), y: f.y - 10 + rnd(-8, 8) * (i ? 3 : 0), v: f.xp * (1 + G.t / 160) * (1 + G.ch * 0.25), t: 0 });
   if (!f.boss && Math.random() < (f.elite ? 1 : 0.012)) G.hearts = (G.hearts || []).concat([{ x: f.x, y: f.y - 6, t: 0 }]);   /* 회복: 영혼 심장 */
   if (f.elite) { G.chestN++; G.queue = (G.queue || 0) + 1; hitstop = 0.08; shake = Math.max(shake, 10); SND.play('boom', 0.5); say('정예 처치! 보물 카드', f.x, f.y - 90, { size: 22, col: '#ffd23a', life: 1.4 }); if (!G.cards) { G.queue--; G.cards = rollCards(); } }
-  if (f.boss) { hitstop = 0.25; shake = 30; G.win = 1; G.over = 2.5; SND.play('win', 0.8); }
+  if (f.boss) { G.bossSay = { s: CHAPTERS[G.ch].lines[2], t: 0, x: f.x, y: f.y - f.h - 10 }; hitstop = 0.25; shake = 30; G.win = 1; G.over = 2.5; SND.play('win', 0.8); }
   const alive = G.allies.filter(a => !a.dead).length;
   const sure = (G.E.pool && f.inPool > G.t) || (G.E.hands && f.rootT > 0), big = f.elite || (G.E.hands && f.rootT > 0 && Math.random() < 0.5);
   if (!f.boss && alive < G.S.cap && (sure || Math.random() < (f.elite ? 1 : G.S.rise))) raise(f.x, f.y, big);
@@ -200,7 +200,7 @@ function spawnFoe(kind, elite) {
 function spawnBoss() {
   const P = G.P, C = CHAPTERS[G.ch]; G.bossOn = 1; const hp = 2600 * (1 + G.t / 250) * C.hp;
   G.boss = { kind: 'boss', s: C.bs, boss: 1, x: P.x + W * 0.42, y: P.y - 60, hp, max: hp, spd: 38, dmg: 22 * (1 + G.ch * 0.4), r: 40, h: G.ch ? 200 : 190, xp: 1, kx: 0, ky: 0, flash: 0, wf: 0, dir: -1, heavy: 1, act: 'idle', actT: 3, af: 0 };
-  G.foes.push(G.boss); SND.play('stamp', 0.7); shake = 18; G.banner = { text: C.boss + ' 등장', t: 0 };
+  G.foes.push(G.boss); SND.play('stamp', 0.7); shake = 18; G.banner = { text: C.boss + ' 등장', t: 0 }; G.bossSay = { s: C.lines[0], t: 0 }; G.bossHalf = 0;
 }
 
 /* ── 한 걸음 ── */
@@ -315,7 +315,7 @@ function updateFx(dt) {
   for (const m of G.marks) m.t += dt; G.marks = G.marks.filter(m => m.t < 0.9);
   for (const d of G.dead) d.t += dt; G.dead = G.dead.filter(d => d.t < 0.5); for (const p of G.pillars) p.t += dt; G.pillars = G.pillars.filter(p => p.t < 0.55);
   for (const z of G.zaps) z.t += dt; G.zaps = G.zaps.filter(z => z.t < 0.2); for (const q of G.handFx) q.t += dt; G.handFx = G.handFx.filter(q => q.t < 0.8); G.flashW = Math.max(0, (G.flashW || 0) - dt * 2);
-  if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; }
+  if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } if (G.bossSay) { G.bossSay.t += dt; if (G.bossSay.t > 2.8) G.bossSay = null; } if (G.boss && !G.boss.dead && !G.bossHalf && G.boss.hp < G.boss.max * 0.5) { G.bossHalf = 1; G.bossSay = { s: CHAPTERS[G.ch].lines[1], t: 0 }; }
 }
 /* ── 오늘의 임무(하루 3개 · 날짜 바뀌면 새로) ── */
 const DAILY = [{ key: 'k', name: '적 500명 쓰러뜨리기', need: 500, gem: 40 }, { key: 's', name: '한 판에 5분 버티기', need: 1, gem: 40 }, { key: 'e', name: '마법 진화 1번 하기', need: 1, gem: 40 }];
@@ -477,6 +477,8 @@ function drawHud() {
   if (MODE === 'play' && !G.cards && !G.over && !G.reviveAsk) { const bx = W - 46, by = top + 20; ctx.fillStyle = 'rgba(20,10,36,.85)'; rr(bx, by, 36, 34, 10); ctx.fill(); ctx.strokeStyle = '#6a4aa0'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.fillStyle = '#e8dcff'; ctx.fillRect(bx + 12, by + 10, 4, 14); ctx.fillRect(bx + 20, by + 10, 4, 14); BTNS.push({ x: bx - 6, y: by - 6, w: 48, h: 46, fn: () => { G.paused = 1; JOY.on = false; } }); }
   if (G.boss && !G.boss.dead) { const w = W - 60, x = 30, y = top + 58; ctx.fillStyle = 'rgba(0,0,0,.7)'; rr(x, y, w, 12, 6); ctx.fill(); ctx.fillStyle = '#ff4a3a'; rr(x + 1, y + 1, (w - 2) * G.boss.hp / G.boss.max, 10, 5); ctx.fill(); txt(CHAPTERS[G.ch].boss, W / 2, y + 22, 13, '#ffd2c8'); }
   if (G.banner) { const k = G.banner.t, a = Math.min(1, k * 3, (2.6 - k) * 2); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(40,0,10,.75)'; ctx.fillRect(0, H * 0.3 - 30, W, 60); txt(G.banner.text, W / 2, H * 0.3, 26, '#ffd2c8'); ctx.globalAlpha = 1; }
+  if (G.bossSay) { const q = G.bossSay, a = Math.min(1, q.t * 5, (2.8 - q.t) * 3), y = Math.max(126, H * 0.3 - 54), tw = Math.min(W - 30, 360);   /* 보스 대사 — 화면 고정 칸(머리 위는 위 띠에 가려짐) */
+    ctx.globalAlpha = a; ctx.fillStyle = 'rgba(255,244,230,.95)'; rr(W / 2 - tw / 2, y - 22, tw, 44, 12); ctx.fill(); txt('「' + q.s + '」', W / 2, y, 17, '#3a0a14', { stroke: 0, box: tw - 24 }); ctx.globalAlpha = 1; }
   if (G.t < 6 && !G.cards) { ctx.globalAlpha = Math.min(1, (6 - G.t) / 1.5); txt('화면을 누른 채 끌어서 움직여요', W / 2, H * 0.78, 17, '#e8dcff', { w: 800 }); txt('쓰러뜨린 적이 내 해골 병사로 일어나요', W / 2, H * 0.78 + 26, 15, '#c9a2ff', { w: 800 }); ctx.globalAlpha = 1; }
 }
 function drawCards() {
