@@ -165,14 +165,17 @@ const evoOk = e => G.W[e.id] >= (CARDS.find(c => c.id === e.id).max) && (G.L[e.n
 function rollCards() {
   const pool = CARDS.filter(c => lv(c.id) < c.max && !(c.w && lv(c.id) === 0 && Object.values(G.W).filter(v => v > 0).length >= 4));
   const out = []; const ev = EVO.find(evoOk); if (ev) out.push({ id: 'evo_' + ev.id, evo: ev, name: ev.name, icon: ev.icon, max: 1, desc: () => ev.desc }); while (out.length < 3 && pool.length) { const wts = pool.map(c => (c.w && lv(c.id) === 0 ? 2.2 : c.w ? 1.6 : 1)); let r = Math.random() * wts.reduce((a, b) => a + b, 0), i = 0; while ((r -= wts[i]) > 0) i++; out.push(pool.splice(i, 1)[0]); }
+  if (out.length < 3) out.push(FEAST);   /* 카드가 다 차면 「망자의 잔치」로 채움 — 전엔 빈 카드로 게임이 멈췄음(봇 13분 · 레벨 53) */
   return out;
 }
+const FEAST = { id: 'feast', name: '망자의 잔치', icon: 'i_soul', max: 1e9, desc: () => '체력 모두 회복 · 해골 병사 힘 +5%' };
 function takeCard(c) {
+  if (!c) { G.cards = null; return; }
   if (c.evo) { G.E[c.evo.id] = 1; G.cards = null; say('진화! ' + c.name, G.P.x, G.P.y - 100, { size: 26, col: '#ffd23a', life: 1.6, vy: -30 }); burst(G.P.x, G.P.y - 40, 50, ['#ffd23a', '#fff', '#c9a2ff'], 420, 0.8); shake = 12; G.flashW = 0.6; SND.play('win', 0.6); if (G.queue > 0) { G.queue--; G.cards = rollCards(); } return; }
   const n = lv(c.id) + 1; if (c.w) G.W[c.id] = n; else G.L[c.id] = n;
   const S = G.S;
   if (c.id === 'rise') S.rise += 0.12; if (c.id === 'cap') S.cap += 6; if (c.id === 'allyPow') S.allyPow += 0.35; if (c.id === 'spd') S.spd += 0.12;
-  if (c.id === 'hp') { G.P.max += 25; G.P.hp = G.P.max; } if (c.id === 'magnet') S.magnet *= 1.45; if (c.id === 'haste') S.haste *= 0.92;
+  if (c.id === 'hp') { G.P.max += 25; G.P.hp = G.P.max; } if (c.id === 'feast') { G.P.hp = G.P.max; S.allyPow += 0.05; } if (c.id === 'magnet') S.magnet *= 1.45; if (c.id === 'haste') S.haste *= 0.92;
   G.cards = null; say(`${c.name} ${n > 1 ? 'Lv' + n : '획득'}`, G.P.x, G.P.y - 150, { size: 20, col: '#ffe08a', vy: -20, life: 1.2 }); burst(G.P.x, G.P.y - 40, 18, ['#c9a2ff', '#fff', '#ffe08a'], 240);
   if (G.queue > 0) { G.queue--; G.cards = rollCards(); }
 }
