@@ -104,9 +104,9 @@ const KINDS = {
 };
 /* 지역(판) 3곳 — 이기면 다음 지역이 열림 */
 const CHAPTERS = [
-  { name: '버려진 묘지', sub: '제1장', boss: '황금 성기사 단장', bs: 'paladin', tint: null, hp: 1, lines: ['죽은 자는 흙으로 돌아가라!', '빛이여… 나를 버리지 마라!', '이 몸도… 일어나는가…'] },
-  { name: '피의 늪', sub: '제2장', boss: '피의 군주', lines: ['내 늪에 발을 들였구나, 해골 왕.', '피가… 끓어오른다!', '내 피를… 가져가라…'], bs: 'bossBlood', tint: 'rgba(120,0,20,.28)', hp: 1.8 },
-  { name: '얼음 성채', sub: '제3장', boss: '서리 왕', lines: ['얼어붙어라. 영원히.', '이 추위가… 나를 배신하는가!', '봄은… 오지 않는다…'], bs: 'bossIce', tint: 'rgba(40,120,200,.22)', hp: 2.7 },
+  { name: '버려진 묘지', sub: '제1장', boss: '황금 성기사 단장', weak: 'sword', bs: 'paladin', tint: null, hp: 1, lines: ['죽은 자는 흙으로 돌아가라!', '빛이여… 나를 버리지 마라!', '이 몸도… 일어나는가…'] },
+  { name: '피의 늪', sub: '제2장', boss: '피의 군주', weak: 'arch', lines: ['내 늪에 발을 들였구나, 해골 왕.', '피가… 끓어오른다!', '내 피를… 가져가라…'], bs: 'bossBlood', tint: 'rgba(120,0,20,.28)', hp: 1.8 },
+  { name: '얼음 성채', sub: '제3장', boss: '서리 왕', weak: 'shield', lines: ['얼어붙어라. 영원히.', '이 추위가… 나를 배신하는가!', '봄은… 오지 않는다…'], bs: 'bossIce', tint: 'rgba(40,120,200,.22)', hp: 2.7 },
 ];
 function newRun() {
   const U = META.up;
@@ -217,7 +217,7 @@ function spawnFoe(kind, elite) {
 function spawnBoss() {
   const P = G.P, C = CHAPTERS[G.ch]; G.bossOn = 1; const hp = 3400 * (1 + G.d / 250) * C.hp * (G.idle ? 0.8 * Math.pow(1.07, Math.max(0, G.stage - 15)) : 1);
   G.boss = { kind: 'boss', s: C.bs, boss: 1, x: P.x + W * 0.42, y: P.y - 60, hp, max: hp, spd: 38, dmg: 22 * (1 + G.ch * 0.4), r: 40, h: G.ch ? 200 : 190, xp: 1, kx: 0, ky: 0, flash: 0, wf: 0, dir: -1, heavy: 1, act: 'idle', actT: 3, af: 0 };
-  G.foes.push(G.boss); SND.play('stamp', 0.7); shake = 18; G.banner = { text: C.boss + ' 등장', t: 0 }; G.bossSay = { s: C.lines[0], t: 0 }; G.bossHalf = 0;
+  G.foes.push(G.boss); SND.play('stamp', 0.7); shake = 18; G.banner = { text: C.boss + ' 등장', t: 0 }; if (C.weak) G.weakTip = { t: 0, k: C.weak }; G.bossSay = { s: C.lines[0], t: 0 }; G.bossHalf = 0;
 }
 
 /* ── 한 걸음 ── */
@@ -285,10 +285,10 @@ function step(dt) {
     const dx = tx - a.x, dy = ty - a.y, d = Math.hypot(dx, dy);
     if (d > 4) { const v = Math.min(spd, d * 4); a.x += dx / d * v * dt; a.y += dy / d * v * dt; a.wf += dt * 26; if (Math.abs(dx) > 3) a.dir = Math.sign(dx); }
     a.atkT -= dt; if (a.af >= 0) a.af += dt * 30;  if (a.af > 19) a.af = -1;
-    if (tgt && Math.hypot(tgt.x - a.x, tgt.y - a.y) < tgt.r + 22 && a.atkT <= 0) { a.atkT = G.rallyOn > 0 ? 0.42 : 0.75; a.af = 0; a.dir = Math.sign(tgt.x - a.x) || 1; setTimeout(() => { if (!tgt.dead && !a.dead) { hurtFoe(tgt, (a.big ? 16 : a.ut === 'shield' ? 3.6 : 6) * S.allyPow * (1 + G.d / 240) * (G.rallyOn > 0 ? 1.6 : 1), a.x, a.y, 30, 'ally'); burst(tgt.x, tgt.y - 24, 3, ['#ffffff', '#c9a2ff'], 120, 0.25); } }, 180); }
+    if (tgt && Math.hypot(tgt.x - a.x, tgt.y - a.y) < tgt.r + 22 && a.atkT <= 0) { a.atkT = G.rallyOn > 0 ? 0.42 : 0.75; a.af = 0; a.dir = Math.sign(tgt.x - a.x) || 1; setTimeout(() => { if (!tgt.dead && !a.dead) { hurtFoe(tgt, (a.big ? 16 : a.ut === 'shield' ? 3.6 : 6) * S.allyPow * (1 + G.d / 240) * (G.rallyOn > 0 ? 1.6 : 1) * weakMul(tgt, a.big ? 'sword' : a.ut), a.x, a.y, 30, 'ally'); burst(tgt.x, tgt.y - 24, 3, ['#ffffff', '#c9a2ff'], 120, 0.25); } }, 180); }
   }
   G.allies = G.allies.filter(a => !a.dead || false);
-  if (G.bones) { for (const b of G.bones) { b.t += dt; b.x += b.vx * dt; b.y += b.vy * dt; near(b.x, b.y + 50, 70, f => { if (b.t > 9 || f.dead) return; if (Math.hypot(f.x - b.x, f.y - f.h * 0.45 - b.y) < f.r + 8) { hurtFoe(f, b.dmg, b.x - b.vx * 0.05, b.y - b.vy * 0.05, 40, 'ally'); burst(b.x, b.y, 3, ['#e8dcc0', '#ffffff'], 120, 0.2); b.t = 9; } }); } G.bones = G.bones.filter(b => b.t < 0.7); }   /* 해골 궁수의 뼈 화살 */
+  if (G.bones) { for (const b of G.bones) { b.t += dt; b.x += b.vx * dt; b.y += b.vy * dt; near(b.x, b.y + 50, 70, f => { if (b.t > 9 || f.dead) return; if (Math.hypot(f.x - b.x, f.y - f.h * 0.45 - b.y) < f.r + 8) { hurtFoe(f, b.dmg * weakMul(f, 'arch'), b.x - b.vx * 0.05, b.y - b.vy * 0.05, 40, 'ally'); burst(b.x, b.y, 3, ['#e8dcc0', '#ffffff'], 120, 0.2); b.t = 9; } }); } G.bones = G.bones.filter(b => b.t < 0.7); }   /* 해골 궁수의 뼈 화살 */
   /* 영혼 줍기 */
   for (const o of G.orbs) { o.t += dt; const d = Math.hypot(P.x - o.x, P.y - 20 - o.y); if (d < S.magnet || o.pull) { o.pull = 1; const v = 380 + o.t * 200; o.x += (P.x - o.x) / d * v * dt; o.y += (P.y - 20 - o.y) / d * v * dt; if (d < 16) { o.got = 1; gainXp(o.v); } } }
   if (G.hearts) { for (const h of G.hearts) { h.t += dt; if (Math.hypot(P.x - h.x, P.y - 20 - h.y) < 34) { h.got = 1; P.hp = Math.min(P.max, P.hp + P.max * 0.25); say('+체력', P.x, P.y - 110, { size: 18, col: '#7dffa0' }); SND.play('up', 0.4, 1.5); } } G.hearts = G.hearts.filter(h => !h.got && h.t < 40); }
@@ -338,7 +338,7 @@ function updateFx(dt) {
   for (const m of G.marks) m.t += dt; G.marks = G.marks.filter(m => m.t < 0.9);
   for (const d of G.dead) d.t += dt; G.dead = G.dead.filter(d => d.t < 0.5); for (const p of G.pillars) p.t += dt; G.pillars = G.pillars.filter(p => p.t < 0.55);
   for (const z of G.zaps) z.t += dt; G.zaps = G.zaps.filter(z => z.t < 0.2); for (const q of G.handFx) q.t += dt; G.handFx = G.handFx.filter(q => q.t < 0.8); G.flashW = Math.max(0, (G.flashW || 0) - dt * 2);
-  G.rallyCd -= dt; G.rallyOn -= dt; { let n = 0; for (const a of G.allies) if (!a.dead) n++; if (n > (G.armyMax || 0)) G.armyMax = n; } if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } if (G.gemPop > 0) G.gemPop -= dt; if (G.clr) { G.clr.t += dt; if (G.clr.t > (G.clr.boss ? 3.4 : 2.6)) G.clr = null; } if (G.bossSay) { G.bossSay.t += dt; if (G.bossSay.t > 2.8) G.bossSay = null; } if (G.boss && !G.boss.dead && !G.bossHalf && G.boss.hp < G.boss.max * 0.5) { G.bossHalf = 1; G.bossSay = { s: CHAPTERS[G.ch].lines[1], t: 0 }; }
+  G.rallyCd -= dt; G.rallyOn -= dt; { let n = 0; for (const a of G.allies) if (!a.dead) n++; if (n > (G.armyMax || 0)) G.armyMax = n; } if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } if (G.gemPop > 0) G.gemPop -= dt; if (G.weakTip) { G.weakTip.t += dt; if (G.weakTip.t > 7 || !G.boss) G.weakTip = null; } if (G.clr) { G.clr.t += dt; if (G.clr.t > (G.clr.boss ? 3.4 : 2.6)) G.clr = null; } if (G.bossSay) { G.bossSay.t += dt; if (G.bossSay.t > 2.8) G.bossSay = null; } if (G.boss && !G.boss.dead && !G.bossHalf && G.boss.hp < G.boss.max * 0.5) { G.bossHalf = 1; G.bossSay = { s: CHAPTERS[G.ch].lines[1], t: 0 }; }
 }
 /* ── 오늘의 임무(하루 3개 · 날짜 바뀌면 새로) ── */
 const DAILY = [{ key: 'k', name: '적 500명 쓰러뜨리기', need: 500, gem: 40 }, { key: 's', name: '스테이지 5개 돌파하기', need: 5, gem: 40 }, { key: 'e', name: '마법 진화 1번 하기', need: 1, gem: 40 }];
@@ -440,6 +440,7 @@ function setStage(s) { G.stage = Math.max(1, s); G.ch = Math.floor((G.stage - 1)
 function idleTick(dt) { if (BOT && Q.has('buy') && (G.buyT = (G.buyT || 0) + dt) > 4) { G.buyT = 0; const u = META_UP.filter(u => META.up[u.id] < u.max).sort((a, b) => a.cost(META.up[a.id]) - b.cost(META.up[b.id]))[0]; if (u) buyUp(u); }   /* 시험 봇: 싼 강화부터 산다(사람 흉내) */
   if (G.stBoss && !G.bossOn && G.bossT > 0) { G.bossT -= dt; if (G.bossT <= 0) spawnBoss(); } if ((G.saveT = (G.saveT || 0) + dt) > 20) { G.saveT = 0; saveRun(); } }
 function gemMul() { return (1 + META.up.gold * 0.1 + relOf().g) * ((META.monthUntil || 0) > Date.now() ? 1.2 : 1); }   /* 월정액 쓰는 동안 결정 +20% */
+function weakMul(f, ut) { return f && f.boss && CHAPTERS[G.ch].weak === (ut || 'sword') ? 1.5 : 1; }   /* 보스 약점 병종 피해 1.5배 */
 const FORM = [{ n: '균형', k: null, d: '쓰러뜨린 적 종류대로' }, { n: '검', k: 'sword', d: '검 해골 60% · 고르게 셈' }, { n: '활', k: 'arch', d: '활 해골 60% · 뒤에서 쏨' }, { n: '방패', k: 'shield', d: '방패 해골 60% · 오래 버팀' }];
 function stageClear() { const s = G.stage, gain = Math.round((3 + s * 0.6) * (s % 10 === 0 ? 5 : 1) * gemMul());
   META.gems += gain; META.stage = Math.max(META.stage || 1, s + 1); if (s % 20 === 0) META.open = Math.max(META.open || 1, Math.min(3, 1 + s / 20)); META.bestStage = Math.max(META.bestStage || 0, s); dayFix(); META.dq.s = (META.dq.s || 0) + 1;
@@ -599,7 +600,7 @@ function drawHud() {
       icon(u.icon, x + bw / 2, y0 + 20, 28); txt('Lv' + l, x + bw / 2, y0 + 8, 10, '#d9c8ff', { w: 800, lw: 2 }); txt(max ? '최대' : cost + '', x + bw / 2, y0 + 45, 13, can ? '#ffe08a' : '#8f84a6', { box: bw - 6 });
       if (can) BTNS.push({ x, y: y0, w: bw, h: bh, fn: () => buyUp(u) }); }); }
   if (MODE === 'play' && G.idle && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const fw = 48, fh = 42, fx = W - fw - 8, fy = META.speed2 ? 124 : 86, FM = META.form || 0;   /* 군단 편성 단추(누를 때마다 바뀜) */
-    ctx.fillStyle = FM ? 'rgba(10,50,40,.9)' : 'rgba(20,10,36,.85)'; rr(fx, fy, fw, fh, 10); ctx.fill(); ctx.strokeStyle = FM ? '#5fffc8' : '#6a4aa0'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = FM ? 'rgba(10,50,40,.9)' : 'rgba(20,10,36,.85)'; rr(fx, fy, fw, fh, 10); ctx.fill(); const wk = G.boss && !G.boss.dead && CHAPTERS[G.ch].weak, hint = wk && FORM[FM].k !== wk; ctx.strokeStyle = hint ? `rgba(255,210,58,${0.6 + Math.sin(T * 8) * 0.4})` : FM ? '#5fffc8' : '#6a4aa0'; ctx.lineWidth = hint ? 3 : 1.5; ctx.stroke();
     txt('편성', fx + fw / 2, fy + 13, 11, '#b9a8d8', { w: 700, box: fw - 6 }); txt(FORM[FM].n, fx + fw / 2, fy + 29, 15, FM ? '#9effd0' : '#ffffff', { box: fw - 6 });
     BTNS.push({ x: fx, y: fy, w: fw, h: fh, fn: () => { META.form = ((META.form || 0) + 1) % 4; saveMeta(); G.banner = { text: `편성 「${FORM[META.form].n}」 ${FORM[META.form].d}`, t: 0.6 }; } }); }
   if (MODE === 'play' && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const r = 34, bx = W - r - 18, by = H - r - 34, ready = G.rallyCd <= 0;   /* 함성 단추 */
@@ -611,6 +612,9 @@ function drawHud() {
       txt('눌러 보세요! 군단이 세져요', tx + tw / 2, ty + 22, 15, '#3a0a14', { stroke: 0, box: tw - 16 }); } }
   if (G.boss && !G.boss.dead) { const w = W - 60, x = 30, y = top + 58; ctx.fillStyle = 'rgba(0,0,0,.7)'; rr(x, y, w, 12, 6); ctx.fill(); ctx.fillStyle = '#ff4a3a'; rr(x + 1, y + 1, (w - 2) * G.boss.hp / G.boss.max, 10, 5); ctx.fill(); txt(CHAPTERS[G.ch].boss, W / 2, y + 22, 13, '#ffd2c8'); }
   if (G.banner) { const k = G.banner.t, a = Math.min(1, k * 3, (2.6 - k) * 2); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(40,0,10,.75)'; ctx.fillRect(0, H * 0.3 - 30, W, 60); txt(G.banner.text, W / 2, H * 0.3, 26, '#ffd2c8', { box: W - 24 }); ctx.globalAlpha = 1; }
+  if (G.weakTip && G.weakTip.t > 0.8) { const q = G.weakTip, a = Math.min(1, (q.t - 0.8) * 4, (7 - q.t) * 2), fi = FORM.findIndex(f => f.k === q.k), ok = (META.form || 0) === fi, y = H * 0.3 + 46;   /* 보스 약점 알림 */
+    ctx.globalAlpha = a; ctx.fillStyle = 'rgba(10,40,30,.85)'; rr(16, y - 18, W - 32, 36, 12); ctx.fill(); ctx.strokeStyle = '#5fffc8'; ctx.lineWidth = 1.5; ctx.stroke();
+    txt(`약점: ${FORM[fi].n} 해골 피해 ×1.5` + (ok ? ' · 편성 맞음!' : ` · 편성을 「${FORM[fi].n}」${(c => c % 28 === 0 || c % 28 === 8 ? '로' : '으로')(FORM[fi].n.charCodeAt(FORM[fi].n.length - 1) - 0xAC00)}`), W / 2, y + 1, 16, ok ? '#9effd0' : '#ffffff', { box: W - 48 }); ctx.globalAlpha = 1; }
   if (G.clr && G.clr.t >= 0) { const c = G.clr, k = c.t, L = c.boss ? 3.4 : 2.6, a = Math.max(0, Math.min(1, k * 5, (L - k) * 2.5)), cy = Math.max(120, H * 0.22), sc = k < 0.22 ? 0.5 + k / 0.22 * 0.65 : k < 0.36 ? 1.15 - (k - 0.22) / 0.14 * 0.15 : 1;
     G.bossSay = null; if (c.boss && k < 0.4) { ctx.fillStyle = `rgba(255,236,190,${0.5 * (1 - k / 0.4)})`; ctx.fillRect(0, 0, W, H); }
     ctx.globalAlpha = a; ctx.fillStyle = c.boss ? 'rgba(50,20,0,.78)' : 'rgba(20,6,40,.75)'; ctx.fillRect(0, cy - 44, W, 104); ctx.fillStyle = c.boss ? '#ffc94a' : '#a77bff'; ctx.fillRect(0, cy - 44, W, 3); ctx.fillRect(0, cy + 57, W, 3);
