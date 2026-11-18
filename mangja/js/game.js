@@ -44,7 +44,7 @@ const LORDS = [
   { name: '망령 군주', desc: '영혼탄으로 시작 · 고른 힘', w: 'bolt', hue: 0, lock: 0 },
   { name: '뼈의 장군', desc: '사신의 낫으로 시작 · 군단 +4 · 병사 힘 +30% · 부활 +10%', w: 'scythe', hue: 130, lock: 2, need: '스테이지 20을 깨면 열려요' },
   { name: '역병 마녀', desc: '저주 늪으로 시작 · 마법 +15% · 영혼 끌기 +40%', w: 'pool', hue: 70, lock: 3, need: '스테이지 40을 깨면 열려요' }];
-function lordOpen(i) { return META.lordpack || (META.open || 1) >= (LORDS[i].lock || 0); }
+function lordOpen(i) { return META.lordpack || (i === 1 && META.lord1) || (META.open || 1) >= (LORDS[i].lock || 0); }
 function hueSheet(n, deg) { const k = n + '#' + deg; if (IMG[k]) return IMG[k]; const I = IMG[n]; if (!I || !I.complete || !I.naturalWidth) return null; if (!I._ok) { if (!I._dec) I._dec = (I.decode ? I.decode() : Promise.resolve()).then(() => { I._ok = 1; }, () => { I._ok = 1; }); return null; }
   try { const c = document.createElement('canvas'); c.width = I.naturalWidth; c.height = I.naturalHeight; const x = c.getContext('2d'); x.drawImage(I, 0, 0); const d = x.getImageData(0, 0, c.width, c.height), p = d.data;
     const a = deg * Math.PI / 180, co = Math.cos(a), si = Math.sin(a), m = [0.213 + co * 0.787 - si * 0.213, 0.715 - co * 0.715 - si * 0.715, 0.072 - co * 0.072 + si * 0.928, 0.213 - co * 0.213 + si * 0.143, 0.715 + co * 0.285 + si * 0.140, 0.072 - co * 0.072 - si * 0.283, 0.213 - co * 0.213 - si * 0.787, 0.715 - co * 0.715 + si * 0.715, 0.072 + co * 0.928 + si * 0.072];
@@ -74,16 +74,18 @@ const saveMeta = () => { META.seen = Date.now(); try { localStorage.setItem(SAVE
 /* ── 꺼 둔 동안 보상: 마지막으로 본 때부터 최대 8시간 · 최고 스테이지에 비례 ── */
 let OFF = null;
 function offCheck() { const now = Date.now(), last = META.seen || now, min = Math.min(480, (now - last) / 60000); if (min < 2 || !META.bestStage || BOT) return; const g = Math.floor(min * 0.25 * (1 + META.bestStage * 0.12) * (1 + META.up.gold * 0.1)); if (g > 0) OFF = { g, min: Math.floor(min) }; }
-offCheck(); addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveMeta(); else if (!OFF) offCheck(); });
+offCheck(); setTimeout(() => { try { monthCheck(); } catch (e) {} }, 500); addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveMeta(); else if (!OFF) offCheck(); });
 function buyUp(u) { const l = META.up[u.id], cost = u.cost(l); if (l >= u.max || META.gems < cost) return false; META.gems -= cost; META.up[u.id]++;
-  if (G && MODE === 'play') { const S = G.S, P = G.P, n = l + 1; if (u.id === 'pow') S.pow *= (1 + n * 0.08) / (1 + l * 0.08); if (u.id === 'rise') S.rise += 0.03; if (u.id === 'cap') S.cap += 2; if (u.id === 'hp') { const k = (1 + n * 0.1) / (1 + l * 0.1); P.max *= k; P.hp *= k; } burst(P.x, P.y - 40, 16, ['#ffe08a', '#ffffff'], 200, 0.5); }
+  if (G && MODE === 'play') { const S = G.S, P = G.P, n = l + 1; if (u.id === 'pow') S.pow *= POWM(n) / POWM(l); if (u.id === 'rise') S.rise += 0.03; if (u.id === 'cap') S.cap += 2; if (u.id === 'hp') { const k = HPM(n) / HPM(l); P.max *= k; P.hp *= k; } burst(P.x, P.y - 40, 16, ['#ffe08a', '#ffffff'], 200, 0.5); }
   saveMeta(); if (G && G.idle) saveRun(); SND.play('up', 0.5); return true; }   /* 군주 강화 — 싸우는 중에 사도 바로 들어감 */
+/* 방치형 강화: 끝없이 오르고 값은 곱으로 커짐(공격 · 체력은 곱으로 세짐) — 막히면 강화 → 뚫음 */
+const HPM = l => Math.pow(1.07, l), POWM = l => Math.pow(1.08, l);
 const META_UP = [
-  { id: 'hp', name: '뼈 갑옷', desc: l => `최대 체력 +${l * 10}%`, cost: l => 20 + l * 20, max: 10, icon: 'relic_cloak' },
-  { id: 'pow', name: '흑마력', desc: l => `모든 공격 +${l * 8}%`, cost: l => 25 + l * 25, max: 10, icon: 'relic_staff' },
-  { id: 'rise', name: '죽음의 부름', desc: l => `일으킬 확률 +${l * 3}%`, cost: l => 30 + l * 30, max: 8, icon: 'relic_chain' },
-  { id: 'cap', name: '군단기', desc: l => `군단 최대 +${l * 2}`, cost: l => 30 + l * 35, max: 8, icon: 'relic_crown' },
-  { id: 'gold', name: '영혼 수확', desc: l => `얻는 결정 +${l * 10}%`, cost: l => 40 + l * 40, max: 5, icon: 'relic_glass' },
+  { id: 'hp', name: '뼈 갑옷', desc: l => `최대 체력 ×${HPM(l).toFixed(2)}`, cost: l => Math.round(20 * Math.pow(1.13, l)), max: 300, icon: 'relic_cloak' },
+  { id: 'pow', name: '흑마력', desc: l => `모든 공격 ×${POWM(l).toFixed(2)}`, cost: l => Math.round(25 * Math.pow(1.13, l)), max: 300, icon: 'relic_staff' },
+  { id: 'rise', name: '죽음의 부름', desc: l => `일으킬 확률 +${l * 3}%`, cost: l => 30 + l * 30, max: 10, icon: 'relic_chain' },
+  { id: 'cap', name: '군단기', desc: l => `군단 최대 +${l * 2}`, cost: l => Math.round(40 * Math.pow(1.3, l)), max: 15, icon: 'relic_crown' },
+  { id: 'gold', name: '영혼 수확', desc: l => `얻는 결정 +${l * 10}%`, cost: l => Math.round(50 * Math.pow(1.35, l)), max: 20, icon: 'relic_glass' },
 ];
 
 /* ── 판 하나 ── */
@@ -105,9 +107,9 @@ const CHAPTERS = [
 function newRun() {
   const U = META.up;
   G = { ch: META.ch || 0, t: +(Q.get('t') || 0), kills: 0, lvl: 1, xp: 0, next: 3, gems: 0, over: 0, win: 0, cards: null, chestN: 0, bossOn: 0, boss: null, eliteT: 60 + +(Q.get('t') || 0), rallyCd: 6, rallyOn: 0,
-    P: { x: 0, y: 0, hp: 120 * (1 + U.hp * 0.1), max: 120 * (1 + U.hp * 0.1), spd: 150, dir: 1, inv: 0, wf: 0, moving: 0, hurt: 0 },
+    P: { x: 0, y: 0, hp: 120 * HPM(U.hp), max: 120 * HPM(U.hp), spd: 150, dir: 1, inv: 0, wf: 0, moving: 0, hurt: 0 },
     foes: [], allies: [], shots: [], arrows: [], orbs: [], fx: [], texts: [], pools: [], marks: [],
-    S: { pow: 1 + U.pow * 0.08, rise: 0.4 + U.rise * 0.03, cap: 10 + U.cap * 2, allyPow: 1, spd: 1, magnet: 115, haste: 1 },
+    S: { pow: POWM(U.pow), rise: 0.4 + U.rise * 0.03, cap: 10 + U.cap * 2, allyPow: 1, spd: 1, magnet: 115, haste: 1 },
     W: { bolt: 0, orbit: 0, pool: 0, scythe: 0, chain: 0, hands: 0 }, L: {}, E: {}, cd: { bolt: 0, pool: 1.5, scythe: 2, chain: 1, hands: 1.5 }, spawnAcc: 0, dead: [], pillars: [], zaps: [], handFx: [] };
   G.lord = lordOpen(META.lord || 0) ? (META.lord || 0) : 0; if (Q.has('lord')) G.lord = +Q.get('lord'); const LD = LORDS[G.lord]; G.W[LD.w] = 1;
   if (G.lord === 1) { G.S.cap += 4; G.S.allyPow += 0.3; G.P.max *= 1.2; G.P.hp = G.P.max; G.S.rise += 0.1; }
@@ -204,11 +206,11 @@ function hurtLord(d, why = 'contact') { const P = G.P; if (P.inv > 0 || G.over) 
 /* ── 생겨남 ── */
 function spawnFoe(kind, elite) {
   const K = KINDS[kind], a = Math.random() * 6.283, R = Math.hypot(W, H) * (G.t < 8 ? 0.42 : 0.56) + 30, sc = 1 + G.d / 90 + Math.max(0, G.d - 200) / 60;
-  const ss = elite ? 'paladin' : K.s; const f = { kind, x: G.P.x + Math.cos(a) * R, y: G.P.y + Math.sin(a) * R, hp: K.hp * sc * (1 + G.ch * 0.4) * (elite ? 9 : 1), spd: K.spd * rnd(0.9, 1.1) * (elite ? 0.8 : 1), dmg: K.dmg * (0.5 + Math.min(G.d, 600) / 230) * (1 + G.ch * 0.25), r: K.r * (elite ? 1.6 : 1), h: K.h * (elite ? 1.55 : 1), s: ss, xp: K.xp, far: K.far, heal: K.heal, heavy: K.heavy || elite, elite, kx: 0, ky: 0, flash: 0, wf: rnd(0, 30), shootT: rnd(1, 2.5), dir: -1 };
+  const ss = elite ? 'paladin' : K.s; const f = { kind, x: G.P.x + Math.cos(a) * R, y: G.P.y + Math.sin(a) * R, hp: K.hp * sc * (1 + G.ch * 0.4) * (elite ? 9 : 1) * (G.idle ? Math.pow(1.07, Math.max(0, G.stage - 15)) : 1), spd: K.spd * rnd(0.9, 1.1) * (elite ? 0.8 : 1), dmg: K.dmg * (0.5 + Math.min(G.d, 600) / 230) * (1 + G.ch * 0.25) * (G.idle ? Math.pow(1.035, Math.max(0, G.stage - 15)) : 1), r: K.r * (elite ? 1.6 : 1), h: K.h * (elite ? 1.55 : 1), s: ss, xp: K.xp, far: K.far, heal: K.heal, heavy: K.heavy || elite, elite, kx: 0, ky: 0, flash: 0, wf: rnd(0, 30), shootT: rnd(1, 2.5), dir: -1 };
   f.max = f.hp; G.foes.push(f); return f;
 }
 function spawnBoss() {
-  const P = G.P, C = CHAPTERS[G.ch]; G.bossOn = 1; const hp = 3400 * (1 + G.d / 250) * C.hp * (G.idle ? 0.8 : 1);
+  const P = G.P, C = CHAPTERS[G.ch]; G.bossOn = 1; const hp = 3400 * (1 + G.d / 250) * C.hp * (G.idle ? 0.8 * Math.pow(1.07, Math.max(0, G.stage - 15)) : 1);
   G.boss = { kind: 'boss', s: C.bs, boss: 1, x: P.x + W * 0.42, y: P.y - 60, hp, max: hp, spd: 38, dmg: 22 * (1 + G.ch * 0.4), r: 40, h: G.ch ? 200 : 190, xp: 1, kx: 0, ky: 0, flash: 0, wf: 0, dir: -1, heavy: 1, act: 'idle', actT: 3, af: 0 };
   G.foes.push(G.boss); SND.play('stamp', 0.7); shake = 18; G.banner = { text: C.boss + ' 등장', t: 0 }; G.bossSay = { s: C.lines[0], t: 0 }; G.bossHalf = 0;
 }
@@ -335,22 +337,30 @@ function today() { const d = new Date(); return d.getFullYear() + '-' + (d.getMo
 function dayFix() { if (META.dd !== today()) { META.dd = today(); META.dq = { k: 0, s: 0, e: 0 }; META.dc = [0, 0, 0, 0]; saveMeta(); } }
 function dailyReady() { dayFix(); return DAILY.filter((m, i) => !META.dc[i] && META.dq[m.key] >= m.need).length + (DAILY.every((m, i) => META.dc[i]) && !META.dc[3] ? 1 : 0); }
 /* ── 상점(시험판: 실제 결제 없음 · 진짜 결제는 대표님 결정 뒤 window.MANGJA_PAY(상품, 성공 시 부를 함수)로 끼움) ── */
+/* 가격: 던전 히어로 결정(11-17 23:38) 그대로 — 앱 ≈ 웹 × 1.25 · 한 건 최고 웹 119,000 / 앱 149,000 · 광고 · 광고 제거는 앱에만(11-17 18:21) */
+const IS_APP = Q.has('app') || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 const SHOP = [
-  { id: 'g1', name: '결정 300', sub: '군주 강화 2~3번', price: '₩1,200', give: () => { META.gems += 300; } },
-  { id: 'g2', name: '결정 1,800', sub: '+20% 더 · 가장 많이 사요', price: '₩5,900', give: () => { META.gems += 1800; } },
-  { id: 'g3', name: '결정 4,000', sub: '+35% 더', price: '₩12,000', give: () => { META.gems += 4000; } },
-  { id: 'noad', name: '광고 없이 보상', sub: '부활 · 결정 2배를 광고 없이', price: '₩5,900', once: 1, give: () => { META.noad = 1; } },
-  { id: 'lordpack', name: '군주 묶음', sub: '장군 · 마녀 열기 + 결정 500', price: '₩9,900', once: 1, give: () => { META.lordpack = 1; META.gems += 500; } }];
+  { id: 'first', name: '첫 결제 특가', sub: '결정 600 + 장군 열기', web: 1100, app: 1500, once: 1, give: () => { META.gems += 600; META.lord1 = 1; } },
+  { id: 'g1', name: '결정 500', sub: '강화 3~4번', web: 4400, app: 5500, give: () => { META.gems += 500; } },
+  { id: 'g2', name: '결정 1,300', sub: '+20% 더 · 많이 사요', web: 9900, app: 12000, give: () => { META.gems += 1300; } },
+  { id: 'g3', name: '결정 3,300', sub: '+35% 더', web: 23000, app: 29000, give: () => { META.gems += 3300; } },
+  { id: 'g4', name: '결정 19,000', sub: '+60% 더 · 가장 큰 묶음', web: 119000, app: 149000, give: () => { META.gems += 19000; } },
+  { id: 'month', name: '월정액', sub: '매일 결정 100 · 30일', web: 9900, app: 12000, give: () => { META.gems += 300; META.monthUntil = Math.max(Date.now(), META.monthUntil || 0) + 30 * 864e5; } },
+  { id: 'lordpack', name: '군주 묶음', sub: '두 군주 열기 + 결정 500', web: 9900, app: 12000, once: 1, give: () => { META.lordpack = 1; META.gems += 500; } },
+  { id: 'noad', name: '광고 제거', sub: '부활 · 2배를 광고 없이(영구)', web: 0, app: 28000, once: 1, appOnly: 1, give: () => { META.noad = 1; } }].filter(it => IS_APP || !it.appOnly);
+const won = n => '₩' + n.toLocaleString('ko-KR');
+function monthCheck() { if ((META.monthUntil || 0) > Date.now() && META.monthDay !== today()) { META.monthDay = today(); META.gems += 100; saveMeta(); toast('월정액: 오늘의 결정 100'); } }
 function buy(it) { const ok = () => { it.give(); if (it.once) { META.bought = META.bought || {}; META.bought[it.id] = 1; } saveMeta(); SND.play('win', 0.5); toast(`${it.name} 받았어요`); };
   if (window.MANGJA_PAY) window.MANGJA_PAY(it.id, ok); else { ok(); toast(`${it.name} 받았어요 (시험판 · 돈은 안 나가요)`); } }
 function drawShop() {
-  drawBg(); txt('상점', W / 2, 54, 30, '#ffe08a'); txt('시험판 — 실제 결제는 일어나지 않아요', W / 2, 88, 13, '#ff9a8a', { w: 800 });
-  const cw = Math.min(W - 32, 400), x = (W - cw) / 2, ch = Math.min(76, (H - 230) / SHOP.length - 10); let y = 112;
-  for (const it of SHOP) { const got = it.once && META.bought && META.bought[it.id];
-    ctx.fillStyle = 'rgba(30,18,52,.92)'; rr(x, y, cw, ch, 14); ctx.fill(); ctx.strokeStyle = it.id === 'g2' ? '#ffd23a' : '#4a3678'; ctx.lineWidth = 2; ctx.stroke();
-    icon(it.id[0] === 'g' ? 'relic_glass' : it.id === 'noad' ? 'chest2' : 'lord', x + 34, y + ch / 2, it.id === 'lordpack' ? 46 : 38);
-    txt(it.name, x + 64, y + ch * 0.36, 17, '#fff', { align: 'left', box: cw - 190 }); txt(it.sub, x + 64, y + ch * 0.68, 12, '#c9b8e8', { align: 'left', w: 700, box: cw - 190 });
-    button(x + cw - 112, y + (ch - 44) / 2, 100, 44, got ? '가짐' : it.price, () => { if (!got) buy(it); }, { gold: !got, off: got, size: 15 }); y += ch + 10; }
+  drawBg(); txt('상점', W / 2, 50, 30, '#ffe08a'); txt('시험판 — 실제 결제는 일어나지 않아요', W / 2, 82, 13, '#ff9a8a', { w: 800 });
+  const cw = Math.min(W - 24, 420), x0 = (W - cw) / 2, gw = (cw - 10) / 2, gh = Math.min(104, (H - 210) / Math.ceil(SHOP.length / 2) - 10); let i = 0;
+  for (const it of SHOP) { const x = x0 + (i % 2) * (gw + 10), y = 104 + Math.floor(i / 2) * (gh + 10), got = it.once && META.bought && META.bought[it.id]; i++;
+    ctx.fillStyle = 'rgba(30,18,52,.92)'; rr(x, y, gw, gh, 12); ctx.fill(); ctx.strokeStyle = it.id === 'first' ? '#ff8ad2' : '#4a3678'; ctx.lineWidth = it.id === 'first' ? 2 : 1; ctx.stroke();
+    icon(it.id[0] === 'g' ? 'relic_glass' : it.id === 'noad' ? 'chest2' : it.id === 'month' ? 'relic_crown' : 'lord', x + 24, y + 26, 34);
+    txt(it.name, x + 46, y + 20, 15, '#fff', { align: 'left', box: gw - 52 }); txt(it.sub, x + 46, y + 40, 11, '#c9b8e8', { align: 'left', w: 700, box: gw - 52 });
+    const price = IS_APP ? it.app : it.web; button(x + 8, y + gh - 42, gw - 16, 34, got ? '가짐' : won(price), () => { if (!got) buy(it); }, { off: got, size: 15 }); }
+  txt(IS_APP ? '앱 가격' : '웹 가격 — 앱보다 싸요', W / 2, H - 98, 12, '#9a8fae', { w: 700 });
   button(W / 2 - 120, H - 80, 240, 56, '돌아가기', () => { MODE = 'title'; }, {});
 }
 function drawDaily() {
@@ -367,7 +377,8 @@ function drawDaily() {
 }
 /* ══ 방치형: 스테이지 · 후퇴 · 저장 (11-18 23:16 대표님 「방치형하자」) ══ */
 function setStage(s) { G.stage = Math.max(1, s); G.ch = Math.floor((G.stage - 1) / 20) % 3; G.d = 12 + (G.stage - 1) * 11; G.stK = 0; G.stBoss = G.stage % 10 === 0; G.stNeed = G.stBoss ? 1 : 18 + Math.min(42, G.stage * 2); G.bossT = G.stBoss ? 2.5 : 0; G.bossOn = 0; G.boss = null; }
-function idleTick(dt) { if (G.stBoss && !G.bossOn && G.bossT > 0) { G.bossT -= dt; if (G.bossT <= 0) spawnBoss(); } if ((G.saveT = (G.saveT || 0) + dt) > 20) { G.saveT = 0; saveRun(); } }
+function idleTick(dt) { if (BOT && Q.has('buy') && (G.buyT = (G.buyT || 0) + dt) > 4) { G.buyT = 0; const u = META_UP.filter(u => META.up[u.id] < u.max).sort((a, b) => a.cost(META.up[a.id]) - b.cost(META.up[b.id]))[0]; if (u) buyUp(u); }   /* 시험 봇: 싼 강화부터 산다(사람 흉내) */
+  if (G.stBoss && !G.bossOn && G.bossT > 0) { G.bossT -= dt; if (G.bossT <= 0) spawnBoss(); } if ((G.saveT = (G.saveT || 0) + dt) > 20) { G.saveT = 0; saveRun(); } }
 function stageClear() { const s = G.stage, gain = Math.round((3 + s * 0.6) * (s % 10 === 0 ? 5 : 1) * (1 + META.up.gold * 0.1));
   META.gems += gain; META.stage = Math.max(META.stage || 1, s + 1); if (s % 20 === 0) META.open = Math.max(META.open || 1, Math.min(3, 1 + s / 20)); META.bestStage = Math.max(META.bestStage || 0, s); dayFix(); META.dq.s = (META.dq.s || 0) + 1;
   G.banner = { text: `스테이지 ${s} 돌파!  결정 +${gain}`, t: 0 }; SND.play('win', s % 10 === 0 ? 0.8 : 0.35); setStage(s + 1); saveRun(); saveMeta(); }
@@ -375,7 +386,7 @@ function retreat() { const P = G.P; G.retreats = (G.retreats || 0) + 1; P.hp = P
   G.allies = G.allies.filter((a, i) => i % 2 === 0); const s = Math.max(1, G.stage - 1); setStage(s); G.banner = { text: `후퇴! 스테이지 ${s}에서 힘 모으기`, t: 0 }; shake = 14; SND.play('slam', 0.5); saveRun(); }
 function saveRun() { if (!G || !G.idle || BOT) return; META.run = META.run || {}; META.run[G.lord] = { lvl: G.lvl, xp: G.xp, next: G.next, W: G.W, L: G.L, E: G.E, S: G.S, max: G.P.max, kills: G.kills, U: { ...META.up } }; saveMeta(); }
 function loadRun() { if (BOT || Q.has('fresh')) return; const R = META.run && META.run[G.lord]; if (!R) return; Object.assign(G, { lvl: R.lvl, xp: R.xp, next: R.next, W: R.W, L: R.L, E: R.E, S: R.S, kills: R.kills || 0 }); G.P.max = R.max;
-  const o = R.U || {}, u = META.up; G.S.pow *= (1 + u.pow * 0.08) / (1 + (o.pow || 0) * 0.08); G.S.rise += (u.rise - (o.rise || 0)) * 0.03; G.S.cap += (u.cap - (o.cap || 0)) * 2; G.P.max *= (1 + u.hp * 0.1) / (1 + (o.hp || 0) * 0.1); G.P.hp = G.P.max; }   /* 저장 뒤에 산 군주 강화도 바로 들어가게 */
+  const o = R.U || {}, u = META.up; G.S.pow *= POWM(u.pow) / POWM(o.pow || 0); G.S.rise += (u.rise - (o.rise || 0)) * 0.03; G.S.cap += (u.cap - (o.cap || 0)) * 2; G.P.max *= HPM(u.hp) / HPM(o.hp || 0); G.P.hp = G.P.max; }   /* 저장 뒤에 산 군주 강화도 바로 들어가게 */
 function endRun() {
   dayFix(); META.dq.k += G.kills; if (G.t >= 300) META.dq.s = 1; META.dq.e += Object.keys(G.E).length;
   const gain = Math.round((G.kills / 6 + G.t / 10 + (G.win ? 120 : 0)) * (1 + META.up.gold * 0.1));
@@ -424,7 +435,7 @@ function drawOff() { BTNS = []; ctx.fillStyle = 'rgba(6,2,14,.86)'; ctx.fillRect
   txt('군단이 일하고 있었어요', W / 2, cy, 26, '#ffe08a', { box: W - 30 }); txt(`${h ? h + '시간 ' : ''}${m}분 동안 모은 결정`, W / 2, cy + 38, 16, '#d9c8ff', { w: 800 });
   icon('relic_glass', W / 2 - 64, cy + 96, 48); txt(`+${OFF.g}`, W / 2 + 16, cy + 98, 38, '#ffe9c0'); if (OFF.min >= 480) txt('8시간이 최대예요 — 자주 들러 주세요', W / 2, cy + 140, 13, '#9a8fae', { w: 700 });
   const take = k => { META.gems += OFF.g * k; OFF = null; saveMeta(); SND.play('win', 0.6); };
-  button(W / 2 - 140, cy + 168, 280, 56, '2배 받기  ·  광고', () => showAd(() => take(2)), { green: 1, size: 19 }); button(W / 2 - 140, cy + 236, 280, 50, '받기', () => take(1), { size: 18 }); }
+  if (IS_APP) button(W / 2 - 140, cy + 168, 280, 56, '2배 받기  ·  광고', () => showAd(() => take(2)), { green: 1, size: 19 }); button(W / 2 - 140, cy + 236, 280, 50, '받기', () => take(1), { size: 18 }); }
 function draw() { drawMain(); if (OFF && !AD && (MODE === 'title' || MODE === 'play')) { if (G && MODE === 'play') G.paused = G.paused || 0; drawOff(); } if (TOAST) { TOAST.t -= 1 / 60; const a = Math.min(1, TOAST.t * 2); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(10,4,20,.92)'; rr(W / 2 - 160, H - 150, 320, 46, 12); ctx.fill(); txt(TOAST.s, W / 2, H - 127, 15, '#ffe9c0', { w: 800, box: 300 }); ctx.globalAlpha = 1; if (TOAST.t <= 0) TOAST = null; } if (AD) drawAd(); }
 function drawMain() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); BTNS = [];
@@ -568,7 +579,7 @@ function drawResult() {
   const rows = [['버틴 시간', `${Math.floor(R.t / 60)}분 ${Math.floor(R.t % 60)}초`], ['처치', R.kills], ['레벨', R.lvl], ['군단 최대', G.armyMax || 0], ['가장 센 힘', top ? `${topName} ${Math.round(D[top] / tot * 100)}%` : '-']]; let y = H * 0.33; const rh = H < 720 ? 30 : 36;   /* 다시 보기: 다음 판에 무엇을 고를지 생각하게 */
   for (const [a, b] of rows) { txt(a, W / 2 - 120, y, 17, '#c9b8e8', { align: 'left', w: 800 }); txt(b + '', W / 2 + 120, y, 19, a === '가장 센 힘' ? '#ffe08a' : '#fff', { align: 'right', box: 150 }); y += rh; }
   icon('relic_glass', W / 2 - 60, y + 24, 40); txt(`결정 +${R.gain}`, W / 2 + 10, y + 26, 26, '#ffe08a'); y += 64;
-  if (!R.dbl) button(W / 2 - 140, y, 280, 48, `결정 2배 받기  ·  광고`, () => showAd(() => { META.gems += R.gain; R.gain *= 2; R.dbl = 1; saveMeta(); SND.play('win', 0.5); }), { size: 17, green: 1 }); else txt('2배로 받았어요!', W / 2, y + 24, 16, '#8affb0', { w: 700 }); y += 62;
+  if (!R.dbl && IS_APP) button(W / 2 - 140, y, 280, 48, `결정 2배 받기  ·  광고`, () => showAd(() => { META.gems += R.gain; R.gain *= 2; R.dbl = 1; saveMeta(); SND.play('win', 0.5); }), { size: 17, green: 1 }); else txt('2배로 받았어요!', W / 2, y + 24, 16, '#8affb0', { w: 700 }); y += 62;
   button(W / 2 - 140, y, 280, 58, '다시 싸우기', () => newRun(), { gold: 1, size: 22 }); button(W / 2 - 140, y + 72, 280, 52, '군주 강화하기', () => { MODE = 'meta'; }, {});
 }
 function drawBg() { ctx.fillStyle = GROUND[META.ch || 0] || TILE; ctx.save(); ctx.translate(-T * 12 % 512, -T * 6 % 512); ctx.fillRect(0, 0, W + 512, H + 512); ctx.restore(); const vg = ctx.createRadialGradient(W / 2, H * 0.45, 40, W / 2, H * 0.45, Math.hypot(W, H) * 0.6); vg.addColorStop(0, 'rgba(60,20,110,.35)'); vg.addColorStop(1, 'rgba(4,0,10,.85)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H); }
