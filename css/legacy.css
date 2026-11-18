@@ -936,3 +936,38 @@ td,th{padding:.35em;border-bottom:1px solid #22123a;text-align:left}
   60%{transform:scale(1.07)}
   100%{transform:scale(1)}
 }
+/* 11-18 큰 아래 창 하다 찾음: 새 틀(v90)로 옮길 때 옛 index.html 안 <style>의 #tabbody 규칙 36개가 빠져 군단 탭 「지배자 장비」 칸이 큰 흰 그림으로 깨져 있었음(장비 칸 · 인연 도감 · 진형 칸 · 무기 줄) → 되살림 */
+#tabbody .gbtns{display:flex;gap:.45em;margin:.35em .45em .45em}
+#tabbody .gbtns .btn{flex:1;margin:0!important;padding:.55em .4em!important;font-size:14px}
+#tabbody .gbtns .btn small{font-size:.75em;opacity:.85}
+#tabbody .slot.sq{display:flex;align-items:center;gap:.4em;text-align:left;padding:.3em .35em;min-height:0}
+#tabbody .slot.sq img.pf,#tabbody .slot.sq .pfe{flex:none;width:40px;height:40px;margin:0;border-radius:8px;aspect-ratio:auto;object-fit:cover}
+#tabbody .slot.sq .pfe{display:block;background:#140a22;border:1px dashed #4a2d75}
+#tabbody .slot.sq .sqt{min-width:0;line-height:1.2;font-size:11px}
+#tabbody .slot.sq .sqt b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tabbody .slot.sq .sqt small{display:block;color:#b9a6d8;font-size:10.5px}
+#tabbody .wpl{display:flex;align-items:center;gap:.4em;margin-top:.15em;font-size:11px}
+#tabbody .wpl .btn.wpb{padding:.2em .6em!important;font-size:11.5px!important;min-height:0!important;border-radius:7px}
+#tabbody .btn.big[disabled]{color:#e6dcf5!important;text-shadow:0 1px 2px #000}
+#tabbody .btn.big[disabled] small{color:#cbbbe6!important}
+#tabbody .dex{grid-template-columns:repeat(8,1fr)!important;gap:.25em!important}
+#tabbody .dex b{font-size:10px!important}
+#tabbody .dex .pf{width:100%!important;height:auto!important}
+#tabbody .gearbox{margin:.3em .15em .45em;padding:.5em .55em .55em;border-radius:14px;background:linear-gradient(#2a1d48,#1c1332);border:1px solid #4a3678}
+#tabbody .gearbox .gh{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:14px;color:#ffe9a6;margin-bottom:.35em}
+#tabbody .gearbox .gst{font-size:12px;color:#cfe3ff;font-weight:800;background:rgba(255,255,255,.08);border-radius:999px;padding:.1em .6em}
+#tabbody .gslots{display:grid;grid-template-columns:repeat(6,1fr);gap:.3em}
+#tabbody .gslot{position:relative;aspect-ratio:1;border-radius:11px;background:#160e28;border:2px solid #3a2c5a;padding:3px;display:flex;align-items:center;justify-content:center}
+#tabbody .gslot img{width:82%;height:82%;object-fit:contain;filter:drop-shadow(0 2px 2px #000)}
+#tabbody .gslot.emp img{filter:grayscale(1) brightness(.35)}
+#tabbody .gslot .glv{position:absolute;right:3px;top:1px;font-size:10.5px;color:#fff;text-shadow:0 1px 2px #000}
+#tabbody .gslot .ggr{position:absolute;left:0;right:0;bottom:-1px;font-style:normal;font-size:9.5px;font-weight:800;text-align:center;color:#fff;text-shadow:0 1px 2px #000}
+#tabbody .gslot.g1{background:linear-gradient(#1d3a28,#14221a)}
+#tabbody .gslot.g2{background:linear-gradient(#17304f,#111c2e)}
+#tabbody .gslot.g3{background:linear-gradient(#33195a,#1d1033)}
+#tabbody .gslot.g4{background:linear-gradient(#4a3510,#261a07)}
+#tabbody .gslot.g5{background:linear-gradient(#521414,#2a0a0a)}
+#tabbody .gearbox .gbtns{display:grid;grid-template-columns:repeat(4,1fr);gap:.3em;margin:.45em 0 0!important}
+#tabbody .gearbox .gbtns .btn{font-size:11.5px!important;padding:.3em .15em!important;min-height:0;white-space:normal;line-height:1.15}
+#tabbody .gearbox .gbtns .btn small{display:block;font-size:10.5px;opacity:.9}
+#tabbody .chip2.lsk{color:#ffe9a6}

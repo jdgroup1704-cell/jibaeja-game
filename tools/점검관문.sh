@@ -76,6 +76,7 @@ for t in d['탭']:
     if t['창']<60: bad.append('%s 창 %d%%'%(t['탭'],t['창']))
     if d['높이']>=628 and t['내용높이']<340: bad.append('%s 내용 칸 %dpx'%(t['탭'],t['내용높이']))
     if t['싸움터']<20: bad.append('%s 싸움터 %d%%'%(t['탭'],t['싸움터']))
+  if t.get('큰그림',0)>110: bad.append('%s 그림 %dpx(옛 규칙 빠짐?)'%(t['탭'],t['큰그림']))
 if d['오류']: bad.append('오류 '+str(d['오류'])[:120])
 print('  %d: '%d['높이']+' · '.join('%s 창%d 보임%d'%(t['탭'],t['창'],t['보임']) for t in d['탭'][:5])+' …')
 if bad: print('  ✗ '+' / '.join(bad)); sys.exit(1)

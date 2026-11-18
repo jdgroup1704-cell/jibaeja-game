@@ -13,10 +13,10 @@ const LATE = fs.readFileSync(path.join(__dirname, '시험자료', '후반저장.
   const views = [['up'], ['grave', 'graveView', 'raise'], ['grave', 'graveView', 'gear'], ['grave', 'graveView', 'grow'], ['hero', 'heroView', 'squad'], ['hero', 'heroView', 'pull'], ['hero', 'heroView', 'list'], ['hero', 'heroView', 'bond'], ['awaken', 'awakenView', 'awaken'], ['awaken', 'awakenView', 'spell'], ['crypt'], ['mission']];
   const out = []; let shots = [];
   for (const [t, vk, vv] of views) {
-    await pg.evaluate(([t, vk, vv]) => { UI.closeModal(); UI.tab = t; if (vk) UI[vk] = vv; UI.render(true); }, [t, vk, vv]); await pg.waitForTimeout(700);
+    await pg.evaluate(([t, vk, vv]) => { UI.closeModal(); UI.tab = t; if (vk) UI[vk] = vv; UI.render(true); }, [t, vk, vv]); await pg.waitForTimeout(700); await pg.evaluate(() => UI.closeModal()); await pg.waitForTimeout(150);
     const r = await pg.evaluate(() => { const g = id => document.getElementById(id).getBoundingClientRect(), app = g('app'), tb = document.getElementById('tabbody');
-      return { 창: Math.round((g('panel').height + g('skillbar').height) / app.height * 100), 싸움터: Math.round(g('stagewrap').height / app.height * 100), 보임: Math.round(tb.clientHeight / tb.scrollHeight * 100), 스크롤px: tb.scrollHeight - tb.clientHeight, 내용높이: tb.clientHeight }; });
+      return { 창: Math.round((g('panel').height + g('skillbar').height) / app.height * 100), 싸움터: Math.round(g('stagewrap').height / app.height * 100), 보임: Math.round(tb.clientHeight / tb.scrollHeight * 100), 스크롤px: tb.scrollHeight - tb.clientHeight, 내용높이: tb.clientHeight, 큰그림: Math.max(0, ...[...tb.querySelectorAll('img')].map(i => Math.round(i.getBoundingClientRect().height))) }; });   /* 11-18 옛 <style> 규칙이 빠져 장비 그림이 330px로 깨졌던 것 — 아래 창 그림은 110px 아래여야(옛 판 장비 160 · 진형 94) */
     out.push(Object.assign({ 탭: t + (vv ? '/' + vv : '') }, r));
-    if (SHOT) { const f = `/tmp/아래창_${SHOT}_${t}${vv ? '_' + vv : ''}.png`; await pg.screenshot({ path: f }); shots.push(f); }
+    if (SHOT) { const f = `/tmp/아래창_${SHOT}_${t}${vv ? '_' + vv : ''}.png`; await pg.evaluate(() => UI.closeModal()); await pg.waitForTimeout(100); await pg.screenshot({ path: f }); shots.push(f); }
   }
   console.log(JSON.stringify({ 높이: H, 탭: out, 오류: errs })); await b.close(); srv.close(); })();
