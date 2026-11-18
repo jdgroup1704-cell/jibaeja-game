@@ -143,7 +143,8 @@ const UI = {
   showTiming(on) { $('timing').style.display = on ? 'block' : 'none'; $('timing').querySelector('span').textContent = L.spell.timingHint; },
   /* 11-17 04:24 대표님 폰 사진 4장 「헛웃음」: 보스 격파 띠가 자리 비움 창 위에 · VS가 업데이트 창 위에 · 「나타났다」와 보스 말풍선이 한 자리에 → 큰 창 · 카드 · 큰 글자는 한 번에 하나만(차례) */
   busy(noText) { const m = $('modal'); if (m && m.style.display === 'flex') return 'modal'; if (document.querySelector('#vsfx.go, .rwban:not(.out), #rcard.on, #bph2.on')) return 'card'; if (!noText && typeof S !== 'undefined' && S.texts && S.texts.some(t => t.screen && t.size >= 40 && t.age < t.life + 0.3)) return 'text'; return ''; },
-  openModal(html) { { const fg = $('finger'); if (fg) fg.classList.remove('on'); }   /* 11-15 출석부처럼 화면 갱신 없이 열린 창 위에 손가락이 남던 것 */ $('modal').querySelector('.box').innerHTML = html + `<div style="margin-top:.8em"><button class="btn big" data-close="1">${L.odds.close}</button></div>`; $('modal').style.display = 'flex'; },
+  openModal(html) { if (document.querySelector('#mfx.on')) { clearTimeout(this._omT); this._omT = setTimeout(() => this.openModal(html), 500); return; }   /* 11-18 12:59 대표님 「성녀 도전 같은 것 실제 되지도 않고 스킵처럼 끝나고」: 모험 싸움 장면(6초) 도중 출석 · 업데이트 창이 위를 덮어 싸움이 안 보였음 → 싸움이 끝난 뒤에 띄움 */
+    { const fg = $('finger'); if (fg) fg.classList.remove('on'); }   /* 11-15 출석부처럼 화면 갱신 없이 열린 창 위에 손가락이 남던 것 */ $('modal').querySelector('.box').innerHTML = html + `<div style="margin-top:.8em"><button class="btn big" data-close="1">${L.odds.close}</button></div>`; $('modal').style.display = 'flex'; },
   closeModal() { $('modal').style.display = 'none'; },
 
   act(a, arg) {
@@ -232,7 +233,7 @@ const UI = {
   summonReveal(el, top, best, done) {
     const h = JB.heroById(best.id), col = ['#d9dcf0', '#4aa8ff', '#b56cff', '#ffcc33'][top];
     el.style.setProperty('--c', col); el.className = 'on rk' + top;
-    el.innerHTML = `<div class="sf-bg"></div><div class="sf-rays"></div><div class="sf-circle"></div><div class="sf-pillar"></div>${top >= 2 ? `<img class="sf-hero" src="art/${need('heroA_' + best.id) ? 'heroA_' : need('heroF_' + best.id) ? 'heroF_' : 'hero_'}${best.id}.webp" alt=""><div class="sf-name"><small>${top >= 3 ? L.ui.sfTop : L.rarity[h.rarity]}</small><b>${L.heroes[best.id].name}</b></div>` : ''}<div class="sf-tap">${L.ui.sfTap}</div>`;
+    el.innerHTML = `<div class="sf-bg"></div><div class="sf-rays"></div><div class="sf-circle"></div><div class="sf-pillar"></div>${top >= 2 ? `<img class="sf-hero" src="art/heroA_${best.id}.webp" onerror="this.onerror=null;this.src='art/hero_${best.id}.webp'" alt=""><div class="sf-name"><small>${top >= 3 ? L.ui.sfTop : L.rarity[h.rarity]}</small><b>${L.heroes[best.id].name}</b></div>` : ''}<div class="sf-tap">${L.ui.sfTap}</div>`;
     Snd.smp('summon', 0.9); const T = top >= 3 ? 2600 : top >= 2 ? 1800 : 1000;
     if (top >= 2) setTimeout(() => { Snd.stamp && Snd.stamp(); S.flash = top >= 3 ? 0.6 : 0.3; if (top >= 3) { Snd.slam && Snd.slam(0.6); S.shake = 14; } }, T * 0.45);
     let gone = false; const fin = () => { if (gone) return; gone = true; el.className = ''; el.innerHTML = ''; el.onclick = null; done(); };

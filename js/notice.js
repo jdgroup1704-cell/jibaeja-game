@@ -35,3 +35,11 @@ setInterval(() => { NOTICE.tick(); if (NOTICE.busy()) { const bv = document.getE
 function hudFit() { const h = document.getElementById('hud'); if (!h) return; h.classList.remove('t1', 't2', 't3');
   const over = () => [...h.querySelectorAll('.chip')].some(c => c.offsetParent && c.scrollWidth > c.clientWidth + 1);
   for (const t of ['t1', 't2', 't3']) { if (!over()) break; h.classList.add(t); } }
+/* 11-18 큰 아래 창: 보스전(VS 카드부터 격파까지)에는 원래 크기로 내림 — 12:59 대표님 사진: 큰 창일 때 VS 이름 · 「2페이지」 띠가 작은 싸움터에서 잘리고 판 숫자에 겹침 · 대마법 단추도 보여야 함 */
+setInterval(() => { try { const ap = document.getElementById('app'); if (!ap || typeof UI === 'undefined' || typeof st === 'undefined') return;
+  const need = !!st.boss || !!document.querySelector('#vsfx.go, #mfx.on'), big = UI.tab !== 'up' && !need;
+  if (ap.classList.contains('big') !== big) ap.classList.toggle('big', big); } catch (e) {} }, 300);
+
+/* 11-18 게임 글꼴은 게임이 다 뜬 뒤(불러오기 끝 + 1.5초)에 붙임 — 처음 켜는 시간(관문 ㉓ 3G 12초)을 늘리지 않게 */
+(function () { const go = () => setTimeout(() => { try { if (document.getElementById('jbfont')) return; const l = document.createElement('link'); l.id = 'jbfont'; l.rel = 'stylesheet'; const v = (document.querySelector('script[src*="notice.js"]') || {}).src || ''; l.href = 'css/font.css' + (v.includes('?') ? v.slice(v.indexOf('?')) : ''); document.head.appendChild(l); } catch (e) {} }, 1500);
+  if (document.readyState === 'complete') go(); else addEventListener('load', go); })();

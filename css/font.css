@@ -1,0 +1,4 @@
+/* 11-18 게임 글꼴(본고딕 KR 부분 · 게임에 쓰는 글자만) — notice.js가 게임이 뜬 뒤에 붙임 */
+@font-face{font-family:'JB';src:url(../fonts/jb500.woff) format('woff');font-weight:100 599;font-display:swap}
+@font-face{font-family:'JB';src:url(../fonts/jb700.woff) format('woff');font-weight:600 799;font-display:swap}
+@font-face{font-family:'JB';src:url(../fonts/jb900.woff) format('woff');font-weight:800 1000;font-display:swap}

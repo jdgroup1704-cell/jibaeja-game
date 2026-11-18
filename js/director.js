@@ -211,10 +211,10 @@ function armyFight(dt) {
   const fr = armyFront(), per = JB.dps(st) / Math.max(1, armyVis());
   if (S.drum > 0) S.drum -= dt; for (const f of S.foes) if (f.curse > 0) f.curse -= dt;
   const land = (t, col, crit) => { if (t.foe) { t.foe.flash = Math.max(t.foe.flash || 0, 0.14); t.foe.kbT = 0.16; } /* 11-15 19:30 소환수 평타는 멈칫 없이 번쩍 · 튕김만(박자는 영웅이 만듦) */   /* 01:35 대표님 「때리는 거 딱딱탁」: 소환수 한 방마다 짧게 멈춤 · 흔들림 · 하얀 번쩍 · 뒤로 튕김 */ if (t.foe && t.foe.curse > 0 && Math.random() < 0.1) say(fmtD(per * 0.6), t.x + rnd(-20, 20), t.y - 40, { size: 15, col: '#e0b8ff', glow: '#9a4aff', life: 0.6, vy: -55 }); burst(t.x, t.y, 3, { col: [col, '#ffffff'], vmin: 30, vmax: 120, up: 30, lmax: 0.25 });
-    crit = crit || Math.random() < 0.05;   /* 18:42 대표님 「데미지 표시 · 크리티컬」: 치명타 10% — 노란 큰 숫자 + 「치명!」 + 잠깐 멈춤 · 흔들림 · 별 불꽃 */
+    crit = crit || Math.random() < 0.1;   /* 11-18 「타격감 아예 없고」: 보이는 치명타 5% → 10%(숫자만 · 실제 피해 계산은 그대로) */   /* 18:42 대표님 「데미지 표시 · 크리티컬」: 치명타 10% — 노란 큰 숫자 + 「치명!」 + 잠깐 멈춤 · 흔들림 · 별 불꽃 */
     if (crit) { S.aStat.num++; S.critN = (S.critN || 0) + 1; const tx = t.x + rnd(-16, 16), ty = t.y - 30 + rnd(-10, 4); say(fmtD(per * rnd(1.8, 2.4)), tx, ty, { size: 30, col: '#ffe14d', glow: '#ff7a00', life: 0.85, vy: -70 }); say(L.field.crit, tx, ty - 34, { size: 15, col: '#ffb02e', life: 0.7, vy: -70 });
-      if (t.foe) t.foe.flash = 0.2; punch(0.04, 3); burst(t.x, t.y, 10, { col: ['#ffe14d', '#ffffff', '#ff9a2a'], vmin: 120, vmax: 340, up: 40, lmax: 0.3, smin: 2, smax: 4 }); }
-    else if (S.anumT <= 0) { S.anumT = 1.6; S.aStat.num++; say(fmtD(per * rnd(0.8, 1.2)), t.x + rnd(-20, 20), t.y - 20 + rnd(-14, 6), { size: 17, col: '#ffffff', life: 0.6, vy: -55 }); } };
+      if (t.foe) { t.foe.flash = 0.3; t.foe.kbT = 0.16; } punch(0.04, 5); burst(t.x, t.y, 10, { col: ['#ffe14d', '#ffffff', '#ff9a2a'], vmin: 120, vmax: 340, up: 40, lmax: 0.3, smin: 2, smax: 4 }); }
+    else if (S.anumT <= 0) { S.anumT = 0.55; S.aStat.num++; say(fmtD(per * rnd(0.8, 1.2)), t.x + rnd(-20, 20), t.y - 20 + rnd(-14, 6), { size: 21, col: '#ffffff', life: 0.6, vy: -55 }); }   /* 11-18 「타격감 아예 없고」: 평타 숫자가 1.6초에 하나뿐이라 때리는 게 안 느껴짐 → 0.55초 · 17 → 21(동시 3개 제한은 그대로) */ };
   for (const a of S.army) {
     if (a.fly) continue;
     if (a.sw > 0) { const was = a.sw; a.sw = Math.max(0, a.sw - dt); if (a.sw <= 0) a.lg = 0; if (was > 0.2 && a.sw <= 0.2 && a.swT) { { const T = a.swT; S.aslash.push({ x: (T.foe ? T.foe.x : T.x) - 18, y: (T.foe ? T.foe.y - 70 : T.y - 40), age: 0, life: a.c === 2 ? 0.3 : 0.22, star: 1, c: a.c, ax: a.x + 40, ay: a.y - 80 }); if (a.c === 2 && T.foe) T.foe.kbT = 0.16; } land(a.swT, '#e8dcc0', Math.random() < 0.08); if (a.big) armySkill(a, a.swT, land); a.swT = null; } }

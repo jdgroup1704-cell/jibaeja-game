@@ -45,7 +45,7 @@ const UKU0 = () => TRAILER ? 1 : WK() > 1.6 ? (window.__UKU || (innerWidth < 420
 const UKU = () => UKU0() * SZ.hero;
 const ease = t => t < 0 ? 0 : t > 1 ? 1 : t * t * (3 - 2 * t);
 const lerp = (a, b, t) => a + (b - a) * t;
-const SERIF = "'Noto Sans KR','Noto Sans CJK KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif";   /* 21:50 대표님 폰엔 굵은 명조가 없어 얇은 바탕체로 나와 싸 보였음 → 굵은 고딕 하나로 통일(이름은 그대로 둠) */
+const SERIF = "'JB','Noto Sans KR','Noto Sans CJK KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif";   /* 21:50 대표님 폰엔 굵은 명조가 없어 얇은 바탕체로 나와 싸 보였음 → 굵은 고딕 하나로 통일(이름은 그대로 둠) */
 const fmt = n => L.num(n);
 const fmtD = n => { const t = n < 10 ? String(Math.max(1, Math.round(n))) : fmt(n); fmtD.v = n; fmtD.s = t; return t; };   /* 값도 기억 — 가까이 뜬 숫자를 합칠 때 씀 */   /* 11-15 눈 확인(알림한줄 1-1): 피해 숫자 「0.6」 「0.5」 — 때리는 맛이 소수점이면 약해 보임 → 피해 숫자는 10 밑이면 정수(최소 1) */
 const TI_ART = { up: 't_up', grave: 't_grave', hero: 't_hero', awaken: 't_awaken', crypt: 't_rule', mission: 't_mission' };   /* 아래 탭 그림 아이콘 */

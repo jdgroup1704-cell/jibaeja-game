@@ -7,15 +7,15 @@ const BRAG = {
     const bg = g.createLinearGradient(0, 0, 0, H2); bg.addColorStop(0, '#1a0830'); bg.addColorStop(1, '#07010f'); g.fillStyle = bg; g.fillRect(0, 0, W2, H2);
     this.scene(g, 0, 150, W2, 640);
     const T = L.brag, gold = '#ffd76a', vio = '#c9a2ff';
-    g.textAlign = 'center'; g.fillStyle = gold; g.font = '900 64px sans-serif'; g.shadowColor = '#8a3cff'; g.shadowBlur = 24; g.fillText(T.brand, W2 / 2, 100); if (st.myName) { g.shadowBlur = 0; g.font = '800 34px sans-serif'; g.fillStyle = '#e9dcff'; g.fillText('지배자 ' + st.myName, W2 / 2, 142); } g.shadowBlur = 0;
+    g.textAlign = 'center'; g.fillStyle = gold; g.font = '900 64px JB,sans-serif'; g.shadowColor = '#8a3cff'; g.shadowBlur = 24; g.fillText(T.brand, W2 / 2, 100); if (st.myName) { g.shadowBlur = 0; g.font = '800 34px JB,sans-serif'; g.fillStyle = '#e9dcff'; g.fillText('지배자 ' + st.myName, W2 / 2, 142); } g.shadowBlur = 0;
     const army = JB.armySize ? JB.armySize(st) : 0, dps = JB.dps(st), stg = typeof SN === 'function' ? SN(st.best || st.stage) : (st.best || st.stage);
     const rows = [[T.power, fmt(dps)], [T.army, fmt(army)], [T.stage, String(stg)], [T.thrall, String(st.thralls || 0)]];
-    let y = 860; g.font = '700 40px sans-serif';
-    rows.forEach(([a, b], i) => { const x = i % 2 ? W2 * 0.73 : W2 * 0.27, yy = y + Math.floor(i / 2) * 130; g.fillStyle = 'rgba(140,70,255,.18)'; g.beginPath(); g.roundRect ? g.roundRect(x - 230, yy - 62, 460, 112, 24) : g.rect(x - 230, yy - 62, 460, 112); g.fill(); g.fillStyle = vio; g.font = '700 32px sans-serif'; g.fillText(a, x, yy - 14); g.fillStyle = '#fff'; g.font = '900 50px sans-serif'; g.fillText(b, x, yy + 36); });
+    let y = 860; g.font = '700 40px JB,sans-serif';
+    rows.forEach(([a, b], i) => { const x = i % 2 ? W2 * 0.73 : W2 * 0.27, yy = y + Math.floor(i / 2) * 130; g.fillStyle = 'rgba(140,70,255,.18)'; g.beginPath(); g.roundRect ? g.roundRect(x - 230, yy - 62, 460, 112, 24) : g.rect(x - 230, yy - 62, 460, 112); g.fill(); g.fillStyle = vio; g.font = '700 32px JB,sans-serif'; g.fillText(a, x, yy - 14); g.fillStyle = '#fff'; g.font = '900 50px JB,sans-serif'; g.fillText(b, x, yy + 36); });
     /* 영웅 얼굴 줄 */
     const hs = (st.squad || []).filter(Boolean).slice(0, 5); const fw = 150, x0 = W2 / 2 - (hs.length * (fw + 16) - 16) / 2;
     hs.forEach((id, i) => { const im = ART['hero_' + id]; const x = x0 + i * (fw + 16), yy = 1130; g.save(); g.beginPath(); g.arc(x + fw / 2, yy + fw / 2, fw / 2, 0, 7); g.closePath(); g.fillStyle = '#2a1150'; g.fill(); g.clip(); if (im) g.drawImage(im, x, yy, fw, fw); g.restore(); g.strokeStyle = gold; g.lineWidth = 5; g.beginPath(); g.arc(x + fw / 2, yy + fw / 2, fw / 2, 0, 7); g.stroke(); });
-    g.fillStyle = '#e9dcff'; g.font = '700 34px sans-serif'; g.fillText(T.cta, W2 / 2, 1320);
+    g.fillStyle = '#e9dcff'; g.font = '700 34px JB,sans-serif'; g.fillText(T.cta, W2 / 2, 1320);
     return c;
   },
   spr(g, n, an, x, y, h, flip, filt) {   /* 띠 그림 첫 장을 카드에 그림(발 = x, y) */

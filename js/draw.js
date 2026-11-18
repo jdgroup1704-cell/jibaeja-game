@@ -458,12 +458,12 @@ function drawSkel(a) {
     const [vn, va, vf] = walk ? [WN, 'walk', a.wf] : kc ? [kc, at ? 'attack' : 'idle', at ? (1 - a.vT / atT) * (VS[kc].n.attack - 1) : (n => { const q = vsIdle(a.ph, 4, 2 * n - 2); return q < n ? q : 2 * n - 2 - q; })(VS[kc].n.idle)] : ['sv', at ? 'attack' : 'idle', at ? svAtkF(0.55 - a.vT) : vsIdle(a.ph)];   /* 병과 대기는 앞뒤로 오가며(끊김 없이) */
     vsDraw(vn, va, vf, h * (kc === 'k2' ? 1.08 : a.c === 2 ? 1.07 : 1), kc ? SV_TINT.d : (SV_TINT[a.c] || SV_TINT.d), (a.hurt > 0 ? -Math.sin(a.hurt / 0.25 * Math.PI) * 0.12 : 0) + (at ? 0 : lean), !at);
     if (a.flash > 0) { a.flash -= 1 / 60; ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(0.42, a.flash * 2.5); vsDraw(vn, va, vf, h, 'brightness(1.7) saturate(0.5)', 0, !at); ctx.restore(); }   /* 18:42 맞는 순간 하얗게 번쩍 */
-    { const per = Math.max(1, Math.round(JB.armySize(st) / Math.max(1, armyVis()))); if (false && !a.fly && per > 1) { ctx.font = `800 ${Math.round(18 * sc)}px sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.fillStyle = '#e8dcff'; ctx.strokeText('×' + per, 0, -h - 10); ctx.fillText('×' + per, 0, -h - 10); } }
+    { const per = Math.max(1, Math.round(JB.armySize(st) / Math.max(1, armyVis()))); if (false && !a.fly && per > 1) { ctx.font = `800 ${Math.round(18 * sc)}px 'JB',sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.fillStyle = '#e8dcff'; ctx.strokeText('×' + per, 0, -h - 10); ctx.fillText('×' + per, 0, -h - 10); } }
   } else
   if (STYLE === '2d' && !ea && need('d2_skel')) {   /* 2D 망자병: 윗몸으로 칼 내리치기 · 맞으면 뒤로 움찔 · 걸으면 통통 */
     const st2 = a.sw > 0 ? 'attack' : a.hurt > 0 ? 'hit' : a.wamp > 0.05 ? 'walk' : 'idle', kk = a.sw > 0 ? 1 - a.sw / SW_T : a.hurt > 0 ? 1 - a.hurt / 0.25 : 0;
     const pf = ctx.filter; ctx.filter = STYLE0 === 'hq' ? 'brightness(1.45) contrast(1.1) saturate(1.2) drop-shadow(0 0 2px rgba(190,120,255,.95))' : 'brightness(1.05) saturate(1.1)'; puppet(ART.d2_skel, 145 * sc * pop, { flip: true, cut: 0.5, slash: '#c9a2ff', st: st2, k: kk, ph: a.ph, wph: a.wph }); ctx.filter = pf;
-    { const per = Math.max(1, Math.round(JB.armySize(st) / Math.max(1, armyVis()))); if (false && !a.fly && per > 1) { const h = 145 * sc * pop; ctx.font = `800 ${Math.round(18 * sc)}px sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.fillStyle = '#e8dcff'; ctx.strokeText('×' + per, 0, -h - 10); ctx.fillText('×' + per, 0, -h - 10); } }
+    { const per = Math.max(1, Math.round(JB.armySize(st) / Math.max(1, armyVis()))); if (false && !a.fly && per > 1) { const h = 145 * sc * pop; ctx.font = `800 ${Math.round(18 * sc)}px 'JB',sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.fillStyle = '#e8dcff'; ctx.strokeText('×' + per, 0, -h - 10); ctx.fillText('×' + per, 0, -h - 10); } }
   } else
   if (S4) {   /* 03:40 진짜 3D 동작(Meshy 칼 해골 → 브라우저에서 찍어 옴): 대기 · 걷기 · 달리기 · 베기 · 맞기 */
     const M4 = SD ? SK5 : SK4, PF = SD ? 'sk5_' : 'sk4_'; let an = 'idle', fi;
@@ -473,20 +473,20 @@ function drawSkel(a) {
     else fi = Math.floor(((S.t + a.ph) / 1.87) * 12);
     fi = ((fi % 12) + 12) % 12; const im = ART[PF + an], k = (SD ? 150 : 185) * sc * pop / M4.hpx, h = (SD ? 150 : 185) * sc * pop;
     const pf = ctx.filter; ctx.filter = SD ? 'brightness(1.15) saturate(1.25) contrast(1.1) drop-shadow(0 0 1.2px #12051e) drop-shadow(0 0 1.2px #12051e)' : STYLE === 'old' ? 'brightness(1.55) contrast(1.18) saturate(1.2) drop-shadow(0 0 2px #b98bff) drop-shadow(0 0 1px #000)' : 'brightness(1.35) saturate(1.1)';   /* ③ 개선: 보랏빛 테두리로 어두운 배경에서 떠 보이게 */ if (SD) { ctx.save(); ctx.scale(-1, 1); } ctx.drawImage(im, fi * M4.cw, 0, M4.cw, M4.ch, -M4.ax * k, -M4.ay * k, M4.cw * k, M4.ch * k); if (SD) ctx.restore(); ctx.filter = pf;   /* SD 그림은 왼쪽을 봐서 뒤집어 적(오른쪽)을 보게 */   /* 3D 그림이 어두워서 밝힘 */
-    { const per = Math.max(1, Math.round(JB.armySize(st) / Math.max(1, armyVis()))); if (false && !a.fly && per > 1) { ctx.font = `800 ${Math.round(18 * sc)}px sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.fillStyle = '#e8dcff'; ctx.strokeText('×' + per, 0, -h - 10); ctx.fillText('×' + per, 0, -h - 10); } }
+    { const per = Math.max(1, Math.round(JB.armySize(st) / Math.max(1, armyVis()))); if (false && !a.fly && per > 1) { ctx.font = `800 ${Math.round(18 * sc)}px 'JB',sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.fillStyle = '#e8dcff'; ctx.strokeText('×' + per, 0, -h - 10); ctx.fillText('×' + per, 0, -h - 10); } }
   } else
   if (false) {   /* A 시험판: 부대 = 큰 3D 캐릭터 한 명(진짜 걷기 동작) + 머리 위 ×수 */
     const run = a.wamp > 0.5 && S3r, sh = run ? S3r : S3, N = 12, cw = sh.width / N, h = 205 * sc * pop, w = h * cw / sh.height, fi = a.wamp > 0.05 ? Math.floor((a.wph / (Math.PI * 2)) * N * 1.0) % N : 0;
     if (swk) ctx.rotate(swk * 0.3); ctx.drawImage(sh, ((fi % N) + N) % N * cw, 0, cw, sh.height, -w / 2, -h, w, h);
     if (a.sw > 0) { const k = 1 - a.sw / SW_T; ctx.save(); ctx.rotate(-swk * 0.3); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.sin(k * Math.PI) * 0.9; ctx.strokeStyle = '#e9ddff'; ctx.lineCap = 'round'; for (const [lw, al] of [[14 * sc, 0.25], [5 * sc, 1]]) { ctx.globalAlpha *= al === 1 ? 1 : 1; ctx.lineWidth = lw; ctx.beginPath(); ctx.arc(w * 0.18, -h * 0.5, h * 0.36, -1.5 + k * 0.6, -1.5 + k * 0.6 + 1.9 * Math.min(1, k * 2.2)); ctx.stroke(); } ctx.restore(); }   /* A판 03:23: 칼 휘두를 때 하얀 칼자국(동작 그림이 오기 전 임시) */
-    { const per = Math.max(1, Math.round(JB.armySize(st) / Math.max(1, armyVis()))); if (false && !a.fly && per > 1) { ctx.font = `800 ${Math.round(18 * sc)}px sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.fillStyle = '#e8dcff'; ctx.strokeText('×' + per, 0, -h - 6); ctx.fillText('×' + per, 0, -h - 6); } }
+    { const per = Math.max(1, Math.round(JB.armySize(st) / Math.max(1, armyVis()))); if (false && !a.fly && per > 1) { ctx.font = `800 ${Math.round(18 * sc)}px 'JB',sans-serif`; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.fillStyle = '#e8dcff'; ctx.strokeText('×' + per, 0, -h - 6); ctx.fillText('×' + per, 0, -h - 6); } }
   } else
   if (ci) { const h = hh * sc, w = h * ci.width / ci.height; drawWalk(cimg, wkey, w, h, a.wph, a.fly ? 0 : a.wamp, a.fly ? 0 : swk * 0.38); if (ev === 4 && a.tag) { ctx.font = `800 ${Math.round(13 * sc)}px ${SERIF}`; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(10,0,20,.9)'; ctx.strokeText(L.evo.names[ev], 0, -h - 6); ctx.fillStyle = ev === 4 ? '#ffd76a' : '#d9b8ff'; ctx.fillText(L.evo.names[ev], 0, -h - 6); } } else
   ctx.drawImage(img, -22 * sc, -64 * sc, 44 * sc, 66 * sc);
   ctx.restore(); ctx.globalAlpha = 1;
 }
 function drawFoe(f) {   /* 01:35 「딱딱탁」: 맞으면 0.16초 뒤로 튕겼다 돌아옴 */
-  const kp = f.kbT > 0 ? 1 - f.kbT / 0.16 : 1, kx = f.kbT > 0 ? (kp < 0.2 ? kp / 0.2 : 1 - (kp - 0.2) / 0.8) * 28 : 0; if (f.kbT > 0) f.kbT -= 1 / 60;   /* 09:40 맞는 순간 확 밀렸다(0.03초) 천천히 돌아옴 · 28 */
+  const kp = f.kbT > 0 ? 1 - f.kbT / 0.16 : 1, kx = f.kbT > 0 ? (kp < 0.2 ? kp / 0.2 : 1 - (kp - 0.2) / 0.8) * 44 : 0;   /* 11-18 12:59 대표님 「타격감 아예 없고」: 밀림 28 → 44 */ if (f.kbT > 0) f.kbT -= 1 / 60;   /* 09:40 맞는 순간 확 밀렸다(0.03초) 천천히 돌아옴 · 28 */
   if (kx) { ctx.save(); ctx.translate(f.x + kx, f.y); ctx.rotate(kx / 28 * 0.12); ctx.translate(-f.x, -f.y); } { const zf = typeof SZ !== 'undefined' && !f.boss ? SZ.foe : 1; if (zf !== 1) { ctx.save(); ctx.translate(f.x, f.y); ctx.scale(zf, zf); ctx.translate(-f.x, -f.y); } drawFoe0(f); if (zf !== 1) ctx.restore(); } if (kx) ctx.restore();   /* 11-18 새 틀 크기 표: 적도 SZ.foe(우리 편을 줄이자 적 방패병이 훨씬 커 보였음 — 그림점검 3-10) */   /* 밀리며 뒤로 젖혀짐 */
 }
 /* 11-16 #25 대표님 11:30 「강화 계속 별 높이면 모습도 바뀌는 거야?」: 큰 소환수도 승급 단계가 눈에 보이게 — 쌓인 승급(st.evo)을 높은 단계부터 소환수에게 나눠 줌(저장 · 다시 켜도 그대로)
@@ -509,7 +509,7 @@ function drawFoe0(f) {
   ctx.save(); if (!f.flee) { ctx.globalCompositeOperation = 'lighter'; const ph_ = typeof PHN === 'function' && PHN(), rg = ctx.createRadialGradient(f.x, f.y - 40 * sc, 4, f.x, f.y - 40 * sc, (ph_ ? 38 : 48) * sc); rg.addColorStop(0, ph_ ? 'rgba(255,40,60,.17)' : 'rgba(255,40,60,.32)');   /* 11-17 11:5x 빛 효과 붐빔(빛덮임재기: 빛이 싸움터 17% 색을 바꿈 · 그중 적 뒤 붉은 빛 22%) — 폰은 적이 2배로 보여 이 빛이 겹겹이 쌓임 → 반쯤 · 작게(적 발밑 붉은 고리는 그대로라 구분은 됨) */ rg.addColorStop(1, 'rgba(255,40,60,0)'); ctx.fillStyle = rg; ctx.fillRect(f.x - 50 * sc, f.y - 92 * sc, 100 * sc, 100 * sc); ctx.globalCompositeOperation = 'source-over'; }   /* A판: 적 뒤 붉은 빛(우리 편과 한눈에 구분) */ ctx.globalAlpha = 0.5; ctx.fillStyle = '#05000c'; ctx.beginPath(); ctx.ellipse(f.x, f.y, 22 * sc, 6 * sc, 0, 0, 7); ctx.fill(); if (!f.flee) { ctx.globalAlpha = 0.75; ctx.strokeStyle = '#ff3a4a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(f.x, f.y - 1, 24 * sc, 7 * sc, 0, 0, 7); ctx.stroke(); } ctx.restore();   /* 적 발밑 그림자 + 빨간 고리(적 편 표시 — 11-13 대표님 「상대는 보이지도 않네」) */
   const ak = f.atk > 0 ? -Math.sin((1 - f.atk / 0.32) * Math.PI) * 22 : 0; f.hk = Math.max(0, (f.hk || 0) - 1 / 60); if (f.flash > 0.12 && !(f.hk > 0)) f.hk = 0.16; const hq = f.hk > 0 ? Math.sin(f.hk / 0.16 * Math.PI) : 0;   /* 11-14 타격감: 맞으면 찌그러지고 뒤로 살짝 밀림 */
   if (typeof FFX !== 'undefined') FFX.bless(f, sc);
-  ctx.save(); ctx.translate(f.x + ak + hq * 9, f.y + bob); ctx.scale(1 + 0.1 * hq, 1 - 0.08 * hq); if (f.flee) ctx.scale(-1, 1); if (ak && !ART.kn_attack) ctx.rotate(-0.12 * Math.sin((1 - f.atk / 0.32) * Math.PI));
+  ctx.save(); ctx.translate(f.x + ak + hq * 18, f.y + bob); ctx.scale(1 + 0.18 * hq, 1 - 0.14 * hq);   /* 11-18 「타격감 아예 없고」: 맞을 때 찌그러짐 · 밀림 두 배 */ if (f.flee) ctx.scale(-1, 1); if (ak && !ART.kn_attack) ctx.rotate(-0.12 * Math.sin((1 - f.atk / 0.32) * Math.PI));
   const FAi = !f.fly ? need('foeA' + ({ foot: 0, archer: 1, shield: 2, priest: 3, captain: 2, lancer: 0, paladin: 2, leech: 2, pyro: 3, frost: 3, plague: 3, abyss: 3, bomber: 0 }[f.kind] ?? 0)) : null;
   const FVi = !f.fly ? 'foev' + ({ foot: 0, archer: 1, shield: 2, priest: 3, captain: 2, lancer: 0, paladin: 2, leech: 2, pyro: 3, frost: 3, plague: 3, abyss: 3, bomber: 0 }[f.kind] ?? 0) : null;
   if (FVi && VS[FVi] && need(FVi + '_idle')) {   /* 11-16 #13 숨쉬기만 와도 새 그림 */   /* 03:20 적 영상 동작: 평소 숨쉬기 · f.atk 동안 공격 장면 */
@@ -844,12 +844,12 @@ function drawBossBar() {   /* 11-15 보스 머리 바로 위: 이름 · 남은 �
   const g = S.giant, b = st.boss; if (TRAILER || !b || !g.on || g.dead || g.alpha < 0.5 || !['fight', 'wait', 'cast'].includes(b.phase) || S.phase === 'cast') return;
   const v = clamp(st.hp / st.maxHp, 0, 1); g.hpG = g.hpG == null || g.hpG < v ? v : Math.max(v, g.hpG - 0.35 / 60);
   const k = Math.min(WK(), 2.4), cr = cv.getBoundingClientRect(), pw = (VIS.y1 - VIS.y0) / Math.max(1, cr.height), w = Math.min(320 * k, (VIS.x1 - VIS.x0) * 0.56), hh = Math.round(13 * k), x0 = (VIS.x0 + VIS.x1) / 2 - w / 2, y0 = VIS.y0 + 74 * pw + 18 * k;   /* 11-16 11:40 대표님 「보스 체력이 위 상단하고 캐릭터에도」 → 제 추천대로 하나만: 화면 위(판 이름 아래) 가운데 큰 막대 — 보스 얼굴 · 말풍선을 안 가림 */
-  ctx.save(); ctx.lineJoin = 'round'; ctx.font = `900 ${Math.round(14 * k)}px sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.lineWidth = 3.5 * k; ctx.strokeStyle = 'rgba(10,0,16,.92)';
+  ctx.save(); ctx.lineJoin = 'round'; ctx.font = `900 ${Math.round(14 * k)}px 'JB',sans-serif`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.lineWidth = 3.5 * k; ctx.strokeStyle = 'rgba(10,0,16,.92)';
   const nm = '☠ ' + L.boss.name(L.regions[regionOf(st.stage)], b.lord); ctx.strokeText(nm, x0, y0 - 5 * k); ctx.fillStyle = '#ffd0b0'; ctx.fillText(nm, x0, y0 - 5 * k);
   if (b.phase === 'fight') { const tt = '⏱ ' + L.boss.timer(Math.ceil(b.timer)); ctx.textAlign = 'right'; ctx.fillStyle = b.timer < 8 ? '#ff5a5a' : '#fff3c4'; ctx.strokeText(tt, x0 + w, y0 - 5 * k); ctx.fillText(tt, x0 + w, y0 - 5 * k); }
   ctx.fillStyle = 'rgba(8,0,14,.92)'; ctx.fillRect(x0 - 2 * k, y0 - 2 * k, w + 4 * k, hh + 4 * k); ctx.strokeStyle = '#ffb35a'; ctx.lineWidth = 1.5 * k; ctx.strokeRect(x0 - 2 * k, y0 - 2 * k, w + 4 * k, hh + 4 * k);
   ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(x0, y0, w * g.hpG, hh); const gr = ctx.createLinearGradient(x0, 0, x0 + w, 0); gr.addColorStop(0, '#ff3a2a'); gr.addColorStop(1, '#ff9d2a'); ctx.fillStyle = gr; ctx.fillRect(x0, y0, w * v, hh);
-  const pc = v * 100, t2 = (pc >= 10 ? Math.round(pc) : pc.toFixed(1)) + '%'; ctx.font = `900 ${Math.round(11 * k)}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3 * k; ctx.strokeText(t2, x0 + w / 2, y0 + hh / 2 + 0.5); ctx.fillStyle = '#fff'; ctx.fillText(t2, x0 + w / 2, y0 + hh / 2 + 0.5);
+  const pc = v * 100, t2 = (pc >= 10 ? Math.round(pc) : pc.toFixed(1)) + '%'; ctx.font = `900 ${Math.round(11 * k)}px 'JB',sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3 * k; ctx.strokeText(t2, x0 + w / 2, y0 + hh / 2 + 0.5); ctx.fillStyle = '#fff'; ctx.fillText(t2, x0 + w / 2, y0 + hh / 2 + 0.5);
   ctx.restore();
 }
 function drawGiant() {
@@ -1099,7 +1099,7 @@ function drawWarn() {
   if (!S.warn) return; const t = S.warn.t, a = Math.min(1, t * 4) * Math.min(1, (2.6 - t) * 3), x0 = -view.ox / view.s, x1 = (cv.width - view.ox) / view.s, y0 = -view.oy / view.s, y1 = (cv.height - view.oy) / view.s;
   ctx.save(); const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, H * 0.9); v.addColorStop(0, 'rgba(160,0,0,0)'); v.addColorStop(1, `rgba(170,0,10,${a * (0.35 + 0.25 * Math.sin(t * 12))})`); ctx.fillStyle = v; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
   if (!TRAILER) { ctx.restore(); return; }   /* 11-18 새 틀: 위아래로 흐르는 경고 글자 띠가 위 단추(전리품 · 빠른 보상 · 배속) 뒤로 지나가며 잘림(대표님 03:09 사진) → 붉은 가장자리만 · 글자는 알림 줄 */
-  const bh = 34; ctx.font = '700 20px sans-serif'; ctx.textBaseline = 'middle';
+  const bh = 34; ctx.font = '700 20px JB,sans-serif'; ctx.textBaseline = 'middle';
   for (const [yy, dir] of [[y0 + 70, 1], [y1 - 70, -1]]) { ctx.globalAlpha = a * 0.9; ctx.fillStyle = '#5a0008'; ctx.fillRect(x0, yy - bh / 2, x1 - x0, bh); ctx.fillStyle = '#ffd0c8'; const w = ctx.measureText(L.boss.warn + '   ').width; for (let x = x0 - w + ((t * 220 * dir) % w + w) % w; x < x1; x += w) ctx.fillText(L.boss.warn, x, yy); }
   ctx.restore();
 }

@@ -1,10 +1,13 @@
+/* 11-18 12:59 대표님 폰 사진 「그래픽 왜 이래 · 밑에 폰트 그래픽 아직도 이상」: 폰 브라우저 어두운 모드가 이미 어두운 게임을 한 번 더 어둡게 칠해 보라 단추가 남색 · 금 단추가 갈색 · 글꼴은 폰 기본 글꼴
+   → color-scheme dark(이미 어두운 화면이라고 알림) + 게임 글꼴 직접 실음(본고딕 500 · 700 · 900 · 게임 글자 1041자) — 글꼴은 css/font.css로 따로, 게임이 뜬 뒤에 붙임(관문 ㉓ 켜는 시간 12초) */
+:root{color-scheme:only dark}
 /* 지배자 키우기 — 새 틀(11-18 03:2x 대표님 「전부 새로 짜라 · 틀을 완전 다시 짜라」) · 설계서: v90설계/새틀설계.md
    규칙: 화면은 칸으로 나눔(위 띠 · 싸움터 · 기술 줄 · 아래 칸 · 탭 줄). 무엇도 자기 칸 밖으로 못 나감. 폰 덧댐(@media 폰 전용 px 옮기기) 금지 — 크기는 칸 비율과 clamp로만. */
 :root{
   --bg:#0d0618; --bg2:#160a26; --card:#1f1233; --card2:#2a1846; --line:#3d2563; --line2:#5b3a8f;
   --txt:#efe6ff; --sub:#b7a6d6; --dim:#7d6c9c; --gold:#ffd76a; --gold2:#f0a92a; --vio:#8c5cff; --vio2:#5a2fc0; --green:#5dff8f; --red:#ff5a5a;
   --hud:38px; --skill:46px; --tabs:50px; --goal:30px; --cards:clamp(150px,25vh,250px); --bottom:calc(var(--goal) + var(--tabs) + var(--cards));
-  --r:12px; --font:'Noto Sans KR','Noto Sans CJK KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --r:12px; --font:'JB','Noto Sans CJK KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#05010a;overflow:hidden;font-family:var(--font);color:var(--txt);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
@@ -277,3 +280,30 @@ button.row.hint{border-color:var(--gold);animation:hintp 1s ease-in-out infinite
 /* 11-18 진형 칸 넷이 한 줄에 들어가 넷째가 화면 밖 → 두 줄(2×2) */
 #tabbody .slots:has(.slot.sq){grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px}
 #tabbody .slot.sq{min-width:0}
+/* 11-18 큰 아래 창 3: 임무 · 각성 대마법 줄 촘촘히 */
+#panel.t-mission #tabbody .row{padding:5px 6px;gap:8px}
+#panel.t-mission #tabbody .row .nm{font-size:14px}
+#panel.t-mission #tabbody .row .bar2{margin:3px 0 2px}
+#panel.t-mission #tabbody .row .btn{height:30px;min-height:0;padding:0 12px}
+#panel.t-mission #tabbody button.row.lrow{padding:6px 10px;margin-bottom:5px}
+#panel.t-awaken #tabbody .row{padding:5px 6px}
+#panel.t-awaken #tabbody .row .btn{height:30px;min-height:0;padding:0 12px}
+#panel.t-grave #tabbody .slots:not(:has(.slot.sq)){gap:5px;margin:6px 0}
+#panel.t-grave #tabbody .slots .slot{padding:4px 3px}
+#panel.t-grave #tabbody .slots .slot img.ci{height:44px}
+#panel.t-grave #tabbody .slots .slot b{font-size:12.5px}
+
+/* 11-18 12:59 대표님 사진: 큰 창일 때 알림 띠가 판 숫자(3-7)에 겹침 → 큰 창에선 작은 싸움터 아래쪽 가운데 · 작게 */
+#app.big #notice{top:66%}
+#app.big #notice b{font-size:22px!important}
+#app.big #notice small{font-size:12px}
+/* 군단 제단 줄: 단추 둘(올리는 중 · 바로 끝내기)이 글 칸을 0으로 눌러 「제단 1등급」이 세로로 한 글자씩 → 글 칸 최소 폭 · 넘치면 다음 줄 */
+#tabbody .row{flex-wrap:wrap}
+#tabbody .row>.grow{min-width:150px}
+
+/* 11-18 12:59 대표님 사진(녹스 뽑기 화면이 얼굴만 화면 가득 · 깨짐): 전신 그림(heroA)이 아직 안 불러졌다고 256px 얼굴 아이콘을 420px로 키워 썼음 → 늘 전신 그림 · 화면 폭 안 */
+#summonfx .sf-hero{height:min(44vh,360px)!important;max-width:86vw;object-fit:contain}
+/* 11-18 대표님 폰 크기(412×893)로 재 보니 강화 탭 넷째 줄(무덤)이 반쯤 잘림 → 키 큰 폰은 네 줄이 다 들어가게 아래 칸을 맞춤 */
+@media (min-height:760px){:root{--cards:calc(4 * clamp(44px,7.4vh,58px) + 30px)}}
+/* 11-18 모험 싸움 장면(6초) 동안은 다른 창(출석부 등)을 숨김 — 끝나면 다시 보임 */
+body:has(#mfx.on) #modal{visibility:hidden}
