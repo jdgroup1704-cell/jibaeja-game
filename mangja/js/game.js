@@ -44,7 +44,7 @@ const LORDS = [
   { name: '망령 군주', desc: '영혼탄으로 시작 · 고른 힘', w: 'bolt', hue: 0, lock: 0 },
   { name: '뼈의 장군', desc: '사신의 낫으로 시작 · 군단 +4 · 병사 힘 +30% · 부활 +10%', w: 'scythe', hue: 130, lock: 2, need: '제1장을 깨면 열려요' },
   { name: '역병 마녀', desc: '저주 늪으로 시작 · 마법 +15% · 영혼 끌기 +40%', w: 'pool', hue: 70, lock: 3, need: '제2장을 깨면 열려요' }];
-function lordOpen(i) { return (META.open || 1) >= (LORDS[i].lock || 0); }
+function lordOpen(i) { return META.lordpack || (META.open || 1) >= (LORDS[i].lock || 0); }
 function hueSheet(n, deg) { const k = n + '#' + deg; if (IMG[k]) return IMG[k]; const I = IMG[n]; if (!I || !I.complete || !I.naturalWidth) return null; if (!I._ok) { if (!I._dec) I._dec = (I.decode ? I.decode() : Promise.resolve()).then(() => { I._ok = 1; }, () => { I._ok = 1; }); return null; }
   try { const c = document.createElement('canvas'); c.width = I.naturalWidth; c.height = I.naturalHeight; const x = c.getContext('2d'); x.drawImage(I, 0, 0); const d = x.getImageData(0, 0, c.width, c.height), p = d.data;
     const a = deg * Math.PI / 180, co = Math.cos(a), si = Math.sin(a), m = [0.213 + co * 0.787 - si * 0.213, 0.715 - co * 0.715 - si * 0.715, 0.072 - co * 0.072 + si * 0.928, 0.213 - co * 0.213 + si * 0.143, 0.715 + co * 0.285 + si * 0.140, 0.072 - co * 0.072 - si * 0.283, 0.213 - co * 0.213 - si * 0.787, 0.715 - co * 0.715 + si * 0.715, 0.072 + co * 0.928 + si * 0.072];
@@ -322,6 +322,25 @@ const DAILY = [{ key: 'k', name: '적 500명 쓰러뜨리기', need: 500, gem: 4
 function today() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 function dayFix() { if (META.dd !== today()) { META.dd = today(); META.dq = { k: 0, s: 0, e: 0 }; META.dc = [0, 0, 0, 0]; saveMeta(); } }
 function dailyReady() { dayFix(); return DAILY.filter((m, i) => !META.dc[i] && META.dq[m.key] >= m.need).length + (DAILY.every((m, i) => META.dc[i]) && !META.dc[3] ? 1 : 0); }
+/* ── 상점(시험판: 실제 결제 없음 · 진짜 결제는 대표님 결정 뒤 window.MANGJA_PAY(상품, 성공 시 부를 함수)로 끼움) ── */
+const SHOP = [
+  { id: 'g1', name: '결정 300', sub: '군주 강화 2~3번', price: '₩1,200', give: () => { META.gems += 300; } },
+  { id: 'g2', name: '결정 1,800', sub: '+20% 더 · 가장 많이 사요', price: '₩5,900', give: () => { META.gems += 1800; } },
+  { id: 'g3', name: '결정 4,000', sub: '+35% 더', price: '₩12,000', give: () => { META.gems += 4000; } },
+  { id: 'noad', name: '광고 없이 보상', sub: '부활 · 결정 2배를 광고 없이', price: '₩5,900', once: 1, give: () => { META.noad = 1; } },
+  { id: 'lordpack', name: '군주 묶음', sub: '장군 · 마녀 열기 + 결정 500', price: '₩9,900', once: 1, give: () => { META.lordpack = 1; META.gems += 500; } }];
+function buy(it) { const ok = () => { it.give(); if (it.once) { META.bought = META.bought || {}; META.bought[it.id] = 1; } saveMeta(); SND.play('win', 0.5); toast(`${it.name} 받았어요`); };
+  if (window.MANGJA_PAY) window.MANGJA_PAY(it.id, ok); else { ok(); toast(`${it.name} 받았어요 (시험판 · 돈은 안 나가요)`); } }
+function drawShop() {
+  drawBg(); txt('상점', W / 2, 54, 30, '#ffe08a'); txt('시험판 — 실제 결제는 일어나지 않아요', W / 2, 88, 13, '#ff9a8a', { w: 800 });
+  const cw = Math.min(W - 32, 400), x = (W - cw) / 2, ch = Math.min(76, (H - 230) / SHOP.length - 10); let y = 112;
+  for (const it of SHOP) { const got = it.once && META.bought && META.bought[it.id];
+    ctx.fillStyle = 'rgba(30,18,52,.92)'; rr(x, y, cw, ch, 14); ctx.fill(); ctx.strokeStyle = it.id === 'g2' ? '#ffd23a' : '#4a3678'; ctx.lineWidth = 2; ctx.stroke();
+    icon(it.id[0] === 'g' ? 'relic_glass' : it.id === 'noad' ? 'chest2' : 'lord', x + 34, y + ch / 2, it.id === 'lordpack' ? 46 : 38);
+    txt(it.name, x + 64, y + ch * 0.36, 17, '#fff', { align: 'left', box: cw - 190 }); txt(it.sub, x + 64, y + ch * 0.68, 12, '#c9b8e8', { align: 'left', w: 700, box: cw - 190 });
+    button(x + cw - 112, y + (ch - 44) / 2, 100, 44, got ? '가짐' : it.price, () => { if (!got) buy(it); }, { gold: !got, off: got, size: 15 }); y += ch + 10; }
+  button(W / 2 - 120, H - 80, 240, 56, '돌아가기', () => { MODE = 'title'; }, {});
+}
 function drawDaily() {
   dayFix(); drawBg(); txt('오늘의 임무', W / 2, 54, 30, '#ffe08a'); txt('매일 새로 바뀌어요', W / 2, 88, 14, '#9a8fae', { w: 700 });
   const cw = Math.min(W - 32, 400), x = (W - cw) / 2; let y = 116;
@@ -343,7 +362,9 @@ function endRun() {
 }
 
 /* ── 그리기 ── */
-let TILE = null;
+let TILE = null; const GROUND = [];   /* 지역별 바닥 그림(art/ground0~2.webp, 1024칸 → 화면 512) · 없으면 그려 만든 바닥 */
+const GROUND_HAS = [];   /* 바닥 그림을 넣으면 여기에 지역 번호를 적는다(없는 파일을 부르지 않게) */
+for (const i of GROUND_HAS) { const im = new Image(); im.onload = () => { try { const c = document.createElement('canvas'); c.width = c.height = 1024; c.getContext('2d').drawImage(im, 0, 0, 1024, 1024); const p = ctx.createPattern(c, 'repeat'); p.setTransform(new DOMMatrix([0.5, 0, 0, 0.5, 0, 0])); GROUND[i] = p; } catch (e) {} }; im.src = 'art/ground' + i + '.webp'; }
 function makeTile() {
   const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
   g.fillStyle = '#1d1726'; g.fillRect(0, 0, 512, 512);
@@ -370,18 +391,20 @@ function icon(n, x, y, s) { const I = IMG[n]; if (I && I.complete && I.naturalWi
 
 /* ── 광고 자리(시험판은 3초 흉내 · 출시 때 window.MANGJA_AD(끝나면 부를 함수)로 진짜 광고를 끼움) ── */
 let AD = null;
-function showAd(done) { if (window.MANGJA_AD) { AD = { t: 999, wait: 1 }; window.MANGJA_AD(() => { AD = null; done(); }); } else AD = { t: 3, done }; }
+function showAd(done) { if (META.noad) return done(); if (window.MANGJA_AD) { AD = { t: 999, wait: 1 }; window.MANGJA_AD(() => { AD = null; done(); }); } else AD = { t: 3, done }; }
 function drawAd() { BTNS = []; ctx.fillStyle = '#05020a'; ctx.fillRect(0, 0, W, H); if (AD.wait) return; txt('광고 자리', W / 2, H * 0.42, 30, '#e9dcff'); txt('시험판 — 실제 광고는 출시 때 들어가요', W / 2, H * 0.42 + 40, 14, '#9a8fae', { w: 800 }); txt(Math.ceil(AD.t) + '', W / 2, H * 0.58, 54, '#ffe08a'); }
-function draw() { drawMain(); if (AD) drawAd(); }
+let TOAST = null; function toast(s) { TOAST = { s, t: 2.2 }; }
+function draw() { drawMain(); if (TOAST) { TOAST.t -= 1 / 60; const a = Math.min(1, TOAST.t * 2); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(10,4,20,.92)'; rr(W / 2 - 160, H - 150, 320, 46, 12); ctx.fill(); txt(TOAST.s, W / 2, H - 127, 15, '#ffe9c0', { w: 800, box: 300 }); ctx.globalAlpha = 1; if (TOAST.t <= 0) TOAST = null; } if (AD) drawAd(); }
 function drawMain() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); BTNS = [];
   if (!TILE) makeTile();
   if (MODE === 'title') return drawTitle();
   if (MODE === 'meta') return drawMeta();
   if (MODE === 'daily') return drawDaily();
+  if (MODE === 'shop') return drawShop();
   const P = G.P, sx = (Math.random() - 0.5) * shake, sy = (Math.random() - 0.5) * shake, cx = W / 2 - P.x + sx, cy = H * 0.52 - P.y + sy;
   /* 바닥 */
-  ctx.save(); ctx.translate(cx, cy); ctx.fillStyle = TILE; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); { const tn = CHAPTERS[G.ch].tint; if (tn) { ctx.fillStyle = tn; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); } }
+  ctx.save(); ctx.translate(cx, cy); ctx.fillStyle = GROUND[G.ch] || TILE; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); { const tn = CHAPTERS[G.ch].tint; if (tn) { ctx.fillStyle = tn; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); } }
   /* 늪 · 표시 */
   for (const p of G.pools) { const a = Math.min(1, p.t * 4, (p.life - p.t) * 2), gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r); gr.addColorStop(0, `rgba(120,255,90,${0.45 * a})`); gr.addColorStop(0.7, `rgba(60,160,40,${0.3 * a})`); gr.addColorStop(1, 'rgba(30,80,20,0)'); ctx.save(); ctx.translate(p.x, p.y); ctx.scale(1, 0.5); ctx.translate(-p.x, -p.y); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); ctx.restore(); }
   if (G.slam) { const s = G.slam, k = Math.min(1, s.t / 0.9); ctx.save(); ctx.translate(s.x, s.y); ctx.scale(1, 0.6); ctx.strokeStyle = `rgba(255,60,40,${0.5 + 0.4 * Math.sin(s.t * 20)})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, s.r, 0, 7); ctx.stroke(); ctx.fillStyle = 'rgba(255,40,30,.22)'; ctx.beginPath(); ctx.arc(0, 0, s.r * k, 0, 7); ctx.fill(); ctx.restore(); }
@@ -495,7 +518,7 @@ function drawResult() {
   if (!R.dbl) button(W / 2 - 140, y, 280, 48, `결정 2배 받기  ·  광고`, () => showAd(() => { META.gems += R.gain; R.gain *= 2; R.dbl = 1; saveMeta(); SND.play('win', 0.5); }), { size: 17, green: 1 }); else txt('2배로 받았어요!', W / 2, y + 24, 16, '#8affb0', { w: 700 }); y += 62;
   button(W / 2 - 140, y, 280, 58, '다시 싸우기', () => newRun(), { gold: 1, size: 22 }); button(W / 2 - 140, y + 72, 280, 52, '군주 강화하기', () => { MODE = 'meta'; }, {});
 }
-function drawBg() { ctx.fillStyle = TILE; ctx.save(); ctx.translate(-T * 12 % 512, -T * 6 % 512); ctx.fillRect(0, 0, W + 512, H + 512); ctx.restore(); const vg = ctx.createRadialGradient(W / 2, H * 0.45, 40, W / 2, H * 0.45, Math.hypot(W, H) * 0.6); vg.addColorStop(0, 'rgba(60,20,110,.35)'); vg.addColorStop(1, 'rgba(4,0,10,.85)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H); }
+function drawBg() { ctx.fillStyle = GROUND[META.ch || 0] || TILE; ctx.save(); ctx.translate(-T * 12 % 512, -T * 6 % 512); ctx.fillRect(0, 0, W + 512, H + 512); ctx.restore(); const vg = ctx.createRadialGradient(W / 2, H * 0.45, 40, W / 2, H * 0.45, Math.hypot(W, H) * 0.6); vg.addColorStop(0, 'rgba(60,20,110,.35)'); vg.addColorStop(1, 'rgba(4,0,10,.85)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H); }
 function drawTitle() {
   drawBg(); const cx = W / 2;
   txt('망자의 군주', cx, H * 0.13, 46, '#e9dcff', { sc: '#2a0a50', lw: 9 }); txt('쓰러뜨린 적이 나의 군단이 된다', cx, H * 0.13 + 44, 16, '#c9a2ff', { w: 800 });
@@ -511,7 +534,7 @@ function drawTitle() {
     else if (META.ch + 1 < CHAPTERS.length) txt('🔒', cx + 118, y, 16, '#9a8fae', { stroke: 0 }); }
   if (open) button(cx - 140, H * 0.7, 280, 64, '전투 시작', () => newRun(), { gold: 1, size: 24 }); else button(cx - 140, H * 0.7, 280, 64, '잠긴 군주', () => {}, { size: 22 });
   button(cx - 140, H * 0.7 + 78, 280, 52, `군주 강화  ·  결정 ${META.gems}`, () => { MODE = 'meta'; }, { size: 17 });
-  { const n = dailyReady(), y = H * 0.7 + 142; button(cx - 140, y, 280, 44, `오늘의 임무${n ? '  ·  받을 것 ' + n : ''}`, () => { MODE = 'daily'; }, { size: 16, gold: !!n });
+  { const n = dailyReady(), y = H * 0.7 + 142; button(cx - 140, y, 168, 44, `오늘의 임무${n ? ' · ' + n : ''}`, () => { MODE = 'daily'; }, { size: 15, gold: !!n }); button(cx + 36, y, 104, 44, '상점', () => { MODE = 'shop'; }, { size: 15 });
     if (META.best && y + 70 < H) txt(`최고 기록 ${Math.floor(META.best / 60)}분 ${META.best % 60}초`, cx, y + 62, 13, '#9a8fae', { w: 700 }); }
 }
 function drawMeta() {
