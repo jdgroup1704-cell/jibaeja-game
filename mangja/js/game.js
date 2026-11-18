@@ -166,9 +166,9 @@ function burst(x, y, n, cols, sp = 180, life = 0.5) { for (let i = 0; i < n; i++
 function say(text, x, y, o = {}) { G.texts.push({ text, x, y, t: 0, life: o.life || 0.8, size: o.size || 16, col: o.col || '#fff', vy: o.vy ?? -50 }); if (G.texts.length > 60) G.texts.shift(); }
 
 /* ── 피해 ── */
-function hurtFoe(f, dmg, sx, sy, kb = 60) {
+function hurtFoe(f, dmg, sx, sy, kb = 60, src) {
   if (f.dead) return; dmg *= G.S.pow; const crit = Math.random() < 0.1; if (crit) dmg *= 2;
-  f.hp -= dmg; f.flash = 0.12; const d = Math.hypot(f.x - sx, f.y - sy) || 1, k = f.boss ? 0.1 : f.heavy ? 0.4 : 1; f.kx += (f.x - sx) / d * kb * k; f.ky += (f.y - sy) / d * kb * k;
+  if (src) { G.dmg = G.dmg || {}; G.dmg[src] = (G.dmg[src] || 0) + Math.min(dmg, Math.max(0, f.hp)); } f.hp -= dmg; f.flash = 0.12; const d = Math.hypot(f.x - sx, f.y - sy) || 1, k = f.boss ? 0.1 : f.heavy ? 0.4 : 1; f.kx += (f.x - sx) / d * kb * k; f.ky += (f.y - sy) / d * kb * k;
   if (Math.random() < (crit ? 1 : 0.5)) say(Math.round(dmg) + '', f.x + rnd(-10, 10), f.y - f.h - 4, { size: crit ? 22 : 15, col: crit ? '#ffd23a' : '#ffffff', life: 0.55 });
   SND.play('hit', crit ? 0.35 : 0.18, rnd(0.85, 1.25));
   if (f.hp <= 0) killFoe(f);
@@ -264,7 +264,7 @@ function step(dt) {
     const dx = tx - a.x, dy = ty - a.y, d = Math.hypot(dx, dy);
     if (d > 4) { const v = Math.min(spd, d * 4); a.x += dx / d * v * dt; a.y += dy / d * v * dt; a.wf += dt * 26; if (Math.abs(dx) > 3) a.dir = Math.sign(dx); }
     a.atkT -= dt; if (a.af >= 0) a.af += dt * 30;  if (a.af > 19) a.af = -1;
-    if (tgt && Math.hypot(tgt.x - a.x, tgt.y - a.y) < tgt.r + 22 && a.atkT <= 0) { a.atkT = G.rallyOn > 0 ? 0.42 : 0.75; a.af = 0; a.dir = Math.sign(tgt.x - a.x) || 1; setTimeout(() => { if (!tgt.dead && !a.dead) { hurtFoe(tgt, (a.big ? 16 : 6) * S.allyPow * (1 + G.t / 240) * (G.rallyOn > 0 ? 1.6 : 1), a.x, a.y, 30); burst(tgt.x, tgt.y - 24, 3, ['#ffffff', '#c9a2ff'], 120, 0.25); } }, 180); }
+    if (tgt && Math.hypot(tgt.x - a.x, tgt.y - a.y) < tgt.r + 22 && a.atkT <= 0) { a.atkT = G.rallyOn > 0 ? 0.42 : 0.75; a.af = 0; a.dir = Math.sign(tgt.x - a.x) || 1; setTimeout(() => { if (!tgt.dead && !a.dead) { hurtFoe(tgt, (a.big ? 16 : 6) * S.allyPow * (1 + G.t / 240) * (G.rallyOn > 0 ? 1.6 : 1), a.x, a.y, 30, 'ally'); burst(tgt.x, tgt.y - 24, 3, ['#ffffff', '#c9a2ff'], 120, 0.25); } }, 180); }
   }
   G.allies = G.allies.filter(a => !a.dead || false);
   /* 영혼 줍기 */
@@ -281,26 +281,26 @@ function weapons(dt) {
   /* 영혼탄 */
   if (W_.bolt) { G.cd.bolt -= dt; if (G.cd.bolt <= 0) { const l = W_.bolt, n = 1 + (l >= 2) + (l >= 4) + (l >= 6) * 2 + (G.E.bolt ? 3 : 0), tgt = nearestFoe(P.x, P.y, 520); if (tgt) { G.cd.bolt = 0.85 * h; const base = Math.atan2(tgt.y - tgt.h * 0.4 - (P.y - 50), tgt.x - P.x);
     for (let i = 0; i < n; i++) { const a = base + (i - (n - 1) / 2) * 0.18; G.shots.push({ x: P.x + P.dir * 16, y: P.y - 50, vx: Math.cos(a) * 460, vy: Math.sin(a) * 460, t: 0, dmg: 12 * (1 + 0.4 * (l >= 3) + 0.4 * (l >= 5)) * (G.E.bolt ? 1.5 : 1), pierce: G.E.bolt ? 99 : l >= 4 ? 2 : 0, hit: new Set() }); } } } }
-  for (const s of G.shots) { s.t += dt; s.x += s.vx * dt; s.y += s.vy * dt; near(s.x, s.y + 50, 70, f => { if (s.t > 9 || s.hit.has(f) || f.dead) return; if (Math.hypot(f.x - s.x, f.y - f.h * 0.45 - s.y) < f.r + 10) { s.hit.add(f); hurtFoe(f, s.dmg, s.x - s.vx * 0.05, s.y - s.vy * 0.05, 70); burst(s.x, s.y, 5, ['#d9c2ff', '#ffffff', '#8a4dff'], 150, 0.3); if (s.pierce-- <= 0) s.t = 9; } }); }
+  for (const s of G.shots) { s.t += dt; s.x += s.vx * dt; s.y += s.vy * dt; near(s.x, s.y + 50, 70, f => { if (s.t > 9 || s.hit.has(f) || f.dead) return; if (Math.hypot(f.x - s.x, f.y - f.h * 0.45 - s.y) < f.r + 10) { s.hit.add(f); hurtFoe(f, s.dmg, s.x - s.vx * 0.05, s.y - s.vy * 0.05, 70, 'bolt'); burst(s.x, s.y, 5, ['#d9c2ff', '#ffffff', '#8a4dff'], 150, 0.3); if (s.pierce-- <= 0) s.t = 9; } }); }
   G.shots = G.shots.filter(s => s.t < 1.4);
   /* 뼈 방패 */
   if (W_.orbit) { const l = W_.orbit, n = G.E.orbit ? 8 : 2 + (l >= 2) + (l >= 4) + (l >= 5) * 2, R = G.E.orbit ? 115 : l >= 4 ? 92 : 74, dmg = 10 * (l >= 3 ? 1.5 : 1) * (G.E.orbit ? 2 : 1); G.orbA = (G.orbA || 0) + dt * 3.2;
     G.orbP = []; for (let i = 0; i < n; i++) { const a = G.orbA + i * 6.283 / n, x = P.x + Math.cos(a) * R, y = P.y - 30 + Math.sin(a) * R * 0.75; G.orbP.push({ x, y, a });
-      near(x, y + 50, 70, f => { if (f.dead) return; f.orbT = f.orbT || 0; if (G.t < f.orbT) return; if (Math.hypot(f.x - x, f.y - f.h * 0.4 - y) < f.r + 14) { f.orbT = G.t + 0.45; hurtFoe(f, dmg, P.x, P.y - 30, 110); } }); } }
+      near(x, y + 50, 70, f => { if (f.dead) return; f.orbT = f.orbT || 0; if (G.t < f.orbT) return; if (Math.hypot(f.x - x, f.y - f.h * 0.4 - y) < f.r + 14) { f.orbT = G.t + 0.45; hurtFoe(f, dmg, P.x, P.y - 30, 110, 'orbit'); } }); } }
   /* 저주 늪 */
   if (W_.pool) { G.cd.pool -= dt; if (G.cd.pool <= 0) { const l = W_.pool, n = 1 + (l >= 2) + (l >= 5) * 2; G.cd.pool = 2.6 * h; for (let i = 0; i < n; i++) { const f = G.foes.filter(o => !o.dead && Math.hypot(o.x - P.x, o.y - P.y) < 330)[Math.floor(Math.random() * 40)] || nearestFoe(P.x, P.y, 330); if (f) G.pools.push({ x: f.x + rnd(-20, 20), y: f.y + rnd(-10, 10), t: 0, life: 3, r: 58 * (l >= 3 ? 1.4 : 1), dps: 14 * (l >= 4 ? 1.6 : 1) }); } } }
-  for (const p of G.pools) { p.t += dt; near(p.x, p.y, p.r, f => { if (!f.dead && (f.x - p.x) ** 2 / (p.r * p.r) + (f.y - p.y) ** 2 / (p.r * p.r * 0.4) < 1) { f.poolT = (f.poolT || 0) + dt; f.slowT = 0.3; f.inPool = G.t + 0.4; if (f.poolT > 0.35) { f.poolT = 0; hurtFoe(f, p.dps * 0.35, f.x, f.y, 0); } } }); }
+  for (const p of G.pools) { p.t += dt; near(p.x, p.y, p.r, f => { if (!f.dead && (f.x - p.x) ** 2 / (p.r * p.r) + (f.y - p.y) ** 2 / (p.r * p.r * 0.4) < 1) { f.poolT = (f.poolT || 0) + dt; f.slowT = 0.3; f.inPool = G.t + 0.4; if (f.poolT > 0.35) { f.poolT = 0; hurtFoe(f, p.dps * 0.35, f.x, f.y, 0, 'pool'); } } }); }
   G.pools = G.pools.filter(p => p.t < p.life);
   /* 영혼 사슬 */
   if (W_.chain) { G.cd.chain -= dt; if (G.cd.chain <= 0) { const l = W_.chain, jumps = G.E.chain ? 8 : 2 + (l >= 2) + (l >= 4) * 2, dmg = 18 * (l >= 3 ? 1.5 : 1); let from = { x: P.x, y: P.y - 50 }, f = nearestFoe(P.x, P.y, 280); if (f) { G.cd.chain = (l >= 5 ? 1.6 : 2.2) * h; const hit = new Set(), pts = [from];
-    for (let k = 0; k <= jumps && f; k++) { hit.add(f); pts.push({ x: f.x, y: f.y - f.h * 0.5 }); hurtFoe(f, dmg, from.x, from.y, 40); if (G.E.chain) f.rootT = Math.max(f.rootT || 0, 0.6); from = f; let nb = null, nd = 160 * 160; for (const o of G.foes) { if (o.dead || hit.has(o)) continue; const d = (o.x - f.x) ** 2 + (o.y - f.y) ** 2; if (d < nd) { nd = d; nb = o; } } f = nb; }
+    for (let k = 0; k <= jumps && f; k++) { hit.add(f); pts.push({ x: f.x, y: f.y - f.h * 0.5 }); hurtFoe(f, dmg, from.x, from.y, 40, 'chain'); if (G.E.chain) f.rootT = Math.max(f.rootT || 0, 0.6); from = f; let nb = null, nd = 160 * 160; for (const o of G.foes) { if (o.dead || hit.has(o)) continue; const d = (o.x - f.x) ** 2 + (o.y - f.y) ** 2; if (d < nd) { nd = d; nb = o; } } f = nb; }
     G.zaps.push({ pts, t: 0 }); SND.play('hit', 0.3, 1.8); } } }
   /* 망자의 손 */
   if (W_.hands) { G.cd.hands -= dt; if (G.cd.hands <= 0) { const l = W_.hands, n = 1 + (l >= 2) + (l >= 4) * 2, dmg = 16 * (l >= 5 ? 1.8 : 1), root = l >= 3 ? 1.6 : 1.0; G.cd.hands = 2.6 * h; const cand = G.foes.filter(o => !o.dead && !o.boss && Math.hypot(o.x - P.x, o.y - P.y) < 320);
-    for (let i = 0; i < n && cand.length; i++) { const f = cand.splice(Math.floor(Math.random() * cand.length), 1)[0]; f.rootT = root; G.handFx.push({ x: f.x, y: f.y, t: 0 }); hurtFoe(f, dmg, f.x, f.y + 10, 0); } if (n) SND.play('rise', 0.18, 1.4); } }
+    for (let i = 0; i < n && cand.length; i++) { const f = cand.splice(Math.floor(Math.random() * cand.length), 1)[0]; f.rootT = root; G.handFx.push({ x: f.x, y: f.y, t: 0 }); hurtFoe(f, dmg, f.x, f.y + 10, 0, 'hands'); } if (n) SND.play('rise', 0.18, 1.4); } }
   /* 사신의 낫 */
   if (W_.scythe) { G.cd.scythe -= dt; const l = W_.scythe; if (G.cd.scythe <= 0) { G.cd.scythe = (G.E.scythe ? 1.2 : l >= 4 ? 2.4 : 3.2) * h; G.sweep = { t: 0, r: 120 * (l >= 3 ? 1.3 : 1) * (G.E.scythe ? 1.25 : 1), dmg: 30 * (l >= 2 ? 1.5 : 1) * (l >= 5 ? 1.8 : 1), hit: new Set() }; SND.play('slam', 0.25, 1.6); } }
-  if (G.sweep) { const s = G.sweep; s.t += dt; const a = s.t / 0.32 * 6.283; near(P.x, P.y, s.r, f => { if (f.dead || s.hit.has(f)) return; const fa = Math.atan2(f.y - P.y, f.x - P.x); let da = ((a % 6.283) - ((fa + 6.283) % 6.283) + 6.283) % 6.283; if (da < 0.9 && Math.hypot(f.x - P.x, (f.y - P.y) / 0.7) < s.r) { s.hit.add(f); hurtFoe(f, s.dmg, P.x, P.y, 160); } }); if (s.t > 0.36) G.sweep = null; }
+  if (G.sweep) { const s = G.sweep; s.t += dt; const a = s.t / 0.32 * 6.283; near(P.x, P.y, s.r, f => { if (f.dead || s.hit.has(f)) return; const fa = Math.atan2(f.y - P.y, f.x - P.x); let da = ((a % 6.283) - ((fa + 6.283) % 6.283) + 6.283) % 6.283; if (da < 0.9 && Math.hypot(f.x - P.x, (f.y - P.y) / 0.7) < s.r) { s.hit.add(f); hurtFoe(f, s.dmg, P.x, P.y, 160, 'scythe'); } }); if (s.t > 0.36) G.sweep = null; }
 }
 function bossAct(b, dt, d) {
   b.actT -= dt; b.af += dt * 20;
@@ -316,7 +316,7 @@ function updateFx(dt) {
   for (const m of G.marks) m.t += dt; G.marks = G.marks.filter(m => m.t < 0.9);
   for (const d of G.dead) d.t += dt; G.dead = G.dead.filter(d => d.t < 0.5); for (const p of G.pillars) p.t += dt; G.pillars = G.pillars.filter(p => p.t < 0.55);
   for (const z of G.zaps) z.t += dt; G.zaps = G.zaps.filter(z => z.t < 0.2); for (const q of G.handFx) q.t += dt; G.handFx = G.handFx.filter(q => q.t < 0.8); G.flashW = Math.max(0, (G.flashW || 0) - dt * 2);
-  G.rallyCd -= dt; G.rallyOn -= dt; if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } if (G.bossSay) { G.bossSay.t += dt; if (G.bossSay.t > 2.8) G.bossSay = null; } if (G.boss && !G.boss.dead && !G.bossHalf && G.boss.hp < G.boss.max * 0.5) { G.bossHalf = 1; G.bossSay = { s: CHAPTERS[G.ch].lines[1], t: 0 }; }
+  G.rallyCd -= dt; G.rallyOn -= dt; { let n = 0; for (const a of G.allies) if (!a.dead) n++; if (n > (G.armyMax || 0)) G.armyMax = n; } if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } if (G.bossSay) { G.bossSay.t += dt; if (G.bossSay.t > 2.8) G.bossSay = null; } if (G.boss && !G.boss.dead && !G.bossHalf && G.boss.hp < G.boss.max * 0.5) { G.bossHalf = 1; G.bossSay = { s: CHAPTERS[G.ch].lines[1], t: 0 }; }
 }
 /* ── 오늘의 임무(하루 3개 · 날짜 바뀌면 새로) ── */
 const DAILY = [{ key: 'k', name: '적 500명 쓰러뜨리기', need: 500, gem: 40 }, { key: 's', name: '한 판에 5분 버티기', need: 1, gem: 40 }, { key: 'e', name: '마법 진화 1번 하기', need: 1, gem: 40 }];
@@ -511,7 +511,7 @@ function drawRevive() {
 /* ── 망자의 함성: 22초마다 누르는 단추 · 주변 적을 밀치고 6초 동안 군단이 빨라지고 세짐 ── */
 function doRally() { if (G.rallyCd > 0 || G.over) return; if (!META.tipRally) { META.tipRally = 1; saveMeta(); } const P = G.P; G.rallyCd = 22; G.rallyOn = 6; shake = 16; SND.play('slam', 0.6); G.ring = { x: P.x, y: P.y, r: 200, t: 0 };
   burst(P.x, P.y - 30, 40, ['#ffd23a', '#c9a2ff', '#ffffff'], 380, 0.7); say("망자의 함성!", P.x, P.y - 150, { size: 26, col: "#ffd23a", life: 1.2, vy: -20 }); if (META.vib && navigator.vibrate) try { navigator.vibrate(30); } catch (e) {}
-  for (const f of G.foes) { if (f.dead) continue; const d = Math.hypot(f.x - P.x, f.y - P.y); if (d < 200) hurtFoe(f, 30 * (1 + G.t / 120), P.x, P.y, f.boss ? 0 : 160); } }
+  for (const f of G.foes) { if (f.dead) continue; const d = Math.hypot(f.x - P.x, f.y - P.y); if (d < 200) hurtFoe(f, 30 * (1 + G.t / 120), P.x, P.y, f.boss ? 0 : 160, 'rally'); } }
 function doRevive() { const P = G.P; G.reviveAsk = 0; G.revived = 1; P.hp = P.max * 0.6; P.inv = 3; shake = 24; G.flashW = 1; SND.play('win', 0.6);
   burst(P.x, P.y - 40, 60, ['#ffffff', '#c9a2ff', '#ffe08a'], 520, 0.9); G.ring = { x: P.x, y: P.y, r: 300, t: 0 };
   for (const f of G.foes) { if (f.dead || f.boss) continue; const d = Math.hypot(f.x - P.x, f.y - P.y); if (d < 300) hurtFoe(f, 9999, P.x, P.y, 200); }
@@ -529,8 +529,9 @@ function drawResult() {
   const R = G.result; ctx.fillStyle = 'rgba(6,2,14,.86)'; ctx.fillRect(0, 0, W, H);
   txt(R.win ? '승리!' : '쓰러졌다', W / 2, H * 0.2, 44, R.win ? '#ffe08a' : '#ff8a8a');
   txt(R.win ? `${CHAPTERS[G.ch].boss}을(를) 쓰러뜨렸어요` + (R.unlock ? ' · 새 지역과 군주 열림!' : '') : '군단은 다시 일어설 거예요', W / 2, H * 0.2 + 42, 16, '#d9c8ff', { w: 800 });
-  const rows = [['버틴 시간', `${Math.floor(R.t / 60)}분 ${Math.floor(R.t % 60)}초`], ['처치', R.kills], ['레벨', R.lvl], ['마지막 군단', R.army]]; let y = H * 0.34;
-  for (const [a, b] of rows) { txt(a, W / 2 - 110, y, 18, '#c9b8e8', { align: 'left', w: 800 }); txt(b + '', W / 2 + 110, y, 20, '#fff', { align: 'right' }); y += 36; }
+  const D = G.dmg || {}, tot = Object.values(D).reduce((a, b) => a + b, 0) || 1, top = Object.keys(D).sort((a, b) => D[b] - D[a])[0], NM = { ally: '해골 군단', rally: '망자의 함성' }, topName = top ? (NM[top] || (CARDS.find(c => c.id === top) || {}).name || top) : '-';
+  const rows = [['버틴 시간', `${Math.floor(R.t / 60)}분 ${Math.floor(R.t % 60)}초`], ['처치', R.kills], ['레벨', R.lvl], ['군단 최대', G.armyMax || 0], ['가장 센 힘', top ? `${topName} ${Math.round(D[top] / tot * 100)}%` : '-']]; let y = H * 0.33; const rh = H < 720 ? 30 : 36;   /* 다시 보기: 다음 판에 무엇을 고를지 생각하게 */
+  for (const [a, b] of rows) { txt(a, W / 2 - 120, y, 17, '#c9b8e8', { align: 'left', w: 800 }); txt(b + '', W / 2 + 120, y, 19, a === '가장 센 힘' ? '#ffe08a' : '#fff', { align: 'right', box: 150 }); y += rh; }
   icon('relic_glass', W / 2 - 60, y + 24, 40); txt(`결정 +${R.gain}`, W / 2 + 10, y + 26, 26, '#ffe08a'); y += 64;
   if (!R.dbl) button(W / 2 - 140, y, 280, 48, `결정 2배 받기  ·  광고`, () => showAd(() => { META.gems += R.gain; R.gain *= 2; R.dbl = 1; saveMeta(); SND.play('win', 0.5); }), { size: 17, green: 1 }); else txt('2배로 받았어요!', W / 2, y + 24, 16, '#8affb0', { w: 700 }); y += 62;
   button(W / 2 - 140, y, 280, 58, '다시 싸우기', () => newRun(), { gold: 1, size: 22 }); button(W / 2 - 140, y + 72, 280, 52, '군주 강화하기', () => { MODE = 'meta'; }, {});
