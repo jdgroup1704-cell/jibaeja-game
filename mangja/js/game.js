@@ -364,8 +364,13 @@ function endRun() {
 
 /* ── 그리기 ── */
 let TILE = null; const GROUND = [];   /* 지역별 바닥 그림(art/ground0~2.webp, 1024칸 → 화면 512) · 없으면 그려 만든 바닥 */
-const GROUND_HAS = [];   /* 바닥 그림을 넣으면 여기에 지역 번호를 적는다(없는 파일을 부르지 않게) */
-for (const i of GROUND_HAS) { const im = new Image(); im.onload = () => { try { const c = document.createElement('canvas'); c.width = c.height = 1024; c.getContext('2d').drawImage(im, 0, 0, 1024, 1024); const p = ctx.createPattern(c, 'repeat'); p.setTransform(new DOMMatrix([0.5, 0, 0, 0.5, 0, 0])); GROUND[i] = p; } catch (e) {} }; im.src = 'art/ground' + i + '.webp'; }
+const GROUND_HAS = [0, 1, 2];   /* 바닥 그림을 넣으면 여기에 지역 번호를 적는다(없는 파일을 부르지 않게) */
+for (const i of GROUND_HAS) { const im = new Image(); im.onload = () => { try { const c = document.createElement('canvas'); c.width = c.height = 1024; const gx = c.getContext('2d'); gx.drawImage(im, 0, 0, 1024, 1024); if (i === 0) drawGraves(gx, 2, (q => () => (q = (q * 16807) % 2147483647) / 2147483647)(11)); const p = ctx.createPattern(c, 'repeat'); p.setTransform(new DOMMatrix([0.5, 0, 0, 0.5, 0, 0])); GROUND[i] = p; } catch (e) {} }; im.src = 'art/ground' + i + '.webp'; }
+function drawGraves(g, k, R) {
+  for (let i = 0; i < 9; i++) { const x = (30 + R() * 452) * k, y = (30 + R() * 452) * k, s = (0.7 + R() * 0.6) * k; g.save(); g.translate(x, y); g.scale(s, s);   /* 비석 */
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(2, 2, 16, 5, 0, 0, 7); g.fill(); const gr = g.createLinearGradient(-12, -30, 12, 0); gr.addColorStop(0, '#6f6680'); gr.addColorStop(1, '#3d3549'); g.fillStyle = gr;
+    g.beginPath(); g.moveTo(-11, 0); g.lineTo(-11, -22); g.arc(0, -22, 11, Math.PI, 0); g.lineTo(11, 0); g.closePath(); g.fill(); g.fillStyle = 'rgba(20,10,30,.6)'; g.fillRect(-1.5, -26, 3, 14); g.fillRect(-6, -21, 12, 3); g.restore(); }
+}
 function makeTile() {
   const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
   g.fillStyle = '#1d1726'; g.fillRect(0, 0, 512, 512);
@@ -373,9 +378,7 @@ function makeTile() {
   for (let i = 0; i < 70; i++) { const x = R() * 512, y = R() * 512, r = 20 + R() * 70, gr = g.createRadialGradient(x, y, 0, x, y, r); const c1 = R() < 0.5 ? 'rgba(60,40,80,.35)' : 'rgba(10,6,16,.35)'; gr.addColorStop(0, c1); gr.addColorStop(1, 'rgba(0,0,0,0)'); for (const ox of [-512, 0, 512]) for (const oy of [-512, 0, 512]) { g.save(); g.translate(ox, oy); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); g.restore(); } }
   g.strokeStyle = 'rgba(0,0,0,.35)'; g.lineWidth = 1.5; for (let i = 0; i < 26; i++) { let x = R() * 512, y = R() * 512; g.beginPath(); g.moveTo(x, y); for (let k = 0; k < 4; k++) { x += (R() - 0.5) * 40; y += (R() - 0.5) * 24; g.lineTo(x, y); } g.stroke(); }
   for (let i = 0; i < 140; i++) { g.fillStyle = R() < 0.5 ? 'rgba(120,100,140,.25)' : 'rgba(0,0,0,.3)'; g.beginPath(); g.ellipse(R() * 512, R() * 512, 1 + R() * 3, 1 + R() * 2, 0, 0, 7); g.fill(); }
-  for (let i = 0; i < 9; i++) { const x = 30 + R() * 452, y = 30 + R() * 452, s = 0.7 + R() * 0.6; g.save(); g.translate(x, y); g.scale(s, s);   /* 비석 */
-    g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(2, 2, 16, 5, 0, 0, 7); g.fill(); const gr = g.createLinearGradient(-12, -30, 12, 0); gr.addColorStop(0, '#6f6680'); gr.addColorStop(1, '#3d3549'); g.fillStyle = gr;
-    g.beginPath(); g.moveTo(-11, 0); g.lineTo(-11, -22); g.arc(0, -22, 11, Math.PI, 0); g.lineTo(11, 0); g.closePath(); g.fill(); g.fillStyle = 'rgba(20,10,30,.6)'; g.fillRect(-1.5, -26, 3, 14); g.fillRect(-6, -21, 12, 3); g.restore(); }
+  drawGraves(g, 1, R);
   for (let i = 0; i < 14; i++) { const x = R() * 512, y = R() * 512, a = R() * 3; g.save(); g.translate(x, y); g.rotate(a); g.fillStyle = 'rgba(220,210,190,.35)'; g.fillRect(-7, -1.5, 14, 3); g.beginPath(); g.arc(-7, 0, 2.5, 0, 7); g.arc(7, 0, 2.5, 0, 7); g.fill(); g.restore(); }
   TILE = ctx.createPattern(c, 'repeat');
 }
@@ -405,7 +408,7 @@ function drawMain() {
   if (MODE === 'shop') return drawShop();
   const P = G.P, sx = (Math.random() - 0.5) * shake, sy = (Math.random() - 0.5) * shake, cx = W / 2 - P.x + sx, cy = H * 0.52 - P.y + sy;
   /* 바닥 */
-  ctx.save(); ctx.translate(cx, cy); ctx.fillStyle = GROUND[G.ch] || TILE; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); { const tn = CHAPTERS[G.ch].tint; if (tn) { ctx.fillStyle = tn; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); } }
+  ctx.save(); ctx.translate(cx, cy); ctx.fillStyle = GROUND[G.ch] || TILE; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); { const tn = CHAPTERS[G.ch].tint; if (tn && !GROUND[G.ch]) { ctx.fillStyle = tn; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); } }
   /* 늪 · 표시 */
   for (const p of G.pools) { const a = Math.min(1, p.t * 4, (p.life - p.t) * 2), gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r); gr.addColorStop(0, `rgba(120,255,90,${0.45 * a})`); gr.addColorStop(0.7, `rgba(60,160,40,${0.3 * a})`); gr.addColorStop(1, 'rgba(30,80,20,0)'); ctx.save(); ctx.translate(p.x, p.y); ctx.scale(1, 0.5); ctx.translate(-p.x, -p.y); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); ctx.restore(); }
   if (G.slam) { const s = G.slam, k = Math.min(1, s.t / 0.9); ctx.save(); ctx.translate(s.x, s.y); ctx.scale(1, 0.6); ctx.strokeStyle = `rgba(255,60,40,${0.5 + 0.4 * Math.sin(s.t * 20)})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, s.r, 0, 7); ctx.stroke(); ctx.fillStyle = 'rgba(255,40,30,.22)'; ctx.beginPath(); ctx.arc(0, 0, s.r * k, 0, 7); ctx.fill(); ctx.restore(); }
