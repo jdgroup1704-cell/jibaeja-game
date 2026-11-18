@@ -38,11 +38,11 @@ const SP = {
   skShield: { i: 'sk_shield', cw: 386, ch: 360, ax: 150, ay: 356, hpx: 330, n: 1, cols: 1, face: 1 },   /* 방패 해골 */
   skShieldW: { i: 'sk_shield_w', cw: 326, ch: 360, ax: 150, ay: 356, hpx: 330, n: 1, cols: 1, face: 1 },   /* 방패 해골 걷는 자세(번갈아) */
   bossPaladin: { i: 'boss_paladin', cw: 481, ch: 640, ax: 225, ay: 634, hpx: 590, n: 1, cols: 1, face: -1 },   /* 첫 보스 전용 그림(챗지피티 11-19) — 전엔 정예 성기사 그림을 키워 씀 */
-  bossBlood: { i: 'lord_blood', cw: 442, ch: 620, ax: 221, ay: 600, hpx: 560, n: 1, cols: 1, face: -1 },
-  bossIce: { i: 'lord_ice', cw: 371, ch: 620, ax: 185, ay: 600, hpx: 560, n: 1, cols: 1, face: -1 },
+  bossBlood: { i: 'boss_blood', cw: 480, ch: 640, ax: 230, ay: 634, hpx: 590, n: 1, cols: 1, face: -1 },   /* 카툰 그림체로 다시(11-19) */
+  bossIce: { i: 'boss_ice', cw: 565, ch: 640, ax: 245, ay: 634, hpx: 590, n: 1, cols: 1, face: 1 },
 };
 for (const k in SP) img(SP[k].i);
-for (const n of ['lord_blood', 'lord_ice', 'u_magic', 'u_summon', 'u_bone', 'u_harvest', 'i_soul', 'i_army', 'relic_chain', 'relic_staff', 'relic_cloak', 'relic_ring', 'relic_crown', 'relic_glass', 'chest2', 'lord', 'i_gem']) img(n);
+for (const n of ['u_magic', 'u_summon', 'u_bone', 'u_harvest', 'i_soul', 'i_army', 'relic_chain', 'relic_staff', 'relic_cloak', 'relic_ring', 'relic_crown', 'relic_glass', 'chest2', 'lord', 'i_gem']) img(n);
 const RIM = {}; function rimOf(n, I, col) { const k = n + col; if (RIM[k] !== undefined) return RIM[k]; if (!I._ok) { if (!I._dec) I._dec = (I.decode ? I.decode() : Promise.resolve()).then(() => { I._ok = 1; }, () => { I._ok = 1; }); return null; } try { const c = document.createElement('canvas'); c.width = I.naturalWidth; c.height = I.naturalHeight; const x = c.getContext('2d'); x.drawImage(I, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height); RIM[k] = c; } catch (e) { RIM[k] = null; } return RIM[k]; }   /* 아군 테두리(밝은 윤곽) — 어두운 땅에서도 내 군단이 보이게 */
 /* ── 군주 3명 ── */
 const LORDS = [
