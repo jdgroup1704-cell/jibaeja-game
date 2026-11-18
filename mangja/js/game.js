@@ -34,7 +34,9 @@ const SP = {
   paladinAtk: { i: 'foev4_attack', cw: 350, ch: 467, ax: 187.6, ay: 386.1, hpx: 223, n: 16, face: -1 },
   giant: { i: 'gv2_idle', cw: 258, ch: 344, ax: 131.4, ay: 339.9, hpx: 330, n: 40, face: -1, hop: 1 },   /* 큰 해골(진화 「무덤의 문」 · 정예가 일어난 것) */
   skArch: { i: 'sk_archer', cw: 269, ch: 360, ax: 100, ay: 356, hpx: 330, n: 1, cols: 1, face: 1 },   /* 궁수 해골(ChatGPT 11-19) */
+  skArchW: { i: 'sk_archer_w', cw: 285, ch: 360, ax: 128, ay: 356, hpx: 372, n: 1, cols: 1, face: 1 },   /* 궁수 해골 걷는 자세(번갈아) */
   skShield: { i: 'sk_shield', cw: 386, ch: 360, ax: 150, ay: 356, hpx: 330, n: 1, cols: 1, face: 1 },   /* 방패 해골 */
+  skShieldW: { i: 'sk_shield_w', cw: 326, ch: 360, ax: 150, ay: 356, hpx: 330, n: 1, cols: 1, face: 1 },   /* 방패 해골 걷는 자세(번갈아) */
   bossBlood: { i: 'lord_blood', cw: 442, ch: 620, ax: 221, ay: 600, hpx: 560, n: 1, cols: 1, face: -1 },
   bossIce: { i: 'lord_ice', cw: 371, ch: 620, ax: 185, ay: 600, hpx: 560, n: 1, cols: 1, face: -1 },
 };
@@ -542,9 +544,9 @@ function drawMain() {
       if (e.elite) { ctx.strokeStyle = 'rgba(255,200,60,.85)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(e.x, e.y, e.r * 1.4, e.r * 0.5, 0, 0, 7); ctx.stroke(); }
       if (e.hp < e.max) { const w = e.elite ? 50 : 26; ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(e.x - w / 2, e.y - e.h - 8, w, 4); ctx.fillStyle = e.elite ? '#ffb84a' : '#ff4a5a'; ctx.fillRect(e.x - w / 2, e.y - e.h - 8, w * Math.max(0, e.hp / e.max), 4); } continue; }
     /* 해골 병사 */    /* 해골 병사 */
-    const h = e.big ? 104 : 70; if (e.big && e.rise >= 1) { spr('giant', T * 16 + e.wf, e.x, e.y - (Math.abs(Math.sin(e.wf * 0.25)) * 4), h, e.dir, { rim: '#5fffc8' }); continue; } if (e.rise < 1) { ctx.save(); ctx.beginPath(); ctx.rect(e.x - 60, e.y - 200, 120, 200); ctx.clip(); spr(e.big ? 'giant' : 'skWalk', 0, e.x, e.y + h * (1 - e.rise), h, e.dir, { flash: 0.15 }); ctx.restore(); continue; }
-    const rim = G.rallyOn > 0 ? '#ffd23a' : '#5fffc8', K2 = e.ut === 'arch' ? 'skArch' : e.ut === 'shield' ? 'skShield' : null;
-    if (K2 && IMG[SP[K2].i] && IMG[SP[K2].i].naturalWidth) { const hop = Math.abs(Math.sin(e.wf * 0.22)) * 3, at = e.af >= 0 ? Math.sin(Math.min(1, e.af) * 3.14) : 0; spr(K2, 0, e.x, e.y - hop, h * (e.ut === 'shield' ? 1.05 : 1), e.dir, { rim, flash: 0.06, rot: e.dir * (e.ut === 'arch' ? -0.12 : 0.15) * at, sx: 1 + at * 0.05 }); }   /* 궁수 · 방패 해골: 한 장 그림 + 통통 · 쏠 때 젖힘 */
+    const h = e.big ? 104 : 70; if (e.big && e.rise >= 1) { spr('giant', T * 16 + e.wf, e.x, e.y - (Math.abs(Math.sin(e.wf * 0.25)) * 4), h, e.dir, { rim: '#5fffc8' }); continue; } if (e.rise < 1) { ctx.save(); ctx.beginPath(); ctx.rect(e.x - 60, e.y - 200, 120, 200); ctx.clip(); { const RK = e.big ? 'giant' : e.ut === 'arch' ? 'skArch' : e.ut === 'shield' ? 'skShield' : 'skWalk', ok = RK === 'skWalk' || RK === 'giant' || (IMG[SP[RK].i] && IMG[SP[RK].i].naturalWidth); spr(ok ? RK : 'skWalk', 0, e.x, e.y + h * (1 - e.rise), h, e.dir, { flash: 0.15 }); }   /* 솟을 때도 제 병종 그림 */ ctx.restore(); continue; }
+    const rim = G.rallyOn > 0 ? '#ffd23a' : '#5fffc8'; let K2 = e.ut === 'arch' ? 'skArch' : e.ut === 'shield' ? 'skShield' : null;
+    if (K2 && IMG[SP[K2].i] && IMG[SP[K2].i].naturalWidth) { const mv = e.wf !== e._pwf; e._pwf = e.wf; if (mv) e._mvT = 0.15; else e._mvT = (e._mvT || 0) - 1 / 60; const KW = K2 + 'W'; if (e._mvT > 0 && e.af < 0 && IMG[SP[KW].i] && IMG[SP[KW].i].naturalWidth && Math.floor(e.wf / 6) % 2) K2 = KW;   /* 걸을 때 걷는 그림과 번갈아 */ const hop = Math.abs(Math.sin(e.wf * 0.22)) * 3, at = e.af >= 0 ? Math.sin(Math.min(1, e.af) * 3.14) : 0; spr(K2, 0, e.x, e.y - hop, h * (e.ut === 'shield' ? 1.05 : 1), e.dir, { rim, flash: 0.06, rot: e.dir * (e.ut === 'arch' ? -0.12 : 0.15) * at, sx: 1 + at * 0.05 }); }   /* 궁수 · 방패 해골: 한 장 그림 + 통통 · 쏠 때 젖힘 */
     else if (e.af >= 0) spr('skAtk', e.af, e.x, e.y, h, e.dir, { rim, flash: 0.06 }); else spr('skWalk', e.wf, e.x, e.y, h, e.dir, { rim, flash: 0.06 });
   }
   if (cjOn) ctx.restore();
