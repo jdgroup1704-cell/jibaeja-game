@@ -342,11 +342,11 @@ function dailyReady() { dayFix(); return DAILY.filter((m, i) => !META.dc[i] && M
 const IS_APP = Q.has('app') || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 const SHOP = [
   { id: 'first', name: '첫 결제 특가', sub: '결정 600 + 장군 열기', web: 1100, app: 1500, once: 1, give: () => { META.gems += 600; META.lord1 = 1; } },
-  { id: 'g1', name: '결정 500', sub: '강화 3~4번', web: 4400, app: 5500, give: () => { META.gems += 500; } },
   { id: 'g2', name: '결정 1,300', sub: '+20% 더 · 많이 사요', web: 9900, app: 12000, give: () => { META.gems += 1300; } },
   { id: 'g3', name: '결정 3,300', sub: '+35% 더', web: 23000, app: 29000, give: () => { META.gems += 3300; } },
   { id: 'g4', name: '결정 19,000', sub: '+60% 더 · 가장 큰 묶음', web: 119000, app: 149000, give: () => { META.gems += 19000; } },
   { id: 'box11', name: '유물 상자 11개', sub: '10번 값에 11번', web: 9900, app: 12000, give: () => { openBox(11); MODE = 'box'; } },
+  { id: 'pass', name: '성장 패스', sub: '결정 8,300 + 상자 12개', web: 11000, app: 13900, once: 1, give: () => { META.passBuy = 1; } },
   { id: 'month', name: '월정액', sub: '매일 결정 100 · 30일', web: 9900, app: 12000, give: () => { META.gems += 300; META.monthUntil = Math.max(Date.now(), META.monthUntil || 0) + 30 * 864e5; } },
   { id: 'lordpack', name: '군주 묶음', sub: '두 군주 열기 + 결정 500', web: 9900, app: 12000, once: 1, give: () => { META.lordpack = 1; META.gems += 500; } },
   { id: 'awake', name: () => `군주 각성 ${(META.awake || 0) + 1}단계`, sub: '공격 ×1.3 · 군단 +3', web: [22000, 44000, 99000], app: [27500, 55000, 119000], tiers: 3, give: () => { META.awake = (META.awake || 0) + 1; if (G && MODE === 'play') { G.S.pow *= 1.3; G.S.cap += 3; } } },
@@ -368,6 +368,29 @@ function relOf() { const R = META.rel || {}; return { p: R.p || 1, h: R.h || 1, 
 function openBox(n) { const out = []; META.rel = relOf(); for (let i = 0; i < n; i++) { META.pity = (META.pity || 0) + 1; let x = Math.random(), k = 0; for (; k < 3; k++) { if (x < RELICS[k].p) break; x -= RELICS[k].p; } if (META.pity >= 50) k = 3; if (k === 3) META.pity = 0;
     const T = RELICS[k], f = T.fx[Math.floor(Math.random() * T.fx.length)]; if (f[0] === 'g' || f[0] === 'c') META.rel[f[0]] += f[1]; else META.rel[f[0]] *= f[1]; out.push({ k, t: f[2] }); }
   if (G && MODE !== 'title') { /* 판에는 다음 출전 때 들어감 */ } saveMeta(); BOXR = out.sort((a, b) => b.k - a.k); SND.play(out.some(o => o.k >= 2) ? 'win' : 'up', 0.6); }
+/* ── 성장 패스: 스테이지 5마다 한 칸 · 무료 줄 + 유료 줄(웹 11,000 / 앱 13,900) ── */
+let PASSPG = 0;
+const PASS_N = 20, passNow = () => Math.min(PASS_N, Math.floor((META.bestStage || 0) / 5));
+const passFree = t => 30 + t * 10, passPaid = t => 100 + t * 30;
+function passReady() { const n = passNow(), F = META.passF || [], Pp = META.passP || []; let c = 0; for (let t = 1; t <= n; t++) { if (!F[t]) c++; if (META.passBuy && !Pp[t]) c++; } return c; }
+function drawPass() {
+  drawBg(); txt('성장 패스', W / 2, 50, 30, '#ffe08a'); txt(`스테이지 5마다 한 칸 · 지금 ${passNow()}/${PASS_N}칸`, W / 2, 84, 14, '#d9c8ff', { w: 800 });
+  const cw = Math.min(W - 24, 400), x = (W - cw) / 2; let y = 106;
+  if (!META.passBuy) { const it = SHOP.find(i => i.id === 'pass'); button(x, y, cw, 46, `유료 줄 열기 · ${won(priceOf(it))}`, () => buy(it), { gold: 1, size: 16 }); y += 56; } else { txt('유료 줄 열림 ✦', W / 2, y + 14, 15, '#ffd23a'); y += 34; }
+  txt('무료', x + cw * 0.5, y + 8, 13, '#c9b8e8', { w: 800 }); txt('유료', x + cw * 0.82, y + 8, 13, '#ffd23a', { w: 800 }); y += 22;
+  const F = META.passF = META.passF || [], Pp = META.passP = META.passP || [], rh = Math.min(64, (H - y - 150) / 5);
+  for (let i = 0; i < 5; i++) { const t = PASSPG * 5 + i + 1; if (t > PASS_N) break; const ok = passNow() >= t;
+    ctx.fillStyle = ok ? 'rgba(40,24,70,.92)' : 'rgba(20,12,34,.85)'; rr(x, y, cw, rh - 6, 10); ctx.fill();
+    txt(`스테이지 ${t * 5}`, x + 12, y + (rh - 6) / 2, 14, ok ? '#fff' : '#8f84a6', { align: 'left' });
+    const bw = cw * 0.28, bh = rh - 18, fx = x + cw * 0.5 - bw / 2, px = x + cw * 0.82 - bw / 2, by = y + 6;
+    button(fx, by, bw, bh, F[t] ? '받음' : `결정 ${passFree(t)}`, () => { if (ok && !F[t]) { F[t] = 1; META.gems += passFree(t); saveMeta(); SND.play('up', 0.5); } }, { gold: ok && !F[t], off: !ok || F[t], size: 13 });
+    const pl = t % 5 === 0 ? `${passPaid(t)}+상자3` : `결정 ${passPaid(t)}`;
+    button(px, by, bw, bh, Pp[t] ? '받음' : META.passBuy ? pl : '🔒 ' + pl, () => { if (ok && META.passBuy && !Pp[t]) { Pp[t] = 1; META.gems += passPaid(t); if (t % 5 === 0) { openBox(3); MODE = 'pass'; toast('유물 상자 3개를 열었어요'); } saveMeta(); SND.play('up', 0.5); } }, { gold: ok && META.passBuy && !Pp[t], off: !(ok && META.passBuy) || Pp[t], size: 12 });
+    y += rh; }
+  if (PASSPG > 0) button(x, H - 140, 64, 44, '◀', () => { PASSPG--; }, { size: 16 }); if ((PASSPG + 1) * 5 < PASS_N) button(x + cw - 64, H - 140, 64, 44, '▶', () => { PASSPG++; }, { size: 16 });
+  txt(`${PASSPG * 5 + 1}~${Math.min(PASS_N, PASSPG * 5 + 5)}칸`, W / 2, H - 118, 13, '#9a8fae', { w: 700 });
+  button(W / 2 - 120, H - 80, 240, 56, '돌아가기', () => { MODE = 'title'; }, {});
+}
 function drawBox() {
   drawBg(); txt('유물 상자', W / 2, 50, 30, '#ffe08a'); const R = relOf();
   txt(`모은 유물: 공격 ×${R.p.toFixed(2)} · 체력 ×${R.h.toFixed(2)} · 결정 +${Math.round(R.g * 100)}% · 군단 +${R.c}`, W / 2, 84, 13, '#d9c8ff', { w: 800, box: W - 24 });
@@ -475,6 +498,7 @@ function drawMain() {
   if (MODE === 'daily') return drawDaily();
   if (MODE === 'shop') return drawShop();
   if (MODE === 'box') return drawBox();
+  if (MODE === 'pass') return drawPass();
   const P = G.P, sx = (Math.random() - 0.5) * shake, sy = (Math.random() - 0.5) * shake, cx = W / 2 - P.x + sx, cy = H * 0.52 - P.y + sy;
   /* 바닥 */
   ctx.save(); ctx.translate(cx, cy); ctx.fillStyle = GROUND[G.ch] || TILE; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); { const tn = CHAPTERS[G.ch].tint; if (tn && !GROUND[G.ch]) { ctx.fillStyle = tn; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); } }
@@ -631,7 +655,7 @@ function drawTitle() {
     else if (META.ch + 1 < CHAPTERS.length) txt('🔒', cx + 118, y, 16, '#9a8fae', { stroke: 0 }); }
   if (open) button(cx - 140, H * 0.7, 280, 64, '출전하기', () => newRun(), { gold: 1, size: 24 }); else button(cx - 140, H * 0.7, 280, 64, '잠긴 군주', () => {}, { size: 22 });
   button(cx - 140, H * 0.7 + 78, 280, 52, `군주 강화  ·  결정 ${META.gems}`, () => { MODE = 'meta'; }, { size: 17 });
-  { const n = dailyReady(), y = H * 0.7 + 142; button(cx - 140, y, 112, 44, `임무${n ? ' · ' + n : ''}`, () => { MODE = 'daily'; }, { size: 15, gold: !!n }); button(cx - 24, y, 84, 44, '유물', () => { MODE = 'box'; BOXR = null; }, { size: 15 }); button(cx + 64, y, 76, 44, '상점', () => { MODE = 'shop'; }, { size: 15 });
+  { const n = dailyReady(), y = H * 0.7 + 142; const pn = passReady(); button(cx - 140, y, 70, 44, `임무${n ? '·' + n : ''}`, () => { MODE = 'daily'; }, { size: 14, gold: !!n }); button(cx - 66, y, 66, 44, '유물', () => { MODE = 'box'; BOXR = null; }, { size: 14 }); button(cx + 4, y, 66, 44, `패스${pn ? '·' + pn : ''}`, () => { MODE = 'pass'; PASSPG = Math.max(0, Math.floor(passNow() / 5) - (passNow() % 5 === 0 && passNow() ? 1 : 0)); }, { size: 14, gold: !!pn }); button(cx + 74, y, 66, 44, '상점', () => { MODE = 'shop'; }, { size: 14 });
     if (META.best && y + 70 < H) txt(`최고 기록 ${Math.floor(META.best / 60)}분 ${META.best % 60}초`, cx, y + 62, 13, '#9a8fae', { w: 700 }); }
 }
 function drawMeta() {
