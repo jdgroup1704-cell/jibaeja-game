@@ -307,3 +307,12 @@ button.row.hint{border-color:var(--gold);animation:hintp 1s ease-in-out infinite
 @media (min-height:760px){:root{--cards:calc(4 * clamp(44px,7.4vh,58px) + 30px)}}
 /* 11-18 모험 싸움 장면(6초) 동안은 다른 창(출석부 등)을 숨김 — 끝나면 다시 보임 */
 body:has(#mfx.on) #modal{visibility:hidden}
+/* 11-18 영웅 목록 더 촘촘히: 오른쪽 「진형 · 진형에」 칸이 한 줄을 통째로 차지 → 오른쪽 위 구석으로 · 글 줄은 끝까지 */
+#panel.t-hero #tabbody .row:has(>.grow .wpl){position:relative}
+#panel.t-hero #tabbody .row:has(>.grow .wpl)>.muted,#panel.t-hero #tabbody .row:has(>.grow .wpl)>.btn{position:absolute;right:4px;top:4px;margin:0;height:26px;min-height:0;padding:0 10px;font-size:12px}
+#panel.t-hero #tabbody .row .grow>.btn[data-act="trans"]{display:inline-flex}
+#panel.t-hero #tabbody .row .grow>.btn[data-act="trans"][disabled]{display:none}
+#panel.t-hero #tabbody .row:has(>.grow .wpl) .grow>.stars{margin-right:58px!important}
+
+/* 11-18 삼성 인터넷 다크 모드 대비(js/keepcolor.js와 짝): 금 단추 어두운 글자는 다크 모드가 밝게 뒤집어 금 바탕에 안 보임 → 흰 글자 + 진한 그림자(흰 글자는 안 바뀜) */
+.keepc .btn.gold,.keepc .btn.gold small,.keepc .ucard .btn.buy.gold{color:#fff!important;text-shadow:0 1px 0 #6a3a00,0 0 3px #6a3a00}

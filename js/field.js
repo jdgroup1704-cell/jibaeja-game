@@ -98,9 +98,9 @@ const HF = {
       const jx = rnd(-26, 26), jy = rnd(-22, 10);
       say(fmtD(dmg), t.x + jx, t.y - 10 + jy, { size: big ? 40 : crit ? 30 : 22, col: big ? k.col : crit ? '#ffe14d' : '#ffffff', glow: big ? k.col : crit ? '#ff9d2a' : null, life: big ? 1.1 : 0.8, vy: -70 });
       if (crit) { say(L.field.crit, t.x + jx, t.y - 44 + jy, { size: 16, col: '#ffe14d', life: 0.7, vy: -60 }); punch(0.035, 3, 0); Snd.smp && Snd.smp('slam', 0.12, 0, 1.9); }
-      if (!crit && !big) punch(0.055, 2.5, 0);   /* 11-15 19:30 영웅 평타 = 묵직한 한 방(멈칫 0.055 · 0.85초에 한 번까지) */ if (big) { punch(0.08, 6, 25); Snd.smp && Snd.smp('hit', 0.55, 0, rnd(0.65, 0.8)); } else if (Snd.smp && Math.random() < 0.5) Snd.smp('hit', 0.18, 0, rnd(0.9, 1.35));   /* 타격음 높이를 매번 다르게 */
+      if (!crit && !big) punch(0.055, 2.5, 0);   /* 11-15 19:30 영웅 평타 = 묵직한 한 방(멈칫 0.055 · 0.85초에 한 번까지) */ if (big) { punch(0.08, 6, 25); S.flash = Math.max(S.flash || 0, 0.14); Snd.smp && Snd.smp('hit', 0.55, 0, rnd(0.65, 0.8)); } else if (Snd.smp && Math.random() < 0.5) Snd.smp('hit', 0.18, 0, rnd(0.9, 1.35));   /* 11-18 타격감 2차: 큰 기술은 화면 살짝 번쩍 — 평타 소리를 80%로 늘렸더니 관문 ㉚ 렉(39fps · 멈춤 233ms)이 나서 되돌림 */   /* 타격음 높이를 매번 다르게 */
       burst(t.x, t.y, big ? 18 : 5, { col: [k.col, '#ffffff'], vmin: 40, vmax: big ? 320 : 160, up: 60, lmax: big ? 0.6 : 0.35 });
-      if (t.foe) t.foe.flash = 0.15;
+      if (t.foe) { t.foe.flash = 0.22; t.foe.kbT = big ? 0.3 : 0.16; }   /* 11-18 타격감 2차: 영웅에게 맞은 적도 뒤로 밀림 */
       if (!k.far) this.fx.push({ kind: 'slash', x: t.x - 10, y: t.y, age: 0, life: 0.22, col: k.col, big });
     };
     h.swg = 0; h.swgL = k.far ? 0.45 : 0.52; h.swgB = big ? 1.35 : 1; h.ka = 0;   /* 때리기 영상 시작(0.9초: 젖히기 0.4 · 내려침 0.15 · 돌아오기 0.35 — 6번째 장이 닿는 순간 = 돌진 끝 0.42초쯤) */   /* 윗몸 휘두르기 시작 */

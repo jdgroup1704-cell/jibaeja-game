@@ -82,5 +82,17 @@ if d['오류']: bad.append('오류 '+str(d['오류'])[:120])
 print('  %d: '%d['높이']+' · '.join('%s 창%d 보임%d'%(t['탭'],t['창'],t['보임']) for t in d['탭'][:5])+' …')
 if bad: print('  ✗ '+' / '.join(bad)); sys.exit(1)
 print('  큰 아래 창 통과 %d'%d['높이'])" || F=1; done; pkill -f chrome 2>/dev/null
+echo "㊾ 삼성 인터넷 다크 모드(11-18 15:1x 대표님 폰 사진: 금 단추 → 갈색 · 흰 빛 → 검은 점 — 삼성 인터넷은 다크 모드면 웹 색을 강제로 바꾸고 끌 방법이 없음 · 그림은 안 바꿈): 강제 다크 + 폰 다크로 열어 보이는 단추 · 탭이 모두 그림으로 바뀌고 · 시험 금 상자가 금색 · 영혼 알갱이 그림 · 오류 0"; R=$(timeout 90 node 다크재기.js $D 2>&1 | tail -1); echo "  $R"; echo "$R" | python3 -c "
+import json,sys,re
+r=json.loads(sys.stdin.read()); bad=[]
+for t,v in r['탭'].items():
+  if v['단추']<3 or v['그림']<v['단추']: bad.append('%s 단추 %d 중 그림 %d'%(t,v['단추'],v['그림']))
+c=[int(x) for x in re.findall(r'\d+',r['시험상자색'])]
+if not (c[0]>200 and c[1]>160 and c[2]<120): bad.append('시험 금 상자 색 %s(갈색이면 실패)'%r['시험상자색'])
+if r['알갱이']<1 or r['알갱이그림']<r['알갱이']: bad.append('영혼 알갱이 그림 %d/%d'%(r['알갱이그림'],r['알갱이']))
+if not r['keepc']: bad.append('다크 모드 대비가 안 켜짐')
+if r['오류']: bad.append('오류 '+str(r['오류']))
+if bad: print('  ✗ '+' / '.join(bad)); sys.exit(1)
+print('  다크 모드 대비 통과')" || F=1; pkill -f chrome 2>/dev/null
 echo "⑬ 직접 플레이 영상(고친 뒤 찍고 본 것 적기) — 11-15 19:56 「기능들도 전부 영상으로 직접 플레이 체크」"; python3 영상확인검사.py $1 || F=1
 [ $F = 0 ] && echo "관문 통과" || { echo "관문 실패"; exit 1; }
