@@ -16,6 +16,8 @@ const FONT = "'JB','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-ser
 const IMG = {}; const img = n => { if (!IMG[n]) { const i = new Image(); i.src = 'art/' + n + '.webp'; IMG[n] = i; } return IMG[n]; };
 const SP = {
   lordWalk: { i: 'lordw_attack', cw: 281, ch: 363, ax: 150, ay: 339.1, hpx: 291, n: 16, face: 1 },
+  lordBone: { i: 'lord_bone', cw: 559, ch: 640, ax: 250, ay: 636, hpx: 610, n: 1, cols: 1, face: 1 },
+  lordWitch: { i: 'lord_witch', cw: 480, ch: 640, ax: 215, ay: 636, hpx: 600, n: 1, cols: 1, face: -1 },
   lordIdle: { i: 'lordv_idle', cw: 185, ch: 553, ax: 57.6, ay: 438.6, hpx: 330, n: 15, face: 1 },
   skWalk: { i: 'sw2_walk', cw: 167, ch: 221, ax: 77.5, ay: 220.8, hpx: 220, n: 24, face: 1 },
   skAtk: { i: 'sv2_attack', cw: 182, ch: 237, ax: 84.1, ay: 235.9, hpx: 220, n: 20, face: 1 },
@@ -47,8 +49,8 @@ const RIM = {}; function rimOf(n, I, col) { const k = n + col; if (RIM[k] !== un
 /* ── 군주 3명 ── */
 const LORDS = [
   { name: '망령 군주', desc: '영혼탄으로 시작 · 고른 힘', w: 'bolt', hue: 0, lock: 0 },
-  { name: '뼈의 장군', desc: '사신의 낫으로 시작 · 군단 +4 · 병사 힘 +30% · 부활 +10%', w: 'scythe', hue: 130, lock: 2, need: '스테이지 20을 깨면 열려요' },
-  { name: '역병 마녀', desc: '저주 늪으로 시작 · 마법 +15% · 영혼 끌기 +40%', w: 'pool', hue: 70, lock: 3, need: '스테이지 40을 깨면 열려요' }];
+  { name: '뼈의 장군', desc: '사신의 낫으로 시작 · 군단 +4 · 병사 힘 +30% · 부활 +10%', w: 'scythe', hue: 130, art: 'lordBone', lock: 2, need: '스테이지 20을 깨면 열려요' },
+  { name: '역병 마녀', desc: '저주 늪으로 시작 · 마법 +15% · 영혼 끌기 +40%', w: 'pool', hue: 70, art: 'lordWitch', lock: 3, need: '스테이지 40을 깨면 열려요' }];
 function lordOpen(i) { return META.lordpack || (i === 1 && META.lord1) || (META.open || 1) >= (LORDS[i].lock || 0); }
 function hueSheet(n, deg) { const k = n + '#' + deg; if (IMG[k]) return IMG[k]; const I = IMG[n]; if (!I || !I.complete || !I.naturalWidth) return null; if (!I._ok) { if (!I._dec) I._dec = (I.decode ? I.decode() : Promise.resolve()).then(() => { I._ok = 1; }, () => { I._ok = 1; }); return null; }
   try { const c = document.createElement('canvas'); c.width = I.naturalWidth; c.height = I.naturalHeight; const x = c.getContext('2d'); x.drawImage(I, 0, 0); const d = x.getImageData(0, 0, c.width, c.height), p = d.data;
@@ -60,7 +62,7 @@ function ghostSheet(n) { const k = n + '#ghost'; if (IMG[k]) return IMG[k]; cons
     for (let i = 0; i < p.length; i += 4) { if (!p[i + 3]) continue; const L = 0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2]; p[i] = L * 0.35 + 6; p[i + 1] = Math.min(255, L * 0.78 + 22); p[i + 2] = L * 0.62 + 22; }
     x.putImageData(d, 0, 0); c._ok = 1; c.complete = true; c.naturalWidth = c.width; c.naturalHeight = c.height; IMG[k] = c; return c; } catch (e) { IMG[k] = I; return I; } }   /* 해골 장군: 보스 그림을 잿빛 초록 망령빛으로 */
 function champSpr(base) { const S = SP[base], key = base + 'G'; if (!SP[key]) SP[key] = { ...S }; const c = ghostSheet(S.i); SP[key].i = c && c !== IMG[S.i] ? S.i + '#ghost' : S.i; return key; }
-function lordSpr(base, li) { const L = LORDS[li || 0]; if (!L.hue) return base; const S = SP[base], key = base + li; if (!SP[key]) SP[key] = { ...S }; const c = hueSheet(S.i, L.hue); SP[key].i = c && c !== IMG[S.i] ? S.i + '#' + L.hue : S.i; return key; }
+function lordSpr(base, li) { const L = LORDS[li || 0]; if (L.art && SP[L.art] && IMG[SP[L.art].i] && IMG[SP[L.art].i].naturalWidth) return L.art;   /* 군주별 고유 그림(있으면) */ if (!L.hue) return base; const S = SP[base], key = base + li; if (!SP[key]) SP[key] = { ...S }; const c = hueSheet(S.i, L.hue); SP[key].i = c && c !== IMG[S.i] ? S.i + '#' + L.hue : S.i; return key; }
 function spr(s, frame, x, y, h, dir, o = {}) {   /* dir: 1 = 오른쪽을 보게 */
   const S = SP[s], I = IMG[S.i]; if (!I || !(I.width && (I.naturalWidth || I.getContext))) { ctx.fillStyle = o.col || '#888'; ctx.beginPath(); ctx.ellipse(x, y - h / 2, h * 0.25, h / 2, 0, 0, 7); ctx.fill(); return; }
   const fi = ((Math.floor(frame) % S.n) + S.n) % S.n, C = S.cols || 10, c = fi % C, r = Math.floor(fi / C), sc = h / S.hpx;
