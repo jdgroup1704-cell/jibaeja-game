@@ -198,7 +198,7 @@ function spawnFoe(kind, elite) {
   f.max = f.hp; G.foes.push(f); return f;
 }
 function spawnBoss() {
-  const P = G.P, C = CHAPTERS[G.ch]; G.bossOn = 1; const hp = 2600 * (1 + G.t / 250) * C.hp;
+  const P = G.P, C = CHAPTERS[G.ch]; G.bossOn = 1; const hp = 3400 * (1 + G.t / 250) * C.hp;
   G.boss = { kind: 'boss', s: C.bs, boss: 1, x: P.x + W * 0.42, y: P.y - 60, hp, max: hp, spd: 38, dmg: 22 * (1 + G.ch * 0.4), r: 40, h: G.ch ? 200 : 190, xp: 1, kx: 0, ky: 0, flash: 0, wf: 0, dir: -1, heavy: 1, act: 'idle', actT: 3, af: 0 };
   G.foes.push(G.boss); SND.play('stamp', 0.7); shake = 18; G.banner = { text: C.boss + ' 등장', t: 0 }; G.bossSay = { s: C.lines[0], t: 0 }; G.bossHalf = 0;
 }
