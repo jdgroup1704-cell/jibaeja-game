@@ -1729,7 +1729,7 @@
     ctx.fillStyle = dis ? 'rgba(40,36,30,.8)' : main ? '#8a3a12' : 'rgba(40,30,20,.92)'; rrect(x, y, w, h, 12); ctx.fill();
     ctx.strokeStyle = dis ? 'rgba(255,255,255,.12)' : main ? '#ffc864' : 'rgba(255,210,140,.5)'; ctx.lineWidth = 2.5; ctx.stroke();
     let bfs = main ? 22 : 18; ctx.font = bfs + 'px ' + FB; const bmw = ctx.measureText(label).width; if (bmw > w - 12) bfs = Math.max(10, bfs * (w - 12) / bmw);
-    txt(label, x + w / 2, y + h / 2 + 1, bfs, dis ? '#777' : main ? '#fff' : '#ffe0b0', FB);
+    { const bc = dis ? '#777' : main ? '#fff' : '#ffe0b0'; if (lbI274(label)) txtI269(label, x + w / 2, y + h / 2 + 1, bfs, bc, w - 8, 'center'); else txt(label, x + w / 2, y + h / 2 + 1, bfs, bc, FB); }
   }
   function drawTown() {
     if (TOWN2) return drawTown2();
@@ -2221,7 +2221,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1119013226'; let updReady = null;
+  const BUILD = '1119014206'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'], UPD2 = ['raid', 'arena', 'help', 'gear', 'cosm', 'dgsel'];
   function updToast() { try { if (document.getElementById('updT')) return; const d = document.createElement('div'); d.id = 'updT'; d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:98;background:rgba(40,16,8,.94);border:2px solid #ffc864;border-radius:14px;padding:10px 16px;color:#ffe9b0;font:800 15px system-ui,sans-serif;text-align:center;pointer-events:none;max-width:92vw'; d.innerHTML = '🆕 새 업데이트가 올라왔어요<div style="font-size:12.5px;font-weight:700;color:#fff;margin-top:3px">마을로 가면 바로 적용돼요</div>'; document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch (e) {} }, 6000); } catch (e) {} }
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
@@ -3874,6 +3874,7 @@
   // ===================== 빌드 76: 화면 겉모습 미리 보기(?ui=a1 · ?ui=a2) =====================
   function uiPath(x, y, w, h, r, cut) { if (!cut) { rrect(x, y, w, h, r); return; } const c = Math.min(cut, h / 2, w / 2); ctx.beginPath(); ctx.moveTo(x + c, y); ctx.lineTo(x + w - c, y); ctx.lineTo(x + w, y + c); ctx.lineTo(x + w, y + h - c); ctx.lineTo(x + w - c, y + h); ctx.lineTo(x + c, y + h); ctx.lineTo(x, y + h - c); ctx.lineTo(x, y + c); ctx.closePath(); }
   function uiGem(x, y, s, c1, c2) { ctx.save(); ctx.translate(x, y); ctx.rotate(Math.PI / 4); ctx.fillStyle = '#05060c'; ctx.fillRect(-s - 1.5, -s - 1.5, s * 2 + 3, s * 2 + 3); const g = ctx.createLinearGradient(-s, -s, s, s); g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(-s, -s, s * 2, s * 2); ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(-s, -s, s * .9, s * .9); ctx.restore(); }
+  function lbI274(l) { try { if (!l || l.search(RX269) < 0) return false; const m = ('' + l).match(RX269) || []; return m.some(p => EMI269[p] ? icOk269(p) : true); } catch (e) { return false; } }
   function uiBtn(label, x, y, w, h, main, dis) { const A5n = UIK === 'a5' && !main && !dis, A2 = UIK === 'a2' || UIK === 'a3' || UIK === 'a5', A3 = main && !dis && (UIK === 'a3' || UIK === 'a5' || (UIK === 'a4' && y > 690 && w < 150)), r = Math.min(12, h / 2), cut = A2 ? Math.min(9, h * .28) : 0;
     ctx.save(); ctx.lineJoin = 'round';
     if (main && !dis) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(x + w / 2, y + h / 2, Math.max(w, h) * .62, A2 || A3 ? '255,200,90' : '255,90,70', .16 + .05 * Math.sin(t * .09)); ctx.restore(); }
@@ -3895,7 +3896,7 @@
     if (!A2 && !dis && h >= 30) { uiPath(x + 4.5, y + 4.5, w - 9, h - 9, Math.max(2, r - 4), 0); ctx.strokeStyle = 'rgba(255,236,170,.3)'; ctx.lineWidth = 1; ctx.stroke(); }
     if (!dis && w >= 150 && h >= 38) { if (A2) { uiGem(x, y + h / 2, 3.2, '#fff3c4', '#b8862a'); uiGem(x + w, y + h / 2, 3.2, '#fff3c4', '#b8862a'); } else { uiGem(x, y + h / 2, 4, main ? '#9fd4ff' : '#ff8a9a', main ? '#2a5fd0' : '#b01830'); uiGem(x + w, y + h / 2, 4, main ? '#9fd4ff' : '#ff8a9a', main ? '#2a5fd0' : '#b01830'); } }
     ctx.restore();
-    if (label) { let bfs = main ? 22 : 18; ctx.font = bfs + 'px ' + FB; const bmw = ctx.measureText(label).width; if (bmw > w - 14) bfs = Math.max(10, bfs * (w - 14) / bmw); txt(label, x + w / 2, y + h / 2 + 1, bfs, dis ? '#7c7c86' : A3 ? '#2a1a04' : A2 ? (main ? '#fff1c0' : '#f0d488') : (main ? '#fff6dc' : '#ffe9b8'), FB, 'center', A3 ? 'rgba(255,240,190,.55)' : undefined); }
+    if (label) { let bfs = main ? 22 : 18; ctx.font = bfs + 'px ' + FB; const bmw = ctx.measureText(label).width; if (bmw > w - 14) bfs = Math.max(10, bfs * (w - 14) / bmw); { const bc = dis ? '#7c7c86' : A3 ? '#2a1a04' : A2 ? (main ? '#fff1c0' : '#f0d488') : (main ? '#fff6dc' : '#ffe9b8'); if (lbI274(label)) txtI269(label, x + w / 2, y + h / 2 + 1, bfs, bc, w - 8, 'center'); else txt(label, x + w / 2, y + h / 2 + 1, bfs, bc, FB, 'center', A3 ? 'rgba(255,240,190,.55)' : undefined); } }
     return true; }
 
   // ===================== 빌드 77: 스킬 카드 고르는 창 A++ =====================
@@ -6819,6 +6820,10 @@
   { const _dc273 = drawChat; drawChat = function () { _dc273(); try { const m = rvFind273(); if (!m) return; const X = 18, Y = 70, CW = W - 36, CH = 676, nm = (/^⚔️ (.+) → /.exec(m.text) || [])[1] || m.name;
       button('⚔️ ' + nm + '에게 복수전!', X + 20, Y + CH - 102, CW - 40, 42, () => rvGo273(m), true, RV273.busy || arLeft() <= 0); if (t - RV273.nt < 180) tfit(RV273.note, W / 2, Y + CH - 112, 12.5, '#ffe14d', CW - 40, FB, 'center'); } catch (e) {} }; }
   { const _da273 = drawArena; drawArena = function () { _da273(); try { if (arenaTab !== 0) return; const m = rvFind273(); if (!m) return; const nm = (/^⚔️ (.+) → /.exec(m.text) || [])[1] || m.name; button('⚔️ ' + nm + '에게 복수전!', 16, H - 142, W - 32, 42, () => rvGo273(m), true, RV273.busy || arLeft() <= 0); } catch (e) {} }; }
+
+  // ===================== 빌드 274: 버튼 글자 속 이모지 → 그림 =====================
+  Object.assign(EMI269, { '🗺️': 'g_map', '🔁': 'g_hour', '📊': 'g_book', '🧱': 'g_anvil' }); delete EMI269['✨'];
+  EMK269 = Object.keys(EMI269).sort((a, b) => b.length - a.length); RX269 = new RegExp('(' + EMK269.map(e => e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + '|(?:일반|고급|희귀|영웅|전설|신화|심연) 장비)', 'g');
 
   // ===================== 빌드 264: 대표님 계정 유료 전부 + 💎 100,000 =====================
   setInterval(() => { try { if (!fbReady || fbHold || trial || meta.g264) return; if (acctH172() !== '13e5689c-ba822842-28') return; meta.g264 = 1;
