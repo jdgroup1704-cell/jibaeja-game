@@ -1089,8 +1089,9 @@ function drawBubble() {   // 수하 말풍선: 이름 + 대사, 길이에 맞춰
 }
 function wrapText(t, maxW) { const out = []; let cur = ''; for (const ch of t) { if (ctx.measureText(cur + ch).width > maxW && cur) { out.push(cur); cur = ch.trim() ? ch : ''; } else cur += ch; } if (cur) out.push(cur); return out; }
 function drawVignette() {
-  const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.95);
-  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, `rgba(0,0,0,${0.55 + S.dark * 0.4})`); ctx.fillStyle = v; fillAll();
+  const ph = typeof PHN === 'function' && PHN() && typeof VIS !== 'undefined', cx = ph ? (VIS.x0 + VIS.x1) / 2 : W / 2, cy = ph ? (VIS.y0 + VIS.y1) / 2 : H / 2, rr = ph ? Math.hypot(VIS.x1 - VIS.x0, VIS.y1 - VIS.y0) / 2 : H;
+  const v = ctx.createRadialGradient(cx, cy, rr * 0.45, cx, cy, rr * (ph ? 1.05 : 0.95));
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, `rgba(0,0,0,${(ph ? 0.3 : 0.55) + S.dark * 0.4})`); ctx.fillStyle = v; fillAll();   /* 11-18 효과가림재기: 폰은 보이는 칸이 세계의 일부라 가장자리 그늘(세계 가운데 기준)이 싸움터 픽셀 18.6%를 어둡게 덮음(후반 저장이 칙칙했던 까닭) → 보이는 칸 가운데 기준 · 0.55 → 0.3 */
 }
 function drawShock() { for (const k of S.shock || []) { const q = k.t / 0.6; ctx.save(); ctx.globalAlpha = (1 - q) * 0.8; ctx.strokeStyle = '#fff0c8'; ctx.lineWidth = 6 * (1 - q) + 1; ctx.beginPath(); ctx.ellipse(k.x, 640, 40 + q * 320, 10 + q * 60, 0, 0, 7); ctx.stroke(); ctx.restore(); } }
 /* 보스 등장 경고: 화면 위 · 아래로 붉은 띠가 흐르고 가장자리가 붉게 맥박침 */
