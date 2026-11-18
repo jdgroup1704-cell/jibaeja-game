@@ -200,7 +200,7 @@ function killFoe(f) {
   if (!f.boss && alive < G.S.cap && (sure || Math.random() < (f.elite ? 1 : G.S.rise))) raise(f.x, f.y, big, f.kind === 'archer' || f.kind === 'priest' ? 'arch' : f.kind === 'shield' ? 'shield' : 'sword');
 }
 function raise(x, y, big, kind) {   /* kind: 'sword' 칼 · 'arch' 활(뒤에서 쏨) · 'shield' 방패(몸 튼튼) */
-  kind = big ? 'sword' : kind || 'sword'; const S = G.S, hp = (big ? 120 : 40) * S.allyPow * (1 + G.d / 200) * (kind === 'shield' ? 2.6 : kind === 'arch' ? 0.7 : 1);
+  kind = big ? 'sword' : kind || 'sword'; const FM = META.form || 0; if (!big && FM && Math.random() < 0.6) kind = FORM[FM].k;   /* 군단 편성: 고른 병종이 60% */ const S = G.S, hp = (big ? 120 : 40) * S.allyPow * (1 + G.d / 200) * (kind === 'shield' ? 2.6 : kind === 'arch' ? 0.7 : 1);
   G.allies.push({ ut: kind, x, y, hp, max: hp, rise: 0, t: rnd(0, 5), atkT: rnd(0, 0.6), dir: 1, big, dead: false, wf: rnd(0, 20), af: -1, ang: Math.random() * 6.283 });
   G.marks.push({ x, y, t: 0 }); G.pillars.push({ x, y, t: 0, big }); SND.play('rise', 0.22, rnd(0.9, 1.15));
 }
@@ -438,6 +438,7 @@ function setStage(s) { G.stage = Math.max(1, s); G.ch = Math.floor((G.stage - 1)
 function idleTick(dt) { if (BOT && Q.has('buy') && (G.buyT = (G.buyT || 0) + dt) > 4) { G.buyT = 0; const u = META_UP.filter(u => META.up[u.id] < u.max).sort((a, b) => a.cost(META.up[a.id]) - b.cost(META.up[b.id]))[0]; if (u) buyUp(u); }   /* 시험 봇: 싼 강화부터 산다(사람 흉내) */
   if (G.stBoss && !G.bossOn && G.bossT > 0) { G.bossT -= dt; if (G.bossT <= 0) spawnBoss(); } if ((G.saveT = (G.saveT || 0) + dt) > 20) { G.saveT = 0; saveRun(); } }
 function gemMul() { return (1 + META.up.gold * 0.1 + relOf().g) * ((META.monthUntil || 0) > Date.now() ? 1.2 : 1); }   /* 월정액 쓰는 동안 결정 +20% */
+const FORM = [{ n: '균형', k: null, d: '쓰러뜨린 적 종류대로' }, { n: '검', k: 'sword', d: '검 해골 60% · 고르게 셈' }, { n: '활', k: 'arch', d: '활 해골 60% · 뒤에서 쏨' }, { n: '방패', k: 'shield', d: '방패 해골 60% · 오래 버팀' }];
 function stageClear() { const s = G.stage, gain = Math.round((3 + s * 0.6) * (s % 10 === 0 ? 5 : 1) * gemMul());
   META.gems += gain; META.stage = Math.max(META.stage || 1, s + 1); if (s % 20 === 0) META.open = Math.max(META.open || 1, Math.min(3, 1 + s / 20)); META.bestStage = Math.max(META.bestStage || 0, s); dayFix(); META.dq.s = (META.dq.s || 0) + 1;
   SND.play('win', s % 10 === 0 ? 0.8 : 0.35); setStage(s + 1); G.banner = null; G.P.cast = 0.2;
@@ -595,6 +596,10 @@ function drawHud() {
       ctx.fillStyle = 'rgba(16,8,30,.86)'; rr(x, y0, bw, bh, 10); ctx.fill(); ctx.strokeStyle = can ? '#ffd23a' : '#4a3678'; ctx.lineWidth = can ? 2 : 1; ctx.stroke();
       icon(u.icon, x + bw / 2, y0 + 20, 28); txt('Lv' + l, x + bw / 2, y0 + 8, 10, '#d9c8ff', { w: 800, lw: 2 }); txt(max ? '최대' : cost + '', x + bw / 2, y0 + 45, 13, can ? '#ffe08a' : '#8f84a6', { box: bw - 6 });
       if (can) BTNS.push({ x, y: y0, w: bw, h: bh, fn: () => buyUp(u) }); }); }
+  if (MODE === 'play' && G.idle && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const fw = 48, fh = 42, fx = W - fw - 8, fy = META.speed2 ? 124 : 86, FM = META.form || 0;   /* 군단 편성 단추(누를 때마다 바뀜) */
+    ctx.fillStyle = FM ? 'rgba(10,50,40,.9)' : 'rgba(20,10,36,.85)'; rr(fx, fy, fw, fh, 10); ctx.fill(); ctx.strokeStyle = FM ? '#5fffc8' : '#6a4aa0'; ctx.lineWidth = 1.5; ctx.stroke();
+    txt('편성', fx + fw / 2, fy + 13, 11, '#b9a8d8', { w: 700, box: fw - 6 }); txt(FORM[FM].n, fx + fw / 2, fy + 29, 15, FM ? '#9effd0' : '#ffffff', { box: fw - 6 });
+    BTNS.push({ x: fx, y: fy, w: fw, h: fh, fn: () => { META.form = ((META.form || 0) + 1) % 4; saveMeta(); G.banner = { text: `편성 「${FORM[META.form].n}」 ${FORM[META.form].d}`, t: 0.6 }; } }); }
   if (MODE === 'play' && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const r = 34, bx = W - r - 18, by = H - r - 34, ready = G.rallyCd <= 0;   /* 함성 단추 */
     ctx.fillStyle = ready ? 'rgba(90,50,10,.9)' : 'rgba(20,10,36,.8)'; ctx.beginPath(); ctx.arc(bx, by, r, 0, 7); ctx.fill(); if (!ready) { ctx.fillStyle = 'rgba(140,92,255,.35)'; ctx.beginPath(); ctx.moveTo(bx, by); ctx.arc(bx, by, r, -1.5708, -1.5708 + 6.2832 * (1 - G.rallyCd / 22)); ctx.fill(); }
     ctx.strokeStyle = ready ? '#ffd23a' : '#6a4aa0'; ctx.lineWidth = ready ? 3 + Math.sin(T * 6) * 1.2 : 2; ctx.beginPath(); ctx.arc(bx, by, r, 0, 7); ctx.stroke(); icon('i_army', bx, by - 6, 30); txt(ready ? '함성' : Math.ceil(G.rallyCd) + '', bx, by + 18, 13, ready ? '#ffe08a' : '#c9b8e8');
