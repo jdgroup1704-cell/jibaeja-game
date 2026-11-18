@@ -2219,7 +2219,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1118233818'; let updReady = null;
+  const BUILD = '1118234209'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'], UPD2 = ['raid', 'arena', 'help', 'gear', 'cosm', 'dgsel'];
   function updToast() { try { if (document.getElementById('updT')) return; const d = document.createElement('div'); d.id = 'updT'; d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:98;background:rgba(40,16,8,.94);border:2px solid #ffc864;border-radius:14px;padding:10px 16px;color:#ffe9b0;font:800 15px system-ui,sans-serif;text-align:center;pointer-events:none;max-width:92vw'; d.innerHTML = '🆕 새 업데이트가 올라왔어요<div style="font-size:12.5px;font-weight:700;color:#fff;margin-top:3px">마을로 가면 바로 적용돼요</div>'; document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch (e) {} }, 6000); } catch (e) {} }
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
@@ -6594,6 +6594,14 @@
   { const _sfr140 = startFloorRun; startFloorRun = function (f, resumed) { if (flCur && !flCur.done && flCur.f === f - 1) flEnd(true); _sfr140(f, resumed); if (flOk() && !resumed) { const r = flRow(f); r[0]++; r[4] = Math.max(r[4], Math.min(9e6, power())); flCur = { f, t0: Date.now(), done: 0 }; flDirty = 1; } else flCur = null; }; }
   { const _u140 = update; update = function (k) { const was = state; _u140(k); if (flCur && !flCur.done) { if (state === 'over') flEnd(false); else if (state === 'victory') flEnd(true); else if (state === 'town') flCur = null; } if (flDirty && (t | 0) % 600 === 0) flPush(false); }; }
   { const _u246 = update; update = function (k) { try { if (cmIn6()) { t += k || 1; raidRun.in6 += k || 1; return; } } catch (e) {} return _u246(k); }; }
+
+  // ===================== 빌드 264: 대표님 계정 유료 전부 + 💎 100,000 =====================
+  setInterval(() => { try { if (!fbReady || fbHold || trial || meta.g264) return; if (acctH172() !== '13e5689c-ba822842-28') return; meta.g264 = 1;
+      const d0 = meta.dia; meta.bought = meta.bought || {};
+      PACK.forEach(pk => { if (['avp1', 'avp2', 'avp3', 'avp4', 'month', 'month2', 'week', 'pass'].indexOf(pk.id) >= 0) { try { pk.f(); meta.bought[pk.id] = (meta.bought[pk.id] || 0) + 1; } catch (e) {} } });
+      try { Object.keys(RIGS).forEach(k => avGive235(k)); avGive235('inferno'); } catch (e) {}
+      meta.paid = Math.max(meta.paid || 0, VIPT[VIPT.length - 1]); meta.dia = d0 + 100000; recalc(); saveMeta();
+      townPop = { txt: '🎁 대표님 계정 · 유료 전부 열림', sub: '아바타 전부 · 월정액 · 패스 · VIP ' + vipLv() + ' · 💎 +100,000', t0: t }; try { sfx.fanfare(); } catch (e) {} flash = .5; flashC = '255,220,120'; } catch (e) {} }, 1500);
 
   // ===================== 빌드 262: 반복 사냥 추천 카드 · 게임 안 채팅 입력 · 분당 골드 기록 =====================
   let FARMQ = 0, FARMSAY = false;
