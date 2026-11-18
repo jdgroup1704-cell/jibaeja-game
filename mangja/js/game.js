@@ -37,6 +37,7 @@ const SP = {
   skArchW: { i: 'sk_archer_w', cw: 285, ch: 360, ax: 128, ay: 356, hpx: 372, n: 1, cols: 1, face: 1 },   /* 궁수 해골 걷는 자세(번갈아) */
   skShield: { i: 'sk_shield', cw: 386, ch: 360, ax: 150, ay: 356, hpx: 330, n: 1, cols: 1, face: 1 },   /* 방패 해골 */
   skShieldW: { i: 'sk_shield_w', cw: 326, ch: 360, ax: 150, ay: 356, hpx: 330, n: 1, cols: 1, face: 1 },   /* 방패 해골 걷는 자세(번갈아) */
+  bossPaladin: { i: 'boss_paladin', cw: 481, ch: 640, ax: 225, ay: 634, hpx: 590, n: 1, cols: 1, face: -1 },   /* 첫 보스 전용 그림(챗지피티 11-19) — 전엔 정예 성기사 그림을 키워 씀 */
   bossBlood: { i: 'lord_blood', cw: 442, ch: 620, ax: 221, ay: 600, hpx: 560, n: 1, cols: 1, face: -1 },
   bossIce: { i: 'lord_ice', cw: 371, ch: 620, ax: 185, ay: 600, hpx: 560, n: 1, cols: 1, face: -1 },
 };
@@ -104,7 +105,7 @@ const KINDS = {
 };
 /* 지역(판) 3곳 — 이기면 다음 지역이 열림 */
 const CHAPTERS = [
-  { name: '버려진 묘지', sub: '제1장', boss: '황금 성기사 단장', weak: 'sword', bs: 'paladin', tint: null, hp: 1, lines: ['죽은 자는 흙으로 돌아가라!', '빛이여… 나를 버리지 마라!', '이 몸도… 일어나는가…'] },
+  { name: '버려진 묘지', sub: '제1장', boss: '황금 성기사 단장', weak: 'sword', bs: 'bossPaladin', tint: null, hp: 1, lines: ['죽은 자는 흙으로 돌아가라!', '빛이여… 나를 버리지 마라!', '이 몸도… 일어나는가…'] },
   { name: '피의 늪', sub: '제2장', boss: '피의 군주', weak: 'arch', lines: ['내 늪에 발을 들였구나, 해골 왕.', '피가… 끓어오른다!', '내 피를… 가져가라…'], bs: 'bossBlood', tint: 'rgba(120,0,20,.28)', hp: 1.8 },
   { name: '얼음 성채', sub: '제3장', boss: '서리 왕', weak: 'shield', lines: ['얼어붙어라. 영원히.', '이 추위가… 나를 배신하는가!', '봄은… 오지 않는다…'], bs: 'bossIce', tint: 'rgba(40,120,200,.22)', hp: 2.7 },
 ];
