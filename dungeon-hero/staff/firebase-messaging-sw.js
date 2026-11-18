@@ -1,4 +1,4 @@
-// 던전 히어로 직원판 — 업데이트 알림(게임을 안 켜 둔 사람에게 휴대폰 알림) · 빌드 236
+// 한 층만 더 직원판 — 업데이트 알림(게임을 안 켜 둔 사람에게 휴대폰 알림) · 빌드 236
 // 알림을 받는 일만 한다(파일을 저장해 두거나 화면을 가로채지 않음)
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
