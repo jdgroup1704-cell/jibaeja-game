@@ -597,12 +597,14 @@ function drawHud() {
   if (MODE === 'play' && G.idle && !G.cards && !G.paused) { const bw = Math.min(64, (W - 110) / 4 - 4), bh = 58, y0 = H - bh - 12;   /* 아래 강화 칸: 방치형은 막히면 여기서 바로 강화 */
     META_UP.slice(0, 4).forEach((u, i) => { const l = META.up[u.id], max = l >= u.max, cost = u.cost(l), can = !max && META.gems >= cost, x = 8 + i * (bw + 4);
       ctx.fillStyle = 'rgba(16,8,30,.86)'; rr(x, y0, bw, bh, 10); ctx.fill(); ctx.strokeStyle = can ? '#ffd23a' : '#4a3678'; ctx.lineWidth = can ? 2 : 1; ctx.stroke();
-      icon(u.icon, x + bw / 2, y0 + 20, 28); txt('Lv' + l, x + bw / 2, y0 + 8, 10, '#d9c8ff', { w: 800, lw: 2 }); txt(max ? '최대' : cost + '', x + bw / 2, y0 + 45, 13, can ? '#ffe08a' : '#8f84a6', { box: bw - 6 });
+      icon(u.icon, x + bw / 2, y0 + 20, 28); txt(({ hp: '체력', pow: '공격', rise: '부활', cap: '군단' }[u.id] || 'Lv') + ' ' + l, x + bw / 2, y0 + 8, 10, '#d9c8ff', { w: 800, lw: 2, box: bw - 4 }); txt(max ? '최대' : cost + '', x + bw / 2, y0 + 45, 13, can ? '#ffe08a' : '#8f84a6', { box: bw - 6 });
       if (can) BTNS.push({ x, y: y0, w: bw, h: bh, fn: () => buyUp(u) }); }); }
   if (MODE === 'play' && G.idle && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const fw = 48, fh = 42, fx = W - fw - 8, fy = META.speed2 ? 124 : 86, FM = META.form || 0;   /* 군단 편성 단추(누를 때마다 바뀜) */
     ctx.fillStyle = FM ? 'rgba(10,50,40,.9)' : 'rgba(20,10,36,.85)'; rr(fx, fy, fw, fh, 10); ctx.fill(); const wk = G.boss && !G.boss.dead && CHAPTERS[G.ch].weak, hint = wk && FORM[FM].k !== wk; ctx.strokeStyle = hint ? `rgba(255,210,58,${0.6 + Math.sin(T * 8) * 0.4})` : FM ? '#5fffc8' : '#6a4aa0'; ctx.lineWidth = hint ? 3 : 1.5; ctx.stroke();
     txt('편성', fx + fw / 2, fy + 13, 11, '#b9a8d8', { w: 700, box: fw - 6 }); txt(FORM[FM].n, fx + fw / 2, fy + 29, 15, FM ? '#9effd0' : '#ffffff', { box: fw - 6 });
-    BTNS.push({ x: fx, y: fy, w: fw, h: fh, fn: () => { META.form = ((META.form || 0) + 1) % 4; saveMeta(); G.banner = { text: `편성 「${FORM[META.form].n}」 ${FORM[META.form].d}`, t: 0.6 }; } }); }
+    if (!META.tipForm && !BOT && G.stage >= 2 && !G.clr) { const k = Math.sin(T * 7) * 4, tw = 150, tx = fx - tw - 10 + k, ty = fy + 3;   /* 처음 한 번: 편성 단추 알려주기 */
+      ctx.fillStyle = 'rgba(255,244,230,.96)'; rr(tx, ty, tw, 36, 10); ctx.fill(); ctx.beginPath(); ctx.moveTo(tx + tw, ty + 12); ctx.lineTo(tx + tw + 9, ty + 18); ctx.lineTo(tx + tw, ty + 24); ctx.fill(); txt('누르면 병종을 골라요', tx + tw / 2, ty + 18, 13, '#3a1a5a', { box: tw - 10 }); }
+    BTNS.push({ x: fx, y: fy, w: fw, h: fh, fn: () => { META.tipForm = 1; META.form = ((META.form || 0) + 1) % 4; saveMeta(); G.banner = { text: `편성 「${FORM[META.form].n}」 ${FORM[META.form].d}`, t: 0.6 }; } }); }
   if (MODE === 'play' && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const r = 34, bx = W - r - 18, by = H - r - 34, ready = G.rallyCd <= 0;   /* 함성 단추 */
     ctx.fillStyle = ready ? 'rgba(90,50,10,.9)' : 'rgba(20,10,36,.8)'; ctx.beginPath(); ctx.arc(bx, by, r, 0, 7); ctx.fill(); if (!ready) { ctx.fillStyle = 'rgba(140,92,255,.35)'; ctx.beginPath(); ctx.moveTo(bx, by); ctx.arc(bx, by, r, -1.5708, -1.5708 + 6.2832 * (1 - G.rallyCd / 22)); ctx.fill(); }
     ctx.strokeStyle = ready ? '#ffd23a' : '#6a4aa0'; ctx.lineWidth = ready ? 3 + Math.sin(T * 6) * 1.2 : 2; ctx.beginPath(); ctx.arc(bx, by, r, 0, 7); ctx.stroke(); icon('i_army', bx, by - 6, 30); txt(ready ? '함성' : Math.ceil(G.rallyCd) + '', bx, by + 18, 13, ready ? '#ffe08a' : '#c9b8e8');
@@ -625,7 +627,7 @@ function drawHud() {
   }
   if (G.bossSay) { const q = G.bossSay, a = Math.min(1, q.t * 5, (2.8 - q.t) * 3), y = Math.max(126, H * 0.3 - 54), tw = Math.min(W - 30, 360);   /* 보스 대사 — 화면 고정 칸(머리 위는 위 띠에 가려짐) */
     ctx.globalAlpha = a; ctx.fillStyle = 'rgba(255,244,230,.95)'; rr(W / 2 - tw / 2, y - 22, tw, 44, 12); ctx.fill(); txt('「' + q.s + '」', W / 2, y, 17, '#3a0a14', { stroke: 0, box: tw - 24 }); ctx.globalAlpha = 1; }
-  if (G.t < 6 && !G.cards) { ctx.globalAlpha = Math.min(1, (6 - G.t) / 1.5); txt('화면을 누른 채 끌어서 움직여요', W / 2, H * 0.78, 17, '#e8dcff', { w: 800 }); txt('쓰러뜨린 적이 내 해골 병사로 일어나요', W / 2, H * 0.78 + 26, 15, '#c9a2ff', { w: 800 }); ctx.globalAlpha = 1; }
+  if (G.t < 6 && !G.cards) { ctx.globalAlpha = Math.min(1, (6 - G.t) / 1.5); txt(G.idle ? '가만히 둬도 알아서 싸워요 · 끌면 직접 움직여요' : '화면을 누른 채 끌어서 움직여요', W / 2, H * 0.78, 17, '#e8dcff', { w: 800 }); txt('쓰러뜨린 적이 내 해골 병사로 일어나요', W / 2, H * 0.78 + 26, 15, '#c9a2ff', { w: 800 }); ctx.globalAlpha = 1; }
 }
 function drawCards() {
   ctx.fillStyle = 'rgba(6,2,14,.82)'; ctx.fillRect(0, 0, W, H);
