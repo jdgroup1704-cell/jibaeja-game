@@ -336,7 +336,7 @@ function updateFx(dt) {
   for (const m of G.marks) m.t += dt; G.marks = G.marks.filter(m => m.t < 0.9);
   for (const d of G.dead) d.t += dt; G.dead = G.dead.filter(d => d.t < 0.5); for (const p of G.pillars) p.t += dt; G.pillars = G.pillars.filter(p => p.t < 0.55);
   for (const z of G.zaps) z.t += dt; G.zaps = G.zaps.filter(z => z.t < 0.2); for (const q of G.handFx) q.t += dt; G.handFx = G.handFx.filter(q => q.t < 0.8); G.flashW = Math.max(0, (G.flashW || 0) - dt * 2);
-  G.rallyCd -= dt; G.rallyOn -= dt; { let n = 0; for (const a of G.allies) if (!a.dead) n++; if (n > (G.armyMax || 0)) G.armyMax = n; } if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } if (G.bossSay) { G.bossSay.t += dt; if (G.bossSay.t > 2.8) G.bossSay = null; } if (G.boss && !G.boss.dead && !G.bossHalf && G.boss.hp < G.boss.max * 0.5) { G.bossHalf = 1; G.bossSay = { s: CHAPTERS[G.ch].lines[1], t: 0 }; }
+  G.rallyCd -= dt; G.rallyOn -= dt; { let n = 0; for (const a of G.allies) if (!a.dead) n++; if (n > (G.armyMax || 0)) G.armyMax = n; } if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } if (G.gemPop > 0) G.gemPop -= dt; if (G.clr) { G.clr.t += dt; if (G.clr.t > (G.clr.boss ? 3.4 : 2.6)) G.clr = null; } if (G.bossSay) { G.bossSay.t += dt; if (G.bossSay.t > 2.8) G.bossSay = null; } if (G.boss && !G.boss.dead && !G.bossHalf && G.boss.hp < G.boss.max * 0.5) { G.bossHalf = 1; G.bossSay = { s: CHAPTERS[G.ch].lines[1], t: 0 }; }
 }
 /* ── 오늘의 임무(하루 3개 · 날짜 바뀌면 새로) ── */
 const DAILY = [{ key: 'k', name: '적 500명 쓰러뜨리기', need: 500, gem: 40 }, { key: 's', name: '스테이지 5개 돌파하기', need: 5, gem: 40 }, { key: 'e', name: '마법 진화 1번 하기', need: 1, gem: 40 }];
@@ -440,7 +440,10 @@ function idleTick(dt) { if (BOT && Q.has('buy') && (G.buyT = (G.buyT || 0) + dt)
 function gemMul() { return (1 + META.up.gold * 0.1 + relOf().g) * ((META.monthUntil || 0) > Date.now() ? 1.2 : 1); }   /* 월정액 쓰는 동안 결정 +20% */
 function stageClear() { const s = G.stage, gain = Math.round((3 + s * 0.6) * (s % 10 === 0 ? 5 : 1) * gemMul());
   META.gems += gain; META.stage = Math.max(META.stage || 1, s + 1); if (s % 20 === 0) META.open = Math.max(META.open || 1, Math.min(3, 1 + s / 20)); META.bestStage = Math.max(META.bestStage || 0, s); dayFix(); META.dq.s = (META.dq.s || 0) + 1;
-  G.banner = { text: `스테이지 ${s} 돌파!  결정 +${gain}`, t: 0 }; SND.play('win', s % 10 === 0 ? 0.8 : 0.35); setStage(s + 1); saveRun(); saveMeta(); }
+  SND.play('win', s % 10 === 0 ? 0.8 : 0.35); setStage(s + 1); G.banner = null; G.P.cast = 0.2;
+  const ng = Math.min(14, 5 + Math.floor(gain / 8)); G.clr = { t: s % 10 === 0 ? -1.3 : 0, s, gain, boss: s % 10 === 0, reg: s % 20 === 0 ? CHAPTERS[G.ch].name : null, g: Array.from({ length: ng }, (_, i) => ({ x: W / 2 + rnd(-100, 100), y: H * 0.52 - rnd(0, 90), d: 0.35 + i * 0.06, done: 0 })) };   /* 돌파 연출: 글자 튀어나옴 · 결정이 날아가 위 칸에 들어감 · 군단 환호 · 다음 스테이지 소개 */
+  saveRun(); saveMeta(); }
+function clrLeft() { const c = G && G.clr; if (!c) return 0; let n = 0; for (const g of c.g) if (!g.done) n++; return Math.round(c.gain * n / c.g.length); }
 function retreat() { const P = G.P; G.retreats = (G.retreats || 0) + 1; P.hp = P.max; P.inv = 3; for (const f of G.foes) f.dead = true; G.foes = []; G.arrows = []; G.slam = null; G.bossSay = null;
   G.allies = G.allies.filter((a, i) => i % 2 === 0); const s = Math.max(1, G.stage - 1); setStage(s); G.banner = { text: `후퇴! 스테이지 ${s}에서 힘 모으기`, t: 0 }; shake = 14; SND.play('slam', 0.5); saveRun(); }
 function saveRun() { if (!G || !G.idle || BOT) return; META.run = META.run || {}; META.run[G.lord] = { lvl: G.lvl, xp: G.xp, next: G.next, W: G.W, L: G.L, E: G.E, S: G.S, max: G.P.max, kills: G.kills, U: { ...META.up }, aw: META.awake || 0, rel: relOf() }; saveMeta(); }
@@ -525,7 +528,8 @@ function drawMain() {
   const list = []; for (const f of G.foes) list.push(f); for (const a of G.allies) list.push(a); list.push(P);
   list.sort((a, b) => a.y - b.y);
   for (const e of list) { const sh = e === P ? 20 : e.boss ? 60 : e.big ? 18 : (e.r || 12) * 1.1; ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(e.x, e.y, sh, sh * 0.32, 0, 0, 7); ctx.fill(); if (e !== P && !e.kind && e.rise >= 1) { ctx.strokeStyle = 'rgba(95,255,200,.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(e.x, e.y, sh + 3, (sh + 3) * 0.34, 0, 0, 7); ctx.stroke(); } }
-  for (const e of list) {
+  let cjOn = 0; const cjK = G.clr && G.clr.t >= 0 ? G.clr.t : 9;
+  for (const e of list) { if (cjOn) { ctx.restore(); cjOn = 0; } if (cjK < 1.6 && e !== P && !e.kind && e.rise >= 1) { ctx.save(); cjOn = 1; ctx.translate(0, -Math.abs(Math.sin(cjK * 9 + e.ang * 4)) * 16 * (1 - cjK / 1.6)); }   /* 돌파 때 군단이 펄쩍펄쩍(환호) */
     if (e === P) { const h = 112, bob = P.moving ? 0 : Math.sin(T * 3) * 1.5; ctx.save(); if (P.inv > 0 && Math.floor(T * 20) % 2) ctx.globalAlpha = 0.55; { const mv = P.moving, cs = (P.cast || 0) / 0.2, b2 = mv ? -Math.abs(Math.sin(T * 10)) * 5 : bob;   /* 군주는 한 그림만(두건 군주): 걸을 땐 통통 · 기울기, 쏠 땐 늘었다 줄기 */
         spr(lordSpr('lordIdle', G.lord), T * (mv ? 22 : 14), P.x, P.y + b2, h, P.dir, { flash: P.hurt + cs * 0.12, rot: mv ? P.dir * 0.07 : 0, sx: 1 - cs * 0.06, sy: 1 + cs * 0.08 });
         if (cs > 0) { const hx = P.x + P.dir * 34, hy = P.y - 58 + b2, g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 26 * (0.5 + cs)); g.addColorStop(0, 'rgba(255,240,255,.95)'); g.addColorStop(0.4, 'rgba(180,120,255,.6)'); g.addColorStop(1, 'rgba(120,60,255,0)'); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hx, hy, 26 * (0.5 + cs), 0, 7); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; } } ctx.restore(); continue; }
@@ -542,6 +546,7 @@ function drawMain() {
     if (K2 && IMG[SP[K2].i] && IMG[SP[K2].i].naturalWidth) { const hop = Math.abs(Math.sin(e.wf * 0.22)) * 3, at = e.af >= 0 ? Math.sin(Math.min(1, e.af) * 3.14) : 0; spr(K2, 0, e.x, e.y - hop, h * (e.ut === 'shield' ? 1.05 : 1), e.dir, { rim, flash: 0.06, rot: e.dir * (e.ut === 'arch' ? -0.12 : 0.15) * at, sx: 1 + at * 0.05 }); }   /* 궁수 · 방패 해골: 한 장 그림 + 통통 · 쏠 때 젖힘 */
     else if (e.af >= 0) spr('skAtk', e.af, e.x, e.y, h, e.dir, { rim, flash: 0.06 }); else spr('skWalk', e.wf, e.x, e.y, h, e.dir, { rim, flash: 0.06 });
   }
+  if (cjOn) ctx.restore();
   /* 솟는 빛기둥 */
   ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (const p of G.pillars) { const k = p.t / 0.55, a = (k < 0.2 ? k / 0.2 : 1 - (k - 0.2) / 0.8) * 0.8, w = p.big ? 34 : 22, hh = p.big ? 170 : 120; const gr = ctx.createLinearGradient(0, p.y - hh, 0, p.y); gr.addColorStop(0, 'rgba(150,80,255,0)'); gr.addColorStop(1, `rgba(190,130,255,${a})`); ctx.fillStyle = gr; ctx.fillRect(p.x - w / 2, p.y - hh, w, hh); } ctx.restore();
   /* 사슬 번개 */
@@ -581,7 +586,7 @@ function drawHud() {
   const left = Math.max(0, RUN_LEN - G.t), mm = Math.floor(left / 60), ss = Math.floor(left % 60);
   if (G.idle) { txt(`스테이지 ${G.stage}`, W / 2, top + 32, W < 400 ? 18 : 22, G.stBoss ? '#ff8a6a' : '#ffffff'); if (!G.stBoss) { const bw = 120, bx = W / 2 - bw / 2, by = top + 48; ctx.fillStyle = 'rgba(0,0,0,.6)'; rr(bx, by, bw, 7, 3.5); ctx.fill(); ctx.fillStyle = '#8affb0'; rr(bx, by, bw * Math.min(1, G.stK / G.stNeed), 7, 3.5); ctx.fill(); } }
   else txt(G.bossOn ? '보스전' : `${mm}:${String(ss).padStart(2, '0')}`, W / 2, top + 36, 26, G.bossOn ? '#ff8a6a' : '#ffffff');
-  if (G.idle) { icon('relic_glass', 22, top + 36, 24); txt(META.gems + '', 38, top + 37, 17, '#ffe9c0', { align: 'left' }); } else { icon('i_soul', 22, top + 36, 22); txt(G.kills + '', 38, top + 37, 17, '#e8dcff', { align: 'left' }); }
+  if (G.idle) { { const pop = G.gemPop > 0 ? G.gemPop / 0.18 : 0; icon('relic_glass', 22, top + 36, 24 * (1 + pop * 0.35)); txt((META.gems - clrLeft()) + '', 38, top + 37, 17 + pop * 3, pop > 0 ? '#ffffff' : '#ffe9c0', { align: 'left' }); } } else { icon('i_soul', 22, top + 36, 22); txt(G.kills + '', 38, top + 37, 17, '#e8dcff', { align: 'left' }); }
   const army = G.allies.filter(a => !a.dead).length; icon('i_army', W - 118, top + 36, 24); txt(`${army}/${G.S.cap}`, W - 102, top + 37, 17, army >= G.S.cap ? '#ffd23a' : '#c9a2ff', { align: 'left' });
   if (MODE === 'play' && G.idle && META.speed2 && !G.cards) { const sx = W - 46, sy = 86; ctx.fillStyle = META.spd === 2 ? 'rgba(90,60,10,.9)' : 'rgba(20,10,36,.85)'; rr(sx, sy, 36, 30, 9); ctx.fill(); ctx.strokeStyle = META.spd === 2 ? '#ffd23a' : '#6a4aa0'; ctx.lineWidth = 1.5; ctx.stroke(); txt(META.spd === 2 ? "×2" : "×1", sx + 18, sy + 15, 14, META.spd === 2 ? '#ffe08a' : '#c9b8e8'); BTNS.push({ x: sx, y: sy, w: 36, h: 30, fn: () => { META.spd = META.spd === 2 ? 1 : 2; saveMeta(); } }); }
   if (MODE === 'play' && !G.cards && !G.over && !G.reviveAsk) { const bx = W - 46, by = top + 20; ctx.fillStyle = 'rgba(20,10,36,.85)'; rr(bx, by, 36, 34, 10); ctx.fill(); ctx.strokeStyle = '#6a4aa0'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.fillStyle = '#e8dcff'; ctx.fillRect(bx + 12, by + 10, 4, 14); ctx.fillRect(bx + 20, by + 10, 4, 14); BTNS.push({ x: bx - 6, y: by - 6, w: 48, h: 46, fn: () => { G.paused = 1; JOY.on = false; } }); }
@@ -599,6 +604,14 @@ function drawHud() {
       txt('눌러 보세요! 군단이 세져요', tx + tw / 2, ty + 22, 15, '#3a0a14', { stroke: 0, box: tw - 16 }); } }
   if (G.boss && !G.boss.dead) { const w = W - 60, x = 30, y = top + 58; ctx.fillStyle = 'rgba(0,0,0,.7)'; rr(x, y, w, 12, 6); ctx.fill(); ctx.fillStyle = '#ff4a3a'; rr(x + 1, y + 1, (w - 2) * G.boss.hp / G.boss.max, 10, 5); ctx.fill(); txt(CHAPTERS[G.ch].boss, W / 2, y + 22, 13, '#ffd2c8'); }
   if (G.banner) { const k = G.banner.t, a = Math.min(1, k * 3, (2.6 - k) * 2); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(40,0,10,.75)'; ctx.fillRect(0, H * 0.3 - 30, W, 60); txt(G.banner.text, W / 2, H * 0.3, 26, '#ffd2c8', { box: W - 24 }); ctx.globalAlpha = 1; }
+  if (G.clr && G.clr.t >= 0) { const c = G.clr, k = c.t, L = c.boss ? 3.4 : 2.6, a = Math.max(0, Math.min(1, k * 5, (L - k) * 2.5)), cy = Math.max(120, H * 0.22), sc = k < 0.22 ? 0.5 + k / 0.22 * 0.65 : k < 0.36 ? 1.15 - (k - 0.22) / 0.14 * 0.15 : 1;
+    G.bossSay = null; if (c.boss && k < 0.4) { ctx.fillStyle = `rgba(255,236,190,${0.5 * (1 - k / 0.4)})`; ctx.fillRect(0, 0, W, H); }
+    ctx.globalAlpha = a; ctx.fillStyle = c.boss ? 'rgba(50,20,0,.78)' : 'rgba(20,6,40,.75)'; ctx.fillRect(0, cy - 44, W, 104); ctx.fillStyle = c.boss ? '#ffc94a' : '#a77bff'; ctx.fillRect(0, cy - 44, W, 3); ctx.fillRect(0, cy + 57, W, 3);
+    txt(c.boss ? '보스 격파!' : `스테이지 ${c.s} 돌파!`, W / 2, cy - 8, Math.round((W < 400 ? 30 : 36) * sc), c.boss ? '#ffd86a' : '#ffffff', { box: W - 30 });
+    if (k > 0.45) { const k2 = Math.min(1, (k - 0.45) * 4); ctx.globalAlpha = a * k2; txt(c.reg ? `새 지역 — ${c.reg}` : c.boss ? `스테이지 ${c.s} · 결정 +${c.gain}` : `결정 +${c.gain}`, W / 2 + (1 - k2) * 40, cy + 34, W < 400 ? 17 : 19, c.reg ? '#9effd0' : '#ffe9a8', { box: W - 40 }); }
+    ctx.globalAlpha = 1;
+    for (const g of c.g) { if (k < g.d || g.done) continue; const p = Math.min(1, (k - g.d) / 0.5), e = p * p, x = g.x + (22 - g.x) * e, y = g.y + (46 - g.y) * e - Math.sin(p * Math.PI) * 70; ctx.save(); ctx.shadowColor = '#ffe08a'; ctx.shadowBlur = 14; icon('relic_glass', x, y, 34 - e * 12); ctx.restore(); if (p >= 1) { g.done = 1; G.gemPop = 0.18; } }
+  }
   if (G.bossSay) { const q = G.bossSay, a = Math.min(1, q.t * 5, (2.8 - q.t) * 3), y = Math.max(126, H * 0.3 - 54), tw = Math.min(W - 30, 360);   /* 보스 대사 — 화면 고정 칸(머리 위는 위 띠에 가려짐) */
     ctx.globalAlpha = a; ctx.fillStyle = 'rgba(255,244,230,.95)'; rr(W / 2 - tw / 2, y - 22, tw, 44, 12); ctx.fill(); txt('「' + q.s + '」', W / 2, y, 17, '#3a0a14', { stroke: 0, box: tw - 24 }); ctx.globalAlpha = 1; }
   if (G.t < 6 && !G.cards) { ctx.globalAlpha = Math.min(1, (6 - G.t) / 1.5); txt('화면을 누른 채 끌어서 움직여요', W / 2, H * 0.78, 17, '#e8dcff', { w: 800 }); txt('쓰러뜨린 적이 내 해골 병사로 일어나요', W / 2, H * 0.78 + 26, 15, '#c9a2ff', { w: 800 }); ctx.globalAlpha = 1; }
@@ -688,4 +701,4 @@ function frame(now) {
 }
 requestAnimationFrame(frame);
 if (Q.has('ch')) META.ch = +Q.get('ch'); if (BOT || Q.has('play')) newRun();
-window.GAME = { get G() { return G; }, get MODE() { return MODE; }, newRun, META, rollCards, CARDS, EVO, LORDS, hurtLord, raise, saveMeta, CLIP, setMode: m => { MODE = m; }, get W() { return W; } };
+window.GAME = { get G() { return G; }, get MODE() { return MODE; }, newRun, META, rollCards, CARDS, EVO, LORDS, hurtLord, raise, stageClear, saveMeta, CLIP, setMode: m => { MODE = m; }, get W() { return W; } };
