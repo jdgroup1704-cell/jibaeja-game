@@ -2221,7 +2221,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1119031948'; let updReady = null;
+  const BUILD = '1119032343'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'], UPD2 = ['raid', 'arena', 'help', 'gear', 'cosm', 'dgsel'];
   function updToast() { try { if (document.getElementById('updT')) return; const d = document.createElement('div'); d.id = 'updT'; d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:98;background:rgba(40,16,8,.94);border:2px solid #ffc864;border-radius:14px;padding:10px 16px;color:#ffe9b0;font:800 15px system-ui,sans-serif;text-align:center;pointer-events:none;max-width:92vw'; d.innerHTML = '🆕 새 업데이트가 올라왔어요<div style="font-size:12.5px;font-weight:700;color:#fff;margin-top:3px">마을로 가면 바로 적용돼요</div>'; document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch (e) {} }, 6000); } catch (e) {} }
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
@@ -3350,7 +3350,7 @@
       if (!isApp && meta.instDone && !instEvt) { ibtn('✅', '설치됨', W - 70, y, () => { townPop = { txt: '✅ 앱이 설치돼 있어요', sub: '홈 화면 「한 층만 더」 아이콘으로 여세요', t0: t }; }, false); y += 62; }
       else if (!isApp && (!meta.pwaGift || instEvt || IS_AND)) { ibtn('📲', '앱 설치', W - 70, y, smartInstall, !meta.pwaGift, meta.pwaGift ? '' : '🎁'); y += 62; }
       if (FS_OK && !isApp) { ibtn('📱', fsOn() ? '작은 화면' : '큰 화면', W - 70, y, fsToggle, false); y += 62; }
-      if ((meta.best || 0) >= 10) { const gl3 = dgLeft(); ibtn('⛏️', '일일 던전', W - 70, y, () => dgOpen(), gl3 > 0, gl3 > 0 ? '' + gl3 : ''); y += 62; }
+      if ((meta.best || 0) >= 10) { const gl3 = dgLeft(); ibtn('⛏️', '일일 던전', W - 70, y, () => dgOpen(), gl3 > 0, gl3 > 0 ? ((typeof swCan282 === 'function' && (swCan282('gd') || swCan282('mn'))) ? '⚡' : '') + gl3 : ''); y += 62; }
       ibtn('💳', vipLv() ? 'VIP ' + vipLv() : '유료 상점', W - 70, y, () => openShop('town'), false, PAYLOCK() ? '' : (meta.bought && meta.bought.starter ? '' : '5배')); y += 62; ibtn('❓', '도움말', W - 70, y, () => openHelp(0, 'town'), !meta.help54, !meta.help54 ? 'N' : ''); townTiles(); }
     // 4) 내 옷 이름(용사 머리 위) · 다음 고비(용사 발밑)
     { const nm = myNick() + nmEmb(), ti = rdT() || arT() || fTitle() || curTitle(); if (ti) { const tc = titleCol(ti); if (tc[1]) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(W / 2, 244, 80, tc[1], .16 + .06 * Math.sin(t * .1)); ctx.restore(); } txt(tc[2] + ' 「' + ti + '」', W / 2, 244, 14, tc[0], FT); }
