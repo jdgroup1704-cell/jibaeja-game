@@ -340,9 +340,10 @@ const UI = {
     if (this.autoGrave && st.bones > 0) this.raiseGrave(st.bones);
     // 위 숫자
     const boss = st.boss;
-    $('hud').innerHTML = `<div class="r1"><span class="chip stg">${boss ? L.stageBoss(st.stage) : `${L.stage(st.stage)} <span class="pips">${Array.from({ length: JB.C.WAVES }, (_, i) => `<i class="${i < st.wave ? 'on' : i === st.wave ? 'now' : ''}"></i>`).join('')}</span> <small>${L.toBoss(JB.C.BOSS_EVERY - (st.stage % JB.C.BOSS_EVERY || JB.C.BOSS_EVERY) )}</small>`}</span><span class="chip" id="rank">${L.rankName(st.awakens)}</span><span class="sp"></span>${JB.unlocked(st, 'hero') ? `<span class="chip shopc" data-shop="1">${IC('b_shop')}${L.shop.btn}</span>` : ''}<span class="chip vip" data-vip="1">${IC('i_vip')}${L.vip.chip(JB.vipLv(st))}</span></div><div class="r2">`
+    $('hud').innerHTML = `<div class="r1"><span class="chip stg">${boss ? L.stageBoss(st.stage) : `${L.stage(st.stage)} <span class="pips">${Array.from({ length: JB.C.WAVES }, (_, i) => `<i class="${i < st.wave ? 'on' : i === st.wave ? 'now' : ''}"></i>`).join('')}</span> <small>${L.toBoss(JB.C.BOSS_EVERY - (st.stage % JB.C.BOSS_EVERY || JB.C.BOSS_EVERY) )}</small>`}</span><span class="chip" id="rank">${L.rankName(st.awakens)}</span><span class="sp"></span>${JB.unlocked(st, 'hero') ? `<span class="chip shopc" data-shop="1">${IC('b_shop')}<em class="sht">${L.shop.btn}</em></span>` : ''}<span class="chip vip" data-vip="1">${IC('i_vip')}${L.vip.chip(JB.vipLv(st))}</span></div><div class="r2">`
       + `<span class="chip" title="${L.army}">${IC('i_army')}${JB.armySize(st).toLocaleString('ko-KR')}</span><span class="chip cur" data-cur="souls" title="${L.souls}">${IC('i_soul')}${fmt(st.souls)}</span>`
       + (JB.unlocked(st, 'grave') || JB.unlocked(st, 'gear') ? `<span class="chip cur" data-cur="bones" title="${L.bones}">${IC('i_bone')}${st.bones}</span>` : '') + `<span class="chip cur gem" data-cur="gems" title="${L.gems}">${IC('i_gem')}${st.gems}<b class="plus">+</b></span>`   /* 03:25 마정석은 처음부터 보이고 「+」(유료 재화 = 상점) · 뼛조각은 제단(4판)부터 */ + '</div>';   /* 위 띠 두 줄: 판 · 이름 · 귀빈 / 자원 넷. 자원은 그림 아이콘 + 숫자(글자 이름은 손가락 올리면) */
+    hudFit();
     { const sg = $('hud').querySelector('.stg'); if (sg && /^\s*\d+막 /.test(sg.innerHTML)) sg.innerHTML = sg.innerHTML.replace(/(\d+막) /, '<i class="act">$1</i>'); }   /* 11-16 「2막」은 판 숫자 위 작은 줄로(「빠른 보상」과 붙었음 — 후반 사진) */
     // 거대한 적 체력
     const bb = $('bossbar');
@@ -376,7 +377,7 @@ const UI = {
     if (this.ptrDown && !force) return;
     if (!this.tipSeen) this.tipSeen = {}; if (this.tab !== this.tipTab) { this.tipTab = this.tab; this.tipSeen[this.tab] = (this.tipSeen[this.tab] || 0) + 1; }   /* 21:58 대표님 「항목별 불편」: 탭 설명 줄은 그 탭을 처음 두 번 열 때만 */
     const tip = L.tabTip && L.tabTip[this.tab] && !['up', 'mission'].includes(this.tab) && this.tipSeen[this.tab] <= 2 ? `<div class="ttip"><b>${L.tabs[this.tab]}</b> ${L.tabTip[this.tab]}</div>` : '';   /* 19:12 탭마다 맨 위 한 줄 설명 */
-    { const pn = $('panel'); if (pn && pn.dataset.t !== this.tab) { pn.dataset.t = this.tab; pn.className = 't-' + this.tab; } }
+    { const pn = $('panel'); if (pn && pn.dataset.t !== this.tab) { pn.dataset.t = this.tab; pn.className = 't-' + this.tab; const ap = $('app'); if (ap) ap.classList.toggle('big', this.tab !== 'up'); $('tabbody').scrollTop = 0; } }   /* 11-18 10:43 대표님 사진 셋 「상태창 · 업그레이드 창을 스크롤로 내리는데 어떻게 이렇게 불편」: 강화 말고 다른 탭은 아래 창이 화면 절반 넘게 올라옴(싸움터는 위에 작게) — 끌어 올리는 손잡이는 없음(11-14 「위아래 내릴 수 있으니 헷갈려」) */
     const html = tip + this['tab_' + this.tab](); if (html !== this.lastBody) { $('tabbody').innerHTML = html; this.lastBody = html; }
     /* 안내 줄이 「소환」을 말하면 그 단추가 금빛으로 깜빡임(16:05 첫 흐름 화면: 안내만 있고 단추가 안 보여 군단 10에 멈춤) */
     { const g = this.guideText(), ks = Object.keys(JB.UPGRADES).filter(k => JB.unlocked(st, k) && st.souls >= JB.upCost(k, st.up[k])).sort((a, b) => JB.upCost(a, st.up[a]) - JB.upCost(b, st.up[b]));
@@ -529,7 +530,7 @@ const UI = {
   labDone(r) { r = r || JB.labCheck(st, Date.now()); if (!r || !r.id) return; const t = L.lab.done(L.lab.names[r.id], r.lv); this.toast(L.lab.title, t); this.feed(t); conquestFx(t, L.lab.title, '#cfe9ff', '#4f8bff', 'lab'); },
   relicVal(id, lv) { const r = JB.RELICS.find(x => x.id === id); return r.stat === 'time' ? lv * r.per : Math.round(lv * r.per * 100); },
   tab_crypt() {
-    JB.dunDay(st); const open = { dun: JB.unlocked(st, 'dungeon'), keep: JB.unlocked(st, 'keep'), crypt: JB.unlocked(st, 'crypt'), map: JB.unlocked(st, 'map'), lab: JB.unlocked(st, 'lab') }, lockTxt = { dun: L.lockedAt(JB.C.UNLOCK.dungeon), keep: L.lockedAt(JB.C.UNLOCK.keep), crypt: st.crypt.open ? L.crypt.tomorrow : L.lockedAt(JB.C.CRYPT.unlock), map: L.map.lockDay(JB.C.MAP.day), lab: L.map.lockDay(JB.C.LAB.day) };
+    JB.dunDay(st); const open = { dun: JB.unlocked(st, 'dungeon'), keep: JB.unlocked(st, 'keep'), crypt: JB.unlocked(st, 'crypt'), map: JB.unlocked(st, 'map'), lab: JB.unlocked(st, 'lab') }, lockTxt = { dun: L.lockedAt(JB.C.UNLOCK.dungeon), keep: L.lockedAt(JB.C.UNLOCK.keep), crypt: st.crypt.open ? L.crypt.tomorrow : L.lockedAt(JB.C.CRYPT.unlock), map: `${JB.C.MAP.day}일째`, lab: `${JB.C.LAB.day}일째` };   /* 11-18 「5번째 접속하…」가 작은 탭에서 잘림 → 짧게(자세한 말은 눌렀을 때 알림) */
     if (!this.expView || !open[this.expView]) this.expView = ['dun', 'keep', 'crypt', 'map', 'lab'].find(k => open[k]);
     const sub = `<div class="subtabs">${['dun', 'keep', 'crypt', 'map', 'lab'].map(k => `<button class="btn ${this.expView === k ? 'gold' : ''}" data-act="exp" data-arg="${k}" ${open[k] ? '' : 'disabled'}>${L.map.sub[k]}${open[k] ? '' : `<br><small>${lockTxt[k]}</small>`}</button>`).join('')}</div>`;
     return sub + ({ keep: () => this.keepView(), dun: () => this.dunView(), map: () => this.mapView(), lab: () => this.labView(), crypt: () => this.cryptView() }[this.expView])();

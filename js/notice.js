@@ -15,7 +15,7 @@ const NOTICE = {
     if (it.run) { it.run(); return; }
     { const bv = document.getElementById('bvb'); if (bv) bv.classList.remove('on'); }   /* 띠가 뜨면 보스 말풍선은 내림(한 번에 하나) */
     const e = this.box(); e.className = it.cls || ''; e.style.setProperty('--c', it.col || '#ffe9a8'); e.style.setProperty('--g', it.glow || '#8a3cff');
-    { const bb = e.querySelector('b'); bb.textContent = it.title || ''; const w = (e.parentElement || document.body).getBoundingClientRect().width - 20, len = Math.max(1, (it.title || '').length); bb.style.fontSize = Math.max(18, Math.min(34, w / (len * 1.02))) + 'px'; }   /* 글자 수에 맞춰 크기를 줄여 한 줄에 다 들어가게(「경고 · 거대한 적이 다가…」처럼 잘리지 않게) */ const sm = e.querySelector('small'); sm.textContent = it.sub || ''; sm.style.display = it.sub ? '' : 'none';
+    { const bb = e.querySelector('b'); bb.textContent = it.title || ''; const w = (e.parentElement || document.body).getBoundingClientRect().width - 20, len = Math.max(1, (it.title || '').length); bb.style.fontSize = Math.max(16, Math.min(it.max || 34, w / (len * 1.02))) + 'px'; }   /* 글자 수에 맞춰 크기를 줄여 한 줄에 다 들어가게(「경고 · 거대한 적이 다가…」처럼 잘리지 않게) */ const sm = e.querySelector('small'); sm.textContent = it.sub || ''; sm.style.display = it.sub ? '' : 'none';
     e.style.setProperty('--ms', (it.ms || 1700) + 'ms'); void e.offsetWidth; e.classList.add('on');
   },
   /* director.js say(…, {screen:true}) → 여기로: 큰 글자는 새 띠, 바로 뒤(0.15초 안) 작은 글자는 그 띠의 둘째 줄 */
@@ -23,9 +23,15 @@ const NOTICE = {
     if (typeof text !== 'string' || !text) return; const n = this.now(), big = (o.size || 28) >= 34;
     const p = this.last && n - this.last.t < 150 ? this.last.it : null;
     if (!big && p && !p.sub) { p.sub = text; if (!this.q.includes(p)) { const e = this.box(); if (e.classList.contains('on')) { const sm = e.querySelector('small'); sm.textContent = text; sm.style.display = ''; } } return; }
-    const it = { pri: o.pri || (big ? 2 : 1), ms: Math.max(1200, Math.min(2600, (o.life || 1.7) * 1000)), title: text, col: o.col, glow: o.glow, cls: o.cls || '' };
+    const it = { pri: o.pri || (big ? 2 : 1), ms: Math.max(1200, Math.min(2600, (o.life || 1.7) * 1000)), title: text, col: o.col, glow: o.glow, cls: o.cls || '', max: big ? 34 : 24 };   /* 11-18 영상_그늘 49초: 작은 알림(「대마법 ○초」 size 32)도 띠 하나를 혼자 차지하면 34px로 커져 보스 몸을 가림 → 원래 작게 쓰라던 글(size 34 미만)은 24px까지만 */
     this.last = { t: n, it }; this.push(it);
   },
   banner(title, sub, o = {}) { const it = Object.assign({ pri: 2, ms: 1700, title, sub }, o); this.last = { t: this.now(), it }; this.push(it); },
 };
 setInterval(() => { NOTICE.tick(); if (NOTICE.busy()) { const bv = document.getElementById('bvb'); if (bv && bv.classList.contains('on')) bv.classList.remove('on'); } }, 100);
+
+/* 11-18 관문 ③ 잘림 76줄: 위 띠 자원 칩이 7개(상점 · 영혼 · 마정석 · 뼛조각 · 보석 · 사기 · VIP)면 360 폭에 안 들어가 「5000」→「500」 「3000+」의 + 단추가 잘림
+   → 그릴 때마다 재서 넘치면 한 단계(여백 · 그림 작게), 그래도 넘치면 두 단계(「상점」 글자 빼고 그림만) */
+function hudFit() { const h = document.getElementById('hud'); if (!h) return; h.classList.remove('t1', 't2', 't3');
+  const over = () => [...h.querySelectorAll('.chip')].some(c => c.offsetParent && c.scrollWidth > c.clientWidth + 1);
+  for (const t of ['t1', 't2', 't3']) { if (!over()) break; h.classList.add(t); } }

@@ -7,7 +7,7 @@ echo "① 안 때리는 병사"; R=$(timeout 60 node 공격재기.js $D 13 2>&1)
 pkill -f chrome 2>/dev/null
 echo "② 보스 동작"; sleep 2; R=$(timeout 80 node 보스재기.js $D 20 2>&1); echo "$R" | grep -q "오류 0" || { sleep 3; R=$(timeout 80 node 보스재기.js $D 20 2>&1); }; echo "$R" | grep -c "slam" | sed 's/^/  내려찍기 횟수 /'; echo "$R" | grep -q "slam" || { echo "  ✗ 보스가 안 때림"; F=1; }; echo "$R" | grep -q "오류 0" || { echo "  ✗ 오류"; F=1; }
 pkill -f chrome 2>/dev/null
-echo "③ 잘린 글자 · 화면 밖"; R=$(timeout 90 node 잘림점검.js $D 관문 2>&1); C=$(echo "$R" | grep -v "^[a-z]* goal" | grep -c "잘림:\|밖:"); echo "  잘림 줄 $C"; [ "$C" -gt 0 ] && { echo "$R" | grep "잘림:\|밖:" | head -5; F=1; }; echo "$R" | grep -q "오류 0" || { echo "  ✗ 오류"; F=1; }
+echo "③ 잘린 글자 · 화면 밖"; R=$(timeout 90 node 잘림점검.js $D 관문 2>&1); C=$(echo "$R" | grep -v "^[a-z]* goal" | grep -c "잘림:\|밖:"); echo "  잘림 줄 $C"; [ "$C" -gt 0 ] && { echo "  ✗ 잘림 · 화면 밖 $C줄"; echo "$R" | grep "잘림:\|밖:" | head -5; F=1; }   # 11-18 ✗ 표시가 없어 09:03 판을 잘림 76줄인 채 올림(실패 줄을 ✗로만 찾았음); echo "$R" | grep -q "오류 0" || { echo "  ✗ 오류"; F=1; }
 pkill -f chrome 2>/dev/null
 echo "④ 처음 10분"; R=$(timeout 200 node 첫10분재기.js $D 4 10 2>&1); echo "$R" | tail -2; echo "$R" | grep -q "오류 0" || { echo "  ✗ 오류"; F=1; }; G=$(echo "$R" | grep -o "가장 긴 틈 [0-9]*" | grep -o "[0-9]*$"); [ "${G:-999}" -gt 120 ] && { echo "  ✗ 2분 넘게 새것 없음"; F=1; }
 pkill -f chrome 2>/dev/null
@@ -65,5 +65,20 @@ echo "㊻ 사람 흉내 처음 3분(11-18 01:0x · 「봇이 통과해도 처음
 pkill -f chrome 2>/dev/null
 echo "㊼ 새 틀 알림 줄(11-18 대표님 03:09 「보스 격파! · 2페이지 · …분노! 세 겹」 · 03:15 「VS 보스 그림 크기 수십 번」): 후반 저장에서 경고 · 2페이지 · 격파 카드 · 고비 · 거인을 한꺼번에 → 동시에 뜬 큰 알림 1개 · VS 그림 · 이름이 싸움터 칸 안 · 오류 0"; R=$(timeout 120 node 알림줄재기.js $D 640 | tail -1); echo "  $R" | cut -c1-260; echo "$R" | python3 -c "import json,sys; r=json.load(sys.stdin); bad=[k for k,ok in [('동시 1개',r['동시최대']<=1),('VS 칸 안',r['VS칸안']),('오류',not r['오류'])] if not ok]; print('  알림 줄 통과' if not bad else '  ✗ 알림 줄: '+' · '.join(bad)+' %s' % r['그때']); sys.exit(1 if bad else 0)" || F=1
 pkill -f chrome 2>/dev/null
+echo "㊽ 큰 아래 창(11-18 10:43 대표님 사진 셋 「상태창 · 업그레이드 창을 스크롤로 내리는데 어떻게 이렇게 불편 · 마지막 기회」): 후반 저장 · 593 · 628 — 강화 탭은 강화 줄이 스크롤 없이 다 보임(보임 100%) · 싸움터 45%↑ / 다른 탭 12화면은 아래 창 60%↑ · 내용 칸 340px↑(628) · 싸움터 20%↑ · 오류 0"; for HH in 593 628; do R=$(timeout 150 node 아래창재기.js $D $HH 2>&1 | tail -1); echo "$R" | python3 -c "
+import json,sys
+d=json.load(sys.stdin); bad=[]
+for t in d['탭']:
+  if t['탭']=='up':
+    if t['보임']<100: bad.append('강화 탭 스크롤 필요 %dpx'%t['스크롤px'])
+    if t['싸움터']<45: bad.append('강화 탭 싸움터 %d%%'%t['싸움터'])
+  else:
+    if t['창']<60: bad.append('%s 창 %d%%'%(t['탭'],t['창']))
+    if d['높이']>=628 and t['내용높이']<340: bad.append('%s 내용 칸 %dpx'%(t['탭'],t['내용높이']))
+    if t['싸움터']<20: bad.append('%s 싸움터 %d%%'%(t['탭'],t['싸움터']))
+if d['오류']: bad.append('오류 '+str(d['오류'])[:120])
+print('  %d: '%d['높이']+' · '.join('%s 창%d 보임%d'%(t['탭'],t['창'],t['보임']) for t in d['탭'][:5])+' …')
+if bad: print('  ✗ '+' / '.join(bad)); sys.exit(1)
+print('  큰 아래 창 통과 %d'%d['높이'])" || F=1; done; pkill -f chrome 2>/dev/null
 echo "⑬ 직접 플레이 영상(고친 뒤 찍고 본 것 적기) — 11-15 19:56 「기능들도 전부 영상으로 직접 플레이 체크」"; python3 영상확인검사.py $1 || F=1
 [ $F = 0 ] && echo "관문 통과" || { echo "관문 실패"; exit 1; }

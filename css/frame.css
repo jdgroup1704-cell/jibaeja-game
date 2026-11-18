@@ -234,3 +234,27 @@ button.row.hint{border-color:var(--gold);animation:hintp 1s ease-in-out infinite
 /* 06:2x 눈_적크기: 각성 전 아래 안내 띠가 싸움터 아래쪽 영웅 이름표를 반쯤 덮음 → 안내 띠는 판 표시 바로 밑(위쪽 하늘) */
 #guide{top:58px!important;bottom:auto!important;left:16px!important;right:16px!important}
 #stagewrap:has(#notice.on) > #guide{opacity:0}
+
+/* 11-18 위 띠 칩이 넘칠 때(hudFit) */
+#hud .chip em.sht{font-style:normal}
+#hud.t1{gap:2px;padding:0 4px}
+#hud.t1 .chip{padding:0 4px;gap:1px}
+#hud.t1 .chip img.ic{width:16px;height:16px}
+#hud.t1 .chip b.plus{width:14px;height:14px;font-size:12px;margin-left:1px}
+#hud.t2 .chip em.sht{display:none}
+#hud.t2 .chip{font-size:12px;padding:0 3px}
+#hud.t2 .chip img.ic{width:15px;height:15px}
+#hud.t2 .chip.mor{font-size:11px;padding:0 3px}
+#hud.t3 .chip b.plus{display:none}
+#hud.t3 .chip{font-size:11.5px;padding:0 2px}
+/* 11-18 잘림점검: 모험 탭 작은 탭 다섯(던전 · 성채 · 지하 묘지 · 침공 지도 · 마법 연구)이 360 폭을 넘어 「마법 연구」가 화면 밖 → 칸을 나눠 줄임 */
+#tabbody .subtabs{gap:4px}
+#tabbody .subtabs .btn{min-width:0;padding-left:2px;padding-right:2px;white-space:nowrap;overflow:hidden}
+#tabbody .subtabs .btn:nth-last-child(5):first-child,#tabbody .subtabs .btn:nth-last-child(5):first-child~.btn{font-size:12.5px}
+
+/* 11-18 10:43 대표님 「상태창 · 업그레이드 창 스크롤 불편 · 마지막 기회」 → 강화 말고 다른 탭은 큰 창(싸움터는 위에 작게 계속 보임 · 기술 줄 · 목표 줄은 숨김) */
+#app.big #stagewrap{flex:0 0 26%;min-height:0}
+#app.big #skillbar{display:none}
+#app.big #panel{flex:1 1 0;height:auto;min-height:0}
+#app.big #panel #goal{display:none}
+#app.big #tabbody{padding:8px 10px 10px}
