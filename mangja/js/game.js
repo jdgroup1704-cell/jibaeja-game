@@ -38,9 +38,21 @@ const SP = {
 };
 for (const k in SP) img(SP[k].i);
 for (const n of ['lord_blood', 'lord_ice', 'u_magic', 'u_summon', 'u_bone', 'u_harvest', 'i_soul', 'i_army', 'relic_chain', 'relic_staff', 'relic_cloak', 'relic_ring', 'relic_crown', 'relic_glass', 'chest2', 'lord']) img(n);
-const RIM = {}; function rimOf(n, I, col) { const k = n + col; if (RIM[k] !== undefined) return RIM[k]; try { const c = document.createElement('canvas'); c.width = I.naturalWidth; c.height = I.naturalHeight; const x = c.getContext('2d'); x.drawImage(I, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height); RIM[k] = c; } catch (e) { RIM[k] = null; } return RIM[k]; }   /* 아군 테두리(밝은 윤곽) — 어두운 땅에서도 내 군단이 보이게 */
+const RIM = {}; function rimOf(n, I, col) { const k = n + col; if (RIM[k] !== undefined) return RIM[k]; if (!I._ok) { if (!I._dec) I._dec = (I.decode ? I.decode() : Promise.resolve()).then(() => { I._ok = 1; }, () => { I._ok = 1; }); return null; } try { const c = document.createElement('canvas'); c.width = I.naturalWidth; c.height = I.naturalHeight; const x = c.getContext('2d'); x.drawImage(I, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height); RIM[k] = c; } catch (e) { RIM[k] = null; } return RIM[k]; }   /* 아군 테두리(밝은 윤곽) — 어두운 땅에서도 내 군단이 보이게 */
+/* ── 군주 3명 ── */
+const LORDS = [
+  { name: '망령 군주', desc: '영혼탄으로 시작 · 고른 힘', w: 'bolt', hue: 0, lock: 0 },
+  { name: '뼈의 장군', desc: '사신의 낫으로 시작 · 군단 +4 · 병사 힘 +30% · 부활 +10%', w: 'scythe', hue: 130, lock: 2, need: '제1장을 깨면 열려요' },
+  { name: '역병 마녀', desc: '저주 늪으로 시작 · 마법 +15% · 영혼 끌기 +40%', w: 'pool', hue: 70, lock: 3, need: '제2장을 깨면 열려요' }];
+function lordOpen(i) { return (META.open || 1) >= (LORDS[i].lock || 0); }
+function hueSheet(n, deg) { const k = n + '#' + deg; if (IMG[k]) return IMG[k]; const I = IMG[n]; if (!I || !I.complete || !I.naturalWidth) return null; if (!I._ok) { if (!I._dec) I._dec = (I.decode ? I.decode() : Promise.resolve()).then(() => { I._ok = 1; }, () => { I._ok = 1; }); return null; }
+  try { const c = document.createElement('canvas'); c.width = I.naturalWidth; c.height = I.naturalHeight; const x = c.getContext('2d'); x.drawImage(I, 0, 0); const d = x.getImageData(0, 0, c.width, c.height), p = d.data;
+    const a = deg * Math.PI / 180, co = Math.cos(a), si = Math.sin(a), m = [0.213 + co * 0.787 - si * 0.213, 0.715 - co * 0.715 - si * 0.715, 0.072 - co * 0.072 + si * 0.928, 0.213 - co * 0.213 + si * 0.143, 0.715 + co * 0.285 + si * 0.140, 0.072 - co * 0.072 - si * 0.283, 0.213 - co * 0.213 - si * 0.787, 0.715 - co * 0.715 + si * 0.715, 0.072 + co * 0.928 + si * 0.072];
+    for (let i = 0; i < p.length; i += 4) { if (!p[i + 3]) continue; const r = p[i], g = p[i + 1], b = p[i + 2]; p[i] = m[0] * r + m[1] * g + m[2] * b; p[i + 1] = m[3] * r + m[4] * g + m[5] * b; p[i + 2] = m[6] * r + m[7] * g + m[8] * b; }
+    x.putImageData(d, 0, 0); IMG[k] = c; return c; } catch (e) { IMG[k] = I; return I; } }   /* 같은 그림을 색만 돌려 다른 군주로(사파리도 되게 화소로 직접) */
+function lordSpr(base, li) { const L = LORDS[li || 0]; if (!L.hue) return base; const S = SP[base], key = base + li; if (!SP[key]) SP[key] = { ...S }; const c = hueSheet(S.i, L.hue); SP[key].i = c && c !== IMG[S.i] ? S.i + '#' + L.hue : S.i; return key; }
 function spr(s, frame, x, y, h, dir, o = {}) {   /* dir: 1 = 오른쪽을 보게 */
-  const S = SP[s], I = IMG[S.i]; if (!I || !I.complete || !I.naturalWidth) { ctx.fillStyle = o.col || '#888'; ctx.beginPath(); ctx.ellipse(x, y - h / 2, h * 0.25, h / 2, 0, 0, 7); ctx.fill(); return; }
+  const S = SP[s], I = IMG[S.i]; if (!I || !(I.width && (I.naturalWidth || I.getContext))) { ctx.fillStyle = o.col || '#888'; ctx.beginPath(); ctx.ellipse(x, y - h / 2, h * 0.25, h / 2, 0, 0, 7); ctx.fill(); return; }
   const fi = ((Math.floor(frame) % S.n) + S.n) % S.n, C = S.cols || 10, c = fi % C, r = Math.floor(fi / C), sc = h / S.hpx;
   ctx.save(); ctx.translate(x, y); if (dir * S.face < 0) ctx.scale(-1, 1); if (o.sx) ctx.scale(o.sx, o.sy || 1);
   if (o.a != null) ctx.globalAlpha = o.a;
@@ -57,7 +69,7 @@ const SND = { ctx: null, buf: {}, bgm: null, init() { if (this.ctx || MUTE) retu
 
 /* ── 저장(강화 · 기록) ── */
 const SAVE_KEY = 'mangja_v1';
-const META = Object.assign({ gems: 0, best: 0, runs: 0, snd: 1, vib: 1, ch: 0, open: 1, up: { hp: 0, pow: 0, rise: 0, cap: 0, gold: 0 } }, (() => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch (e) { return {}; } })());
+const META = Object.assign({ gems: 0, best: 0, runs: 0, snd: 1, vib: 1, ch: 0, open: 1, lord: 0, up: { hp: 0, pow: 0, rise: 0, cap: 0, gold: 0 } }, (() => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch (e) { return {}; } })());
 const saveMeta = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(META)); } catch (e) {} };
 const META_UP = [
   { id: 'hp', name: '뼈 갑옷', desc: l => `최대 체력 +${l * 10}%`, cost: l => 20 + l * 20, max: 10, icon: 'relic_cloak' },
@@ -89,7 +101,10 @@ function newRun() {
     P: { x: 0, y: 0, hp: 120 * (1 + U.hp * 0.1), max: 120 * (1 + U.hp * 0.1), spd: 150, dir: 1, inv: 0, wf: 0, moving: 0, hurt: 0 },
     foes: [], allies: [], shots: [], arrows: [], orbs: [], fx: [], texts: [], pools: [], marks: [],
     S: { pow: 1 + U.pow * 0.08, rise: 0.4 + U.rise * 0.03, cap: 10 + U.cap * 2, allyPow: 1, spd: 1, magnet: 115, haste: 1 },
-    W: { bolt: 1, orbit: 0, pool: 0, scythe: 0, chain: 0, hands: 0 }, L: { bolt: 1 }, E: {}, cd: { bolt: 0, pool: 1.5, scythe: 2, chain: 1, hands: 1.5 }, spawnAcc: 0, dead: [], pillars: [], zaps: [], handFx: [] };
+    W: { bolt: 0, orbit: 0, pool: 0, scythe: 0, chain: 0, hands: 0 }, L: {}, E: {}, cd: { bolt: 0, pool: 1.5, scythe: 2, chain: 1, hands: 1.5 }, spawnAcc: 0, dead: [], pillars: [], zaps: [], handFx: [] };
+  G.lord = lordOpen(META.lord || 0) ? (META.lord || 0) : 0; if (Q.has('lord')) G.lord = +Q.get('lord'); const LD = LORDS[G.lord]; G.W[LD.w] = 1;
+  if (G.lord === 1) { G.S.cap += 4; G.S.allyPow += 0.3; G.P.max *= 1.2; G.P.hp = G.P.max; G.S.rise += 0.1; }
+  if (G.lord === 2) { G.S.pow *= 1.15; G.S.magnet *= 1.4; G.S.cap -= 2; G.P.max *= 0.9; G.P.hp = G.P.max; }
   if (Q.has('all')) { for (const k in G.W) G.W[k] = CARDS.find(c => c.id === k).max; for (const e of EVO) G.E[e.id] = 1; G.S.cap = 40; }   /* 시험: 모든 무기 진화 */
   MODE = 'play'; JOY.on = false; for (let i = 0; i < 6; i++) spawnFoe('foot');   /* 처음 1초부터 적이 보이게 */
 }
@@ -359,7 +374,7 @@ function draw() {
   list.sort((a, b) => a.y - b.y);
   for (const e of list) { const sh = e === P ? 20 : e.boss ? 60 : e.big ? 18 : (e.r || 12) * 1.1; ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.beginPath(); ctx.ellipse(e.x, e.y, sh, sh * 0.32, 0, 0, 7); ctx.fill(); if (e !== P && !e.kind && e.rise >= 1) { ctx.strokeStyle = 'rgba(95,255,200,.55)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(e.x, e.y, sh + 3, (sh + 3) * 0.34, 0, 0, 7); ctx.stroke(); } }
   for (const e of list) {
-    if (e === P) { const h = 112, bob = P.moving ? 0 : Math.sin(T * 3) * 1.5; ctx.save(); if (P.inv > 0 && Math.floor(T * 20) % 2) ctx.globalAlpha = 0.55; if (P.moving) spr('lordWalk', P.wf, P.x, P.y, h, P.dir, { flash: P.hurt }); else spr('lordIdle', T * 14, P.x, P.y + bob, h * 1.0, P.dir, { flash: P.hurt }); ctx.restore(); continue; }
+    if (e === P) { const h = 112, bob = P.moving ? 0 : Math.sin(T * 3) * 1.5; ctx.save(); if (P.inv > 0 && Math.floor(T * 20) % 2) ctx.globalAlpha = 0.55; if (P.moving) spr(lordSpr('lordWalk', G.lord), P.wf, P.x, P.y, h, P.dir, { flash: P.hurt }); else spr(lordSpr('lordIdle', G.lord), T * 14, P.x, P.y + bob, h * 1.0, P.dir, { flash: P.hurt }); ctx.restore(); continue; }
     if (e.kind) { const S = SP[e.s], atk = e.boss ? e.act !== 'idle' : e.atkA > 0, sa = SP[e.s + 'Atk'], hop = S.hop && !atk && !e.rootT ? Math.abs(Math.sin(e.wf * 0.28)) * (e.boss ? 6 : 5) : 0, br = e.boss && S.n === 1 ? 1 + Math.sin(T * 2.4) * 0.02 : 1;
       if (atk && sa) spr(e.s + 'Atk', e.boss ? Math.min(sa.n - 1, (e.act === 'raise' ? e.at / 1.0 * 8 : 8 + e.at / 0.6 * 8)) : (1 - e.atkA / 0.5) * (sa.n - 1), e.x, e.y, e.h, e.dir, { flash: e.flash });
       else spr(e.s, S.hop ? T * 14 + e.wf * 0.1 : e.wf, e.x, e.y - hop, e.h * br, e.dir, { flash: e.flash, sy: e.boss && e.act === 'raise' ? 1.04 : 1, sx: 1 });
@@ -437,7 +452,7 @@ function drawPause() {
 function drawResult() {
   const R = G.result; ctx.fillStyle = 'rgba(6,2,14,.86)'; ctx.fillRect(0, 0, W, H);
   txt(R.win ? '승리!' : '쓰러졌다', W / 2, H * 0.2, 44, R.win ? '#ffe08a' : '#ff8a8a');
-  txt(R.win ? `${CHAPTERS[G.ch].boss}을(를) 쓰러뜨렸어요` + (R.unlock ? ' · 새 지역 열림!' : '') : '군단은 다시 일어설 거예요', W / 2, H * 0.2 + 42, 16, '#d9c8ff', { w: 800 });
+  txt(R.win ? `${CHAPTERS[G.ch].boss}을(를) 쓰러뜨렸어요` + (R.unlock ? ' · 새 지역과 군주 열림!' : '') : '군단은 다시 일어설 거예요', W / 2, H * 0.2 + 42, 16, '#d9c8ff', { w: 800 });
   const rows = [['버틴 시간', `${Math.floor(R.t / 60)}분 ${Math.floor(R.t % 60)}초`], ['처치', R.kills], ['레벨', R.lvl], ['마지막 군단', R.army]]; let y = H * 0.34;
   for (const [a, b] of rows) { txt(a, W / 2 - 110, y, 18, '#c9b8e8', { align: 'left', w: 800 }); txt(b + '', W / 2 + 110, y, 20, '#fff', { align: 'right' }); y += 36; }
   icon('relic_glass', W / 2 - 60, y + 24, 40); txt(`결정 +${R.gain}`, W / 2 + 10, y + 26, 26, '#ffe08a'); y += 80;
@@ -447,12 +462,17 @@ function drawBg() { ctx.fillStyle = TILE; ctx.save(); ctx.translate(-T * 12 % 51
 function drawTitle() {
   drawBg(); const cx = W / 2;
   txt('망자의 군주', cx, H * 0.13, 46, '#e9dcff', { sc: '#2a0a50', lw: 9 }); txt('쓰러뜨린 적이 나의 군단이 된다', cx, H * 0.13 + 44, 16, '#c9a2ff', { w: 800 });
-  const h = Math.min(260, H * 0.32); spr('lordIdle', T * 14, cx - 6, H * 0.55, h, 1);
-  for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + T * 0.4, x = cx + Math.cos(a) * 120, y = H * 0.56 + Math.sin(a) * 26; spr('skWalk', T * 20 + i * 4, x, y, 52, Math.cos(a + 1.57) > 0 ? 1 : -1, { a: 0.85 }); }
+  const li = META.lord || 0, LD = LORDS[li], open = lordOpen(li), fy = Math.min(H * 0.5, H * 0.7 - 146), h = Math.min(230, H * 0.27, fy - H * 0.13 - 66);
+  for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + T * 0.4, x = cx + Math.cos(a) * 120, y = fy + 6 + Math.sin(a) * 26; if (Math.sin(a) < 0) spr('skWalk', T * 20 + i * 4, x, y, 52, Math.cos(a + 1.57) > 0 ? 1 : -1, { a: 0.85, rim: '#5fffc8' }); }
+  spr(lordSpr('lordIdle', li), T * 14, cx - 6, fy, h, 1, open ? {} : { a: 0.28 });
+  for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + T * 0.4, x = cx + Math.cos(a) * 120, y = fy + 6 + Math.sin(a) * 26; if (Math.sin(a) >= 0) spr('skWalk', T * 20 + i * 4, x, y, 52, Math.cos(a + 1.57) > 0 ? 1 : -1, { a: 0.85, rim: '#5fffc8' }); }
+  if (!open) txt('🔒', cx, fy - h * 0.45, 40, '#fff', { stroke: 0 });
+  txt(LD.name, cx, fy + 36, 22, open ? '#ffe08a' : '#9a8fae', { sc: '#1a0830', lw: 6 }); txt(open ? LD.desc : LD.need, cx, fy + 62, 13, open ? '#d9c8ff' : '#ff9a8a', { w: 800 });
+  button(cx - 160, fy - h * 0.55, 46, 52, '◀', () => { META.lord = (li + LORDS.length - 1) % LORDS.length; saveMeta(); }, { size: 18 }); button(cx + 114, fy - h * 0.55, 46, 52, '▶', () => { META.lord = (li + 1) % LORDS.length; saveMeta(); }, { size: 18 });
   { const C = CHAPTERS[META.ch], y = H * 0.7 - 46; ctx.fillStyle = 'rgba(20,10,36,.8)'; rr(cx - 140, y - 22, 280, 44, 12); ctx.fill(); txt(`${C.sub} · ${C.name}`, cx, y, 18, '#ffe9c0');
     if (META.ch > 0) button(cx - 140, y - 22, 44, 44, '◀', () => { META.ch--; saveMeta(); }, { size: 16 }); if (META.ch + 1 < META.open) button(cx + 96, y - 22, 44, 44, '▶', () => { META.ch++; saveMeta(); }, { size: 16 });
     else if (META.ch + 1 < CHAPTERS.length) txt('🔒', cx + 118, y, 16, '#9a8fae', { stroke: 0 }); }
-  button(cx - 140, H * 0.7, 280, 64, '전투 시작', () => newRun(), { gold: 1, size: 24 });
+  if (open) button(cx - 140, H * 0.7, 280, 64, '전투 시작', () => newRun(), { gold: 1, size: 24 }); else button(cx - 140, H * 0.7, 280, 64, '잠긴 군주', () => {}, { size: 22 });
   button(cx - 140, H * 0.7 + 78, 280, 52, `군주 강화  ·  결정 ${META.gems}`, () => { MODE = 'meta'; }, { size: 17 });
   if (META.best) txt(`최고 기록 ${Math.floor(META.best / 60)}분 ${META.best % 60}초`, cx, H * 0.7 + 152, 14, '#9a8fae', { w: 700 });
 }
