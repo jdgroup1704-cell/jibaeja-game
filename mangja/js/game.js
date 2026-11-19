@@ -457,7 +457,8 @@ function drawDaily() {
 }
 /* ══ 방치형: 스테이지 · 후퇴 · 저장 (11-18 23:16 대표님 「방치형하자」) ══ */
 function setStage(s) { G.stage = Math.max(1, s); G.ch = Math.floor((G.stage - 1) / 20) % 3; G.d = 12 + (G.stage - 1) * 11; G.stK = 0; G.stBoss = G.stage % 10 === 0; G.stNeed = G.stBoss ? 1 : 18 + Math.min(42, G.stage * 2); G.bossT = G.stBoss ? 2.5 : 0; G.bossOn = 0; G.boss = null; }
-function idleTick(dt) { if (!BOT && G.t - (G.lastClrT || 0) > 45 && !(G.rHint > 0) && G.t - (G.nudgeT || -99) > 75 && META_UP.slice(0, 4).some(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]))) { G.rHint = 7; G.rHintSlow = 1; G.nudgeT = G.t; }   /* 45초 넘게 못 넘고 결정이 남으면: 강화 칸을 깜빡여 알려 줌(75초마다, 11-19 처음 사람 결정 294 안 씀) */
+function idleTick(dt) { if (META.autoUp && !BOT && (G.auT = (G.auT || 0) + dt) > 3) { G.auT = 0; const u = META_UP.slice(0, 4).filter(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id])).sort((a, b) => a.cost(META.up[a.id]) - b.cost(META.up[b.id]))[0]; if (u) buyUp(u); }
+  if (!BOT && G.t - (G.lastClrT || 0) > 45 && !(G.rHint > 0) && G.t - (G.nudgeT || -99) > 75 && META_UP.slice(0, 4).some(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]))) { G.rHint = 7; G.rHintSlow = 1; G.nudgeT = G.t; }   /* 45초 넘게 못 넘고 결정이 남으면: 강화 칸을 깜빡여 알려 줌(75초마다, 11-19 처음 사람 결정 294 안 씀) */
   if (BOT && Q.has('buy') && (G.buyT = (G.buyT || 0) + dt) > 4) { G.buyT = 0; const u = META_UP.filter(u => META.up[u.id] < u.max).sort((a, b) => a.cost(META.up[a.id]) - b.cost(META.up[b.id]))[0]; if (u) buyUp(u); }   /* 시험 봇: 싼 강화부터 산다(사람 흉내) */
   if (G.stBoss && !G.bossOn && G.bossT > 0) { G.bossT -= dt; if (G.bossT <= 0) spawnBoss(); } if ((G.saveT = (G.saveT || 0) + dt) > 20) { G.saveT = 0; saveRun(); } }
 function gemMul() { return (1 + META.up.gold * 0.1 + relOf().g) * ((META.monthUntil || 0) > Date.now() ? 1.2 : 1); }   /* 월정액 쓰는 동안 결정 +20% */
@@ -701,6 +702,8 @@ function drawPause() {
   y = H * 0.45; button(W / 2 - 130, y, 260, 58, '계속하기', () => { G.paused = 0; }, { gold: 1, size: 22 });
   button(W / 2 - 130, y + 72, 125, 48, META.snd ? '소리 켬' : '소리 끔', () => { META.snd = META.snd ? 0 : 1; saveMeta(); if (SND.bgmG) SND.bgmG.gain.value = META.snd ? 0.22 : 0; }, { size: 16, off: false });
   button(W / 2 + 5, y + 72, 125, 48, META.vib ? '진동 켬' : '진동 끔', () => { META.vib = META.vib ? 0 : 1; saveMeta(); }, { size: 16 });
+  if (G.idle) { button(W / 2 - 130, y + 136, 125, 48, META.autoUp ? '자동 강화 켬' : '자동 강화 끔', () => { META.autoUp = META.autoUp ? 0 : 1; saveMeta(); }, { size: 15, gold: !!META.autoUp });   /* 켜면 가장 싼 강화를 3초마다 저절로 삼(11-19) */
+    button(W / 2 + 5, y + 136, 125, 48, META.autoPick !== 0 ? '카드 자동 켬' : '카드 자동 끔', () => { META.autoPick = META.autoPick !== 0 ? 0 : 1; saveMeta(); }, { size: 15 }); y += 64; }
   button(W / 2 - 130, y + 136, 260, 48, G.idle ? '저장하고 나가기' : '포기하고 나가기', () => { G.paused = 0; if (G.idle) { saveRun(); MODE = 'title'; } else { G.over = 0.01; G.win = 0; } }, { size: 16 });
 }
 function drawResult() {
