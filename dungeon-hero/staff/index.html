@@ -2222,7 +2222,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1120014841'; let updReady = null;
+  const BUILD = '1120021612'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'], UPD2 = ['raid', 'arena', 'help', 'gear', 'cosm', 'dgsel'];
   function updToast() { try { if (document.getElementById('updT')) return; const d = document.createElement('div'); d.id = 'updT'; d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:98;background:rgba(40,16,8,.94);border:2px solid #ffc864;border-radius:14px;padding:10px 16px;color:#ffe9b0;font:15px "Do Hyeon","Black Han Sans",sans-serif;text-align:center;pointer-events:none;max-width:92vw'; d.innerHTML = '🆕 새 업데이트가 올라왔어요<div style="font-size:12.5px;font-weight:700;color:#fff;margin-top:3px">마을로 가면 바로 적용돼요</div>'; document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch (e) {} }, 6000); } catch (e) {} }
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
@@ -5222,7 +5222,7 @@
   let dc176 = null, ls176 = '';
   { const _h176 = hurt; hurt = function (d, src) { const hp0 = P.hp; _h176(d, src); try { if (P.hp < hp0) ls176 = src && src.gold ? 'ggob' : (src && src.skin && SPW[src.skin] ? src.skin : ''); } catch (e) {} }; }
   { const _die176 = die; die = function () { const pre = state, rush = floorEv === 'rush'; _die176(); try { if (state === 'over' && pre !== 'over' && lastSrc149 && !trial) dc176 = { i: lastSrc149[0], el: lastSrc149[1], rush, nm: lastSrc149[0] < 6 && ls176 ? dexName(ls176) : '' }; } catch (e) {} }; }
-  const DC176 = [['🟢 슬라임', '몸으로 부딪혀요 · 멈추지 말고 둥글게 돌기'], ['🦇 박쥐', '빠르게 달려들어요 · 한쪽 벽을 등지지 않기'], ['💀 해골 병사', '활을 쏴요 · 옆으로 비켜서 피하기'], ['👺 고블린', '빠르게 따라와요 · 크게 원을 그리며 돌기'], ['👹 오우거', '한 번에 세게 쳐요 · 내려칠 때 뒤로 빠지기'], ['🧙 마법사', '함정 · 마법을 써요 · 먼저 잡기'], ['👑 보스', '반짝이거나 붉은 표시가 뜨면 그 자리에서 비키기'], ['🎯 날아오는 탄', '흰 테두리 탄 · 가까우면 빨개져요 — 옆으로 비키기'], ['🔥 바닥 장판', '빨간 원은 잠깐 뒤 터져요 — 원 밖으로'], ['💥 그 밖의 공격', '몬스터가 몰리면 넓은 쪽으로 빠지기']];
+  const DC176 = [['🟢 슬라임', '몸으로 부딪혀요 · 멈추지 말고 둥글게 돌기'], ['🦇 박쥐', '빠르게 달려들어요 · 한쪽 벽을 등지지 않기'], ['💀 해골 병사', '활을 쏴요 · 옆으로 비켜서 피하기'], ['👺 고블린', '빠르게 따라와요 · 크게 원을 그리며 돌기'], ['👹 오우거', '한 번에 세게 쳐요 · 내려칠 때 뒤로 빠지기'], ['🧙 마법사', '함정 · 마법을 써요 · 먼저 잡기'], ['👑 보스', '반짝이거나 붉은 표시가 뜨면 그 자리에서 비키기'], ['🎯 날아오는 탄', '밝은 구슬 탄 · 가까이 오면 붉게 빛나요 — 옆으로 비키기'], ['🔥 바닥 장판', '빨간 원은 잠깐 뒤 터져요 — 원 밖으로'], ['💥 그 밖의 공격', '몬스터가 몰리면 넓은 쪽으로 빠지기']];
   { const _d176 = draw; draw = function () { _d176(); try { if (state !== 'over' || !dc176 || overT < 30 || (typeof op173 !== 'undefined' && op173) || (typeof bn172 !== 'undefined' && bn172)) return; const c = DC176[dc176.i] || DC176[9];
       ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * ox, dpr * oy); const a = Math.min(1, (overT - 30) / 15), y = 92; ctx.globalAlpha = a;
       ctx.fillStyle = 'rgba(70,18,14,.95)'; rrect(22, y, W - 44, 50, 14); ctx.fill(); ctx.strokeStyle = 'rgba(255,120,90,.7)'; ctx.lineWidth = 2; ctx.stroke();
