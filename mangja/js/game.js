@@ -466,7 +466,7 @@ function stageClear() { const s = G.stage, gain = Math.round((3 + s * 0.6) * (s 
   saveRun(); saveMeta(); }
 function clrLeft() { const c = G && G.clr; if (!c) return 0; let n = 0; for (const g of c.g) if (!g.done) n++; return Math.round(c.gain * n / c.g.length); }
 function retreat() { const P = G.P; G.retreats = (G.retreats || 0) + 1; P.hp = P.max; P.inv = 3; for (const f of G.foes) f.dead = true; G.foes = []; G.arrows = []; G.slam = null; G.bossSay = null;
-  G.allies = G.allies.filter((a, i) => i % 2 === 0); const s = Math.max(1, G.stage - 1); setStage(s); G.banner = { text: `후퇴! 스테이지 ${s}에서 힘 모으기`, t: 0 }; shake = 14; SND.play('slam', 0.5); saveRun(); }
+  G.allies = G.allies.filter((a, i) => i % 2 === 0); const s = Math.max(1, G.stage - 1); setStage(s); G.banner = { text: `후퇴! 스테이지 ${s}에서 힘 모으기`, t: 0 }; G.rHint = 9; shake = 14; SND.play('slam', 0.5); saveRun(); }
 function saveRun() { if (!G || !G.idle || BOT) return; META.run = META.run || {}; META.run[G.lord] = { lvl: G.lvl, xp: G.xp, next: G.next, W: G.W, L: G.L, E: G.E, S: G.S, max: G.P.max, kills: G.kills, U: { ...META.up }, aw: META.awake || 0, rel: relOf() }; saveMeta(); }
 function loadRun() { const aw = META.awake || 0; if (BOT || Q.has('fresh')) return; const R = META.run && META.run[G.lord]; if (!R) return; Object.assign(G, { lvl: R.lvl, xp: R.xp, next: R.next, W: R.W, L: R.L, E: R.E, S: R.S, kills: R.kills || 0 }); G.P.max = R.max;
   const o = R.U || {}, u = META.up; G.S.pow *= POWM(u.pow) / POWM(o.pow || 0); G.S.rise += (u.rise - (o.rise || 0)) * 0.03; G.S.cap += (u.cap - (o.cap || 0)) * 2; G.S.pow *= Math.pow(1.3, aw - (R.aw || 0)); G.S.cap += (aw - (R.aw || 0)) * 3; { const r = relOf(), q = R.rel || { p: 1, h: 1, c: 0 }; G.S.pow *= r.p / q.p; G.P.max *= r.h / q.h; G.S.cap += r.c - q.c; } G.P.max *= HPM(u.hp) / HPM(o.hp || 0); G.P.hp = G.P.max; }   /* 저장 뒤에 산 군주 강화도 바로 들어가게 */
@@ -613,8 +613,10 @@ function drawHud() {
   if (MODE === 'play' && G.idle && META.speed2 && !G.cards) { const sx = W - 46, sy = 86; ctx.fillStyle = META.spd === 2 ? 'rgba(90,60,10,.9)' : 'rgba(20,10,36,.85)'; rr(sx, sy, 36, 30, 9); ctx.fill(); ctx.strokeStyle = META.spd === 2 ? '#ffd23a' : '#6a4aa0'; ctx.lineWidth = 1.5; ctx.stroke(); txt(META.spd === 2 ? "×2" : "×1", sx + 18, sy + 15, 14, META.spd === 2 ? '#ffe08a' : '#c9b8e8'); BTNS.push({ x: sx, y: sy, w: 36, h: 30, fn: () => { META.spd = META.spd === 2 ? 1 : 2; saveMeta(); } }); }
   if (MODE === 'play' && !G.cards && !G.over && !G.reviveAsk) { const bx = W - 46, by = top + 20; ctx.fillStyle = 'rgba(20,10,36,.85)'; rr(bx, by, 36, 34, 10); ctx.fill(); ctx.strokeStyle = '#6a4aa0'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.fillStyle = '#e8dcff'; ctx.fillRect(bx + 12, by + 10, 4, 14); ctx.fillRect(bx + 20, by + 10, 4, 14); BTNS.push({ x: bx - 6, y: by - 6, w: 48, h: 46, fn: () => { G.paused = 1; JOY.on = false; } }); }
   if (MODE === 'play' && G.idle && !G.cards && !G.paused) { const bw = Math.min(64, (W - 110) / 4 - 4), bh = 58, y0 = H - bh - 12;   /* 아래 강화 칸: 방치형은 막히면 여기서 바로 강화 */
+    if (G.rHint > 0) { G.rHint -= 1 / 60; const anyCan = META_UP.slice(0, 4).some(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id])), al = Math.min(1, G.rHint, (9 - G.rHint) * 3), ty = y0 - 22;   /* 후퇴 뒤 9초: 무엇을 하면 되는지 알려 줌 */
+      ctx.globalAlpha = al; ctx.fillStyle = 'rgba(16,6,30,.85)'; rr(8, ty - 15, W - 110, 30, 10); ctx.fill(); txt(anyCan ? '⬇ 강화하면 다시 넘어요' : '결정 모으는 중 · 힘을 모아요', 8 + (W - 110) / 2, ty, 14, anyCan ? '#ffe08a' : '#d9c8ff', { w: 800, box: W - 126 }); ctx.globalAlpha = 1; }
     META_UP.slice(0, 4).forEach((u, i) => { const l = META.up[u.id], max = l >= u.max, cost = u.cost(l), can = !max && META.gems >= cost, x = 8 + i * (bw + 4);
-      ctx.fillStyle = 'rgba(16,8,30,.86)'; rr(x, y0, bw, bh, 10); ctx.fill(); ctx.strokeStyle = can ? '#ffd23a' : '#4a3678'; ctx.lineWidth = can ? 2 : 1; ctx.stroke();
+      ctx.fillStyle = 'rgba(16,8,30,.86)'; rr(x, y0, bw, bh, 10); ctx.fill(); ctx.strokeStyle = can ? (G.rHint > 0 ? `rgba(255,230,120,${0.55 + Math.sin(T * 10) * 0.45})` : '#ffd23a') : '#4a3678'; ctx.lineWidth = can ? (G.rHint > 0 ? 3.5 : 2) : 1; ctx.stroke();
       icon(u.icon, x + bw / 2, y0 + 20, 28); txt(({ hp: '체력', pow: '공격', rise: '부활', cap: '군단' }[u.id] || 'Lv') + ' ' + l, x + bw / 2, y0 + 8, 10, '#d9c8ff', { w: 800, lw: 2, box: bw - 4 }); txt(max ? '최대' : cost + '', x + bw / 2, y0 + 45, 13, can ? '#ffe08a' : '#8f84a6', { box: bw - 6 });
       if (can) BTNS.push({ x, y: y0, w: bw, h: bh, fn: () => buyUp(u) }); }); }
   if (MODE === 'play' && G.idle && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const fw = 48, fh = 42, fx = W - fw - 8, fy = META.speed2 ? 124 : 86, FM = META.form || 0;   /* 군단 편성 단추(누를 때마다 바뀜) */
@@ -740,4 +742,4 @@ function frame(now) {
 }
 requestAnimationFrame(frame);
 if (Q.has('ch')) META.ch = +Q.get('ch'); if (BOT || Q.has('play')) newRun();
-window.GAME = { get G() { return G; }, get MODE() { return MODE; }, newRun, META, rollCards, CARDS, EVO, LORDS, hurtLord, raise, stageClear, saveMeta, CLIP, setMode: m => { MODE = m; }, get W() { return W; } };
+window.GAME = { get G() { return G; }, retreat: () => retreat(), get MODE() { return MODE; }, newRun, META, rollCards, CARDS, EVO, LORDS, hurtLord, raise, stageClear, saveMeta, CLIP, setMode: m => { MODE = m; }, get W() { return W; } };
