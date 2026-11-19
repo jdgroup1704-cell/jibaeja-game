@@ -185,7 +185,7 @@ function takeCard(c) {
   const S = G.S;
   if (c.id === 'rise') S.rise += 0.12; if (c.id === 'cap') S.cap += 6; if (c.id === 'allyPow') S.allyPow += 0.35; if (c.id === 'spd') S.spd += 0.12;
   if (c.id === 'hp') { G.P.max += 25; G.P.hp = G.P.max; } if (c.id === 'feast') { G.P.hp = G.P.max; S.allyPow += 0.05; } if (c.id === 'magnet') S.magnet *= 1.45; if (c.id === 'haste') S.haste *= 0.92;
-  G.cards = null; say(`${c.name} ${n > 1 ? 'Lv' + n : '획득'}`, G.P.x, G.P.y - 150, { size: 20, col: '#ffe08a', vy: -20, life: 1.2 }); burst(G.P.x, G.P.y - 40, 18, ['#c9a2ff', '#fff', '#ffe08a'], 240);
+  G.cards = null; G.pill = { text: `${c.name} ${n > 1 ? 'Lv' + n : '획득'}`, ic: c.icon, t: 0 }; burst(G.P.x, G.P.y - 40, 18, ['#c9a2ff', '#fff', '#ffe08a'], 240);
   if (G.queue > 0) { G.queue--; G.cards = rollCards(); }
 }
 
@@ -612,6 +612,7 @@ function drawMain() {
   const vg = ctx.createRadialGradient(W / 2, H * 0.52, Math.min(W, H) * 0.45, W / 2, H * 0.52, Math.hypot(W, H) * 0.62); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(5,0,12,.65)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
   if (G.P.hurt > 0) { ctx.fillStyle = `rgba(255,0,30,${G.P.hurt * 0.5})`; ctx.fillRect(0, 0, W, H); }
   if (G.P.hp / G.P.max < 0.3 && !G.over) { const a = 0.25 + 0.2 * Math.sin(T * 6), lg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.hypot(W, H) * 0.6); lg.addColorStop(0, 'rgba(255,0,0,0)'); lg.addColorStop(1, `rgba(200,0,20,${a})`); ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H); }
+  if (G.pill) { const q = G.pill; q.t += 1 / 60; if (q.t > 1.6) G.pill = null; else { const a = Math.min(1, q.t * 6, (1.6 - q.t) * 4), y = (G.idle ? 132 : 110) - (1 - Math.min(1, q.t * 6)) * 10; ctx.globalAlpha = a; ctx.font = `800 14px ${FONT}`; const tw = ctx.measureText(q.text).width + 54; ctx.fillStyle = 'rgba(16,6,30,.86)'; rr(W / 2 - tw / 2, y - 15, tw, 30, 15); ctx.fill(); ctx.strokeStyle = 'rgba(255,224,138,.5)'; ctx.lineWidth = 1.5; ctx.stroke(); icon(q.ic, W / 2 - tw / 2 + 18, y, 22); txt(q.text, W / 2 + 12, y + 1, 14, '#ffe08a', { w: 800, stroke: 0 }); ctx.globalAlpha = 1; } }   /* 카드 얻음: 가운데 떠다니는 글 대신 위쪽 알약 한 줄(11-19 화면 깔끔하게) */
   if (G.U) { const U = G.U, a = Math.min(1, U.t * 6, (U.end - U.t) * 3), C = ULT[U.L].c; ctx.fillStyle = `rgba(10,0,24,${0.32 * a})`; ctx.fillRect(0, 0, W, H);   /* 필살기 동안 화면을 어둡게 + 이름 띠 */
     if (U.t < 1.1) { const k = U.t, sl = k < 0.18 ? (1 - k / 0.18) * W : 0, al = Math.min(1, (1.1 - k) * 4), cy2 = H * 0.3; ctx.globalAlpha = al; ctx.fillStyle = 'rgba(20,6,40,.82)'; ctx.fillRect(0, cy2 - 34, W, 68); ctx.fillStyle = C[0]; ctx.fillRect(0, cy2 - 34, W, 3); ctx.fillRect(0, cy2 + 31, W, 3);
       txt(ULT[U.L].n + '!', W / 2 + sl, cy2 + 2, W < 400 ? 32 : 38, C[2], { box: W - 30 }); ctx.globalAlpha = 1; } }
