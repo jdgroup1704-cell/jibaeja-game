@@ -1,0 +1,4 @@
+<!DOCTYPE html><meta charset="utf-8"><title>relay</title>
+<script>
+(async () => { const f = new URLSearchParams(location.search).get('f') || 'k100.jpg'; const b = await fetch(f + '?x=' + Date.now()).then(r => r.blob()); const t = window.opener || window.parent; t.postMessage({ relay: 1, name: f, blob: b }, '*'); document.title = 'sent ' + b.size; })();
+</script>
