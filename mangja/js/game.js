@@ -203,7 +203,7 @@ function hurtFoe(f, dmg, sx, sy, kb = 60, src) {
   if (f.hp <= 0) killFoe(f);
 }
 function killFoe(f) {
-  f.dead = true; G.kills++; if (!G.U) G.ult = Math.min(1, (G.ult || 0) + (f.boss ? 0.3 : f.elite ? 0.08 : 1 / 60)); if (!f.boss) G.dead.push({ s: f.s, wf: f.wf, x: f.x, y: f.y, h: f.h, dir: f.dir, t: 0 }); if (G.dead.length > 40) G.dead.shift();
+  f.dead = true; G.kills++; META.kt = (META.kt || 0) + 1; if (!G.U) G.ult = Math.min(1, (G.ult || 0) + (f.boss ? 0.3 : f.elite ? 0.08 : 1 / 60)); if (!f.boss) G.dead.push({ s: f.s, wf: f.wf, x: f.x, y: f.y, h: f.h, dir: f.dir, t: 0 }); if (G.dead.length > 40) G.dead.shift();
   if (META.vib && f.elite && navigator.vibrate) try { navigator.vibrate(40); } catch (e) {} burst(f.x, f.y - f.h * 0.5, f.boss ? 60 : f.elite ? 26 : 9, ['#e8dcc0', '#bfb59a', '#ffffff', '#9a7ad8'], f.boss ? 420 : 220);
   for (let i = 0; i < (f.boss ? 30 : f.elite ? 8 : 1); i++) G.orbs.push({ x: f.x + rnd(-8, 8) * (i ? 3 : 0), y: f.y - 10 + rnd(-8, 8) * (i ? 3 : 0), v: f.xp * (1 + G.d / 160) * (1 + G.ch * 0.25), t: 0 });
   if (!f.boss && Math.random() < (f.elite ? 1 : 0.012)) G.hearts = (G.hearts || []).concat([{ x: f.x, y: f.y - 6, t: 0 }]);   /* 회복: 영혼 심장 */
@@ -477,7 +477,7 @@ function drawAtt() { drawBg(); ctx.fillStyle = 'rgba(6,2,14,.55)'; ctx.fillRect(
 function dgRew(lv) { return { c: 2 + lv, g: Math.round(25 * lv * (1 + META.up.gold * 0.1)) }; }
 function dgStart(lv) { dayFix(); if (!((META.dgT ?? 2) > 0)) return; META.dgT = (META.dgT ?? 2) - 1; saveMeta(); newRun(); G.dg = { lv, t: 0, lim: 60 }; setStage(lv * 10); G.ch = (lv - 1) % 3; G.d = 12 + (lv * 10 - 1) * 11 * 1.15; G.banner = { text: `무덤 토벌 ${lv}단계 — 60초 안에 보스를!`, t: 0 }; }
 function dgSweep() { dayFix(); const lv = META.dgBest || 0; if (!lv || !((META.dgT ?? 2) > 0)) return; META.dgT = (META.dgT ?? 2) - 1; const R = dgRew(lv); META.coffin = Math.min(200, (META.coffin || 0) + R.c); META.gems += R.g; saveMeta(); SND.play('win', 0.6); toast(`소탕! 관 +${R.c} · 결정 +${R.g}`); }
-function dgEnd(win) { const D = G.dg; if (D.end) return; D.end = { win, t: 0 }; if (win) { const R = dgRew(D.lv); META.dgBest = Math.max(META.dgBest || 0, D.lv); META.coffin = Math.min(200, (META.coffin || 0) + R.c); META.gems += R.g; D.end.R = R; SND.play('win', 0.9); shake = 18; } else { META.dgT = (META.dgT ?? 0) + 1; SND.play('slam', 0.5); } saveMeta(); }   /* 실패하면 입장권은 돌려줌 */
+function dgEnd(win) { const D = G.dg; if (D.end) return; D.end = { win, t: 0 }; if (win) { const R = dgRew(D.lv); META.dgBest = Math.max(META.dgBest || 0, D.lv); if (typeof rkPush === 'function') setTimeout(() => rkPush(true), 0); META.coffin = Math.min(200, (META.coffin || 0) + R.c); META.gems += R.g; D.end.R = R; SND.play('win', 0.9); shake = 18; } else { META.dgT = (META.dgT ?? 0) + 1; SND.play('slam', 0.5); } saveMeta(); }   /* 실패하면 입장권은 돌려줌 */
 function drawDg() { dayFix(); drawBg(); txt('무덤 토벌', W / 2, 54, 30, '#ffe08a'); txt('하루 2번 · 60초 안에 토벌 보스를 쓰러뜨려요', W / 2, 88, 14, '#9a8fae', { w: 700, box: W - 30 });
   const cw = Math.min(W - 32, 400), x = (W - cw) / 2, best = META.dgBest || 0, nx = best + 1, T2 = META.dgT ?? 2; let y = 120;
   ctx.fillStyle = 'rgba(30,18,52,.92)'; rr(x, y, cw, 150, 16); ctx.fill(); ctx.strokeStyle = '#c9a2ff'; ctx.lineWidth = 2; ctx.stroke(); iconA(['bossPaladin', 'bossBlood', 'bossIce'].map(k => SP[k].i)[(nx - 1) % 3], x + 62, y + 76, 130);
@@ -508,11 +508,11 @@ function idleTick(dt) { if (G.dg) { const D = G.dg; if (D.end) { D.end.t += dt; 
   if (!BOT && G.t - (G.lastClrT || 0) > 45 && !(G.rHint > 0) && G.t - (G.nudgeT || -99) > 75 && META_UP.slice(0, 4).some(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]))) { G.rHint = 7; G.rHintSlow = 1; G.nudgeT = G.t; }   /* 45초 넘게 못 넘고 결정이 남으면: 강화 칸을 깜빡여 알려 줌(75초마다, 11-19 처음 사람 결정 294 안 씀) */
   if (BOT && Q.has('buy') && (G.buyT = (G.buyT || 0) + dt) > 4) { G.buyT = 0; const u = META_UP.filter(u => META.up[u.id] < u.max).sort((a, b) => a.cost(META.up[a.id]) - b.cost(META.up[b.id]))[0]; if (u) buyUp(u); }   /* 시험 봇: 싼 강화부터 산다(사람 흉내) */
   if (G.stBoss && !G.bossOn && G.bossT > 0) { G.bossT -= dt; if (G.bossT <= 0) spawnBoss(); } if ((G.saveT = (G.saveT || 0) + dt) > 20) { G.saveT = 0; saveRun(); } }
-function gemMul() { return (1 + META.up.gold * 0.1 + relOf().g) * ((META.monthUntil || 0) > Date.now() ? 1.2 : 1); }   /* 월정액 쓰는 동안 결정 +20% */
+function gemMul() { return (1 + META.up.gold * 0.1 + relOf().g) * ((META.monthUntil || 0) > Date.now() ? 1.2 : 1) * (typeof evtGem === 'function' ? evtGem() : 1); }   /* 월정액 쓰는 동안 결정 +20% */
 function weakMul(f, ut) { return f && f.boss && CHAPTERS[G.ch].weak === (ut || 'sword') ? 1.5 : 1; }   /* 보스 약점 병종 피해 1.5배 */
 const FORM = [{ n: '균형', k: null, d: '쓰러뜨린 적 종류대로' }, { n: '검', k: 'sword', d: '검 해골 60% · 고르게 셈' }, { n: '활', k: 'arch', d: '활 해골 60% · 뒤에서 쏨' }, { n: '방패', k: 'shield', d: '방패 해골 60% · 오래 버팀' }];
 function stageClear() { if (G.dg) { dgEnd(1); return; } G.lastClrT = G.t; META.coffin = Math.min(200, (META.coffin || 0) + (G.stage % 10 === 0 ? 3 : 1)); const s = G.stage, gain = Math.round((3 + s * 0.6) * (s % 10 === 0 ? 5 : 1) * gemMul());
-  META.gems += gain; META.stage = Math.max(META.stage || 1, s + 1); if (s % 20 === 0) META.open = Math.max(META.open || 1, Math.min(3, 1 + s / 20)); META.bestStage = Math.max(META.bestStage || 0, s); dayFix(); META.dq.s = (META.dq.s || 0) + 1;
+  META.gems += gain; META.stage = Math.max(META.stage || 1, s + 1); if (s % 20 === 0) META.open = Math.max(META.open || 1, Math.min(3, 1 + s / 20)); META.bestStage = Math.max(META.bestStage || 0, s); dayFix(); if (typeof rkPush === 'function') rkPush(); META.dq.s = (META.dq.s || 0) + 1;
   SND.play('win', s % 10 === 0 ? 0.8 : 0.35); setStage(s + 1); G.banner = null; G.P.cast = 0.2;
   const ng = Math.min(14, 5 + Math.floor(gain / 8)); G.clr = { t: s % 10 === 0 ? -1.3 : 0, s, gain, boss: s % 10 === 0, reg: s % 20 === 0 ? CHAPTERS[G.ch].name : null, g: Array.from({ length: ng }, (_, i) => ({ x: W / 2 + rnd(-100, 100), y: H * 0.52 - rnd(0, 90), d: 0.35 + i * 0.06, done: 0 })) };   /* 돌파 연출: 글자 튀어나옴 · 결정이 날아가 위 칸에 들어감 · 군단 환호 · 다음 스테이지 소개 */
   saveRun(); saveMeta(); }
@@ -590,6 +590,7 @@ function drawMain() {
   if (MODE === 'daily') return drawDaily();
   if (MODE === 'dg') return drawDg();
   if (MODE === 'att') return drawAtt();
+  if (MODE === 'rk') return drawRank();
   if (MODE === 'shop') return drawShop();
   if (MODE === 'box') return drawBox();
   if (MODE === 'pass') return drawPass();
@@ -857,6 +858,10 @@ function drawTitle() {
   if (attReady() && !BOT && META.attSeen !== today() && (META.runs || META.stage > 1 || META.bestStage)) { META.attSeen = today(); MODE = 'att'; }   /* 하루 처음 로비에 오면 출석판을 한 번 띄움(첫 실행은 바로 싸움부터) */
   { const bx = 12, by = 132, bw = 62, bh = 66, r1 = attReady(); const g = ctx.createLinearGradient(0, by, 0, by + bh); g.addColorStop(0, 'rgba(70,40,10,.95)'); g.addColorStop(1, 'rgba(34,16,4,.95)'); ctx.fillStyle = g; rr(bx, by, bw, bh, 14); ctx.fill(); ctx.strokeStyle = r1 ? '#ffd23a' : 'rgba(201,162,255,.4)'; ctx.lineWidth = r1 ? 2 : 1.5; ctx.stroke();   /* 출석 단추 */
     icon('tab_gift', bx + bw / 2, by + 27, 42); txt('출석', bx + bw / 2, by + bh - 11, 12, '#fff', { w: 800 }); if (r1) { ctx.fillStyle = '#ff3b4a'; ctx.beginPath(); ctx.arc(bx + bw - 6, by + 6, 10, 0, 7); ctx.fill(); txt('!', bx + bw - 6, by + 6.5, 12, '#fff', { stroke: 0, w: 900 }); } BTNS.push({ x: bx, y: by, w: bw, h: bh, fn: () => { MODE = 'att'; } }); }
+  { const bx = W - 74, by = 58, bw = 62, bh = 66; const g = ctx.createLinearGradient(0, by, 0, by + bh); g.addColorStop(0, 'rgba(40,30,80,.95)'); g.addColorStop(1, 'rgba(16,10,40,.95)'); ctx.fillStyle = g; rr(bx, by, bw, bh, 14); ctx.fill(); ctx.strokeStyle = 'rgba(201,162,255,.4)'; ctx.lineWidth = 1.5; ctx.stroke();   /* 순위 단추(서버) */
+    icon('tab_goal', bx + bw / 2, by + 27, 40); txt('순위', bx + bw / 2, by + bh - 11, 12, '#fff', { w: 800 }); BTNS.push({ x: bx, y: by, w: bw, h: bh, fn: () => { MODE = 'rk'; } }); }
+  if (typeof fbInit === 'function' && fbState === 'off' && T > 1.5) fbInit();   /* 로비가 뜨고 잠깐 뒤 서버에 조용히 붙음 */
+  if (typeof EVT !== 'undefined' && EVT && EVT.until > Date.now()) { let s = `🎉 ${EVT.title}` + (EVT.gem > 1 ? ` · 결정 ×${EVT.gem}` : ''); ctx.font = `800 14px ${FONT}`; const big = H >= 720; if (!big) s = '🎉 ' + (EVT.gem > 1 ? `행사 결정 ×${EVT.gem}` : EVT.title); ctx.font = `800 14px ${FONT}`; const ty = Math.max(84, H * 0.12), x0 = 100, x1 = W - 140, cxp = big ? W / 2 : (x0 + x1) / 2, py = big ? ty + 62 : 16, tw = big ? Math.min(W - 40, ctx.measureText(s).width + 28) : x1 - x0; ctx.fillStyle = 'rgba(120,40,20,.9)'; rr(cxp - tw / 2, py, tw, 28, 14); ctx.fill(); ctx.strokeStyle = '#ffb070'; ctx.lineWidth = 1.5; ctx.stroke(); txt(s, cxp, py + 14.5, 14, '#ffe0b0', { w: 800, stroke: 0, box: tw - 16 }); }   /* 큰 화면은 부제 아래, 작은 화면은 위 띠 가운데 */   /* 행사 띠(서버 config/event) */
   { dayFix(); const bx = 12, by = 58, bw = 62, bh = 66, n = META.dgT ?? 2; const g = ctx.createLinearGradient(0, by, 0, by + bh); g.addColorStop(0, 'rgba(70,30,40,.95)'); g.addColorStop(1, 'rgba(30,10,24,.95)'); ctx.fillStyle = g; rr(bx, by, bw, bh, 14); ctx.fill(); ctx.strokeStyle = n ? '#ff9a6a' : 'rgba(201,162,255,.4)'; ctx.lineWidth = n ? 2 : 1.5; ctx.stroke();   /* 무덤 토벌 단추(로비 왼쪽 위) */
     iconA(SP.bossPaladin.i, bx + bw / 2, by + 28, 46); txt('토벌', bx + bw / 2, by + bh - 11, 12, '#fff', { w: 800 }); if (n) { ctx.fillStyle = '#ff3b4a'; ctx.beginPath(); ctx.arc(bx + bw - 6, by + 6, 10, 0, 7); ctx.fill(); txt(n + '', bx + bw - 6, by + 6.5, 11, '#fff', { stroke: 0, w: 900 }); } BTNS.push({ x: bx, y: by, w: bw, h: bh, fn: () => { MODE = 'dg'; } }); }
   if (META.bestStage) { ctx.fillStyle = 'rgba(16,6,30,.82)'; rr(W - 132, 14, 120, 32, 16); ctx.fill(); txt(`🏆 최고 ${META.bestStage}`, W - 72, 31, 14, '#ffe08a', { stroke: 0, w: 800 }); }
