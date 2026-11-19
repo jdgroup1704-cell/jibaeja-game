@@ -1,0 +1,5 @@
+<!doctype html><meta charset="utf-8"><title>give</title><body>보내는 중…<script>
+(async()=>{ const T = window.opener || window.parent; const names = (location.hash.slice(1) || 'sk,lord,boss,knight').split(',');
+for (const n of names) { try { const b = await (await fetch(n + '.jpg?x=' + Date.now())).arrayBuffer(); T.postMessage({ mjImg: n, buf: b }, '*', [b]); } catch (e) { T.postMessage({ mjImg: n, err: '' + e }, '*'); } }
+T.postMessage({ mjDone: 1 }, '*'); document.body.textContent = '보냄'; })();
+</script>
