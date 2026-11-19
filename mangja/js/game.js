@@ -754,7 +754,7 @@ function drawMeta() {
   const cw = Math.min(W - 32, 400), x = (W - cw) / 2; let y = 124; const ch = Math.min(84, (H - 240) / META_UP.length - 10);
   for (const u of META_UP) { const l = META.up[u.id], max = l >= u.max, cost = u.cost(l), can = !max && META.gems >= cost;
     ctx.fillStyle = 'rgba(30,18,52,.92)'; rr(x, y, cw, ch, 14); ctx.fill(); ctx.strokeStyle = '#4a3678'; ctx.lineWidth = 1.5; ctx.stroke();
-    icon(u.icon, x + 38, y + ch / 2, 48); txt(`${u.name}  Lv ${l}`, x + 72, y + ch * 0.34, 18, '#fff', { align: 'left', box: cw - 190 }); txt(u.desc(l + (max ? 0 : 1)), x + 72, y + ch * 0.7, 14, '#c9b8e8', { align: 'left', w: 700, lw: 2, box: cw - 190 });
+    icon(u.icon, x + 38, y + ch / 2, 48); txt(`${u.name}  Lv ${l}`, x + 72, y + ch * 0.34, 18, '#fff', { align: 'left', box: cw - 190 }); { const tg = { hp: '체력', pow: '공격', rise: '부활', cap: '군단' }[u.id]; if (tg) { ctx.fillStyle = 'rgba(255,224,138,.16)'; rr(x + 8, y + ch - 20, 60, 15, 7); ctx.fill(); txt(tg, x + 38, y + ch - 12.5, 10, '#ffe08a', { w: 800, box: 58 }); } }   /* 게임 아래 강화 칸과 같은 것임을 표시(이름이 달라 처음 사람이 헷갈림, 11-19) */ txt(u.desc(l + (max ? 0 : 1)), x + 72, y + ch * 0.7, 14, '#c9b8e8', { align: 'left', w: 700, lw: 2, box: cw - 190 });
     button(x + cw - 108, y + ch / 2 - 22, 96, 44, max ? '최대' : `${cost}`, () => { buyUp(u); }, { gold: can, off: !can, size: 17 }); y += ch + 10; }
   button(W / 2 - 120, H - 80, 240, 56, '돌아가기', () => { MODE = G && G.result ? 'title' : 'title'; }, {});
 }
