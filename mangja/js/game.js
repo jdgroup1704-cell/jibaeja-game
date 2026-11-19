@@ -76,7 +76,7 @@ function spr(s, frame, x, y, h, dir, o = {}) {   /* dir: 1 = 오른쪽을 보게
 }
 
 /* ── 소리 ── */
-const SND = { ctx: null, buf: {}, bgm: null, init() { if (this.ctx || MUTE) return; try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); for (const n of ['hit', 'rise', 'soul', 'up', 'slam', 'win', 'boom', 'stamp', 'bgm1']) fetch('sfx/' + n + '.mp3').then(r => r.arrayBuffer()).then(b => this.ctx.decodeAudioData(b)).then(d => { this.buf[n] = d; if (n === 'bgm1') this.music(); }).catch(() => {}); } catch (e) {} },
+const SND = { ctx: null, buf: {}, bgm: null, init() { if (this.ctx || MUTE) return; try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); for (const n of ['hit', 'rise', 'soul', 'up', 'slam', 'win', 'boom', 'stamp', 'bgm1', 'slash', 'gem', 'pool', 'coffin', 'legend', 'shatter', 'bossin', 'ult']) fetch('sfx/' + n + '.mp3').then(r => r.arrayBuffer()).then(b => this.ctx.decodeAudioData(b)).then(d => { this.buf[n] = d; if (n === 'bgm1') this.music(); }).catch(() => {}); } catch (e) {} },
   play(n, vol = 0.5, rate = 1) { if (!this.ctx || !this.buf[n] || (typeof META !== 'undefined' && !META.snd)) return; const now = this.ctx.currentTime; this.last = this.last || {}; if (now - (this.last[n] || 0) < 0.04) return; this.last[n] = now; const s = this.ctx.createBufferSource(), g = this.ctx.createGain(); s.buffer = this.buf[n]; s.playbackRate.value = rate; g.gain.value = vol; s.connect(g).connect(this.ctx.destination); s.start(); },
   music() { if (this.bgm || !this.buf.bgm1) return; const s = this.ctx.createBufferSource(), g = this.ctx.createGain(); this.bgmG = g; s.buffer = this.buf.bgm1; s.loop = true; g.gain.value = META.snd ? 0.22 : 0; s.connect(g).connect(this.ctx.destination); s.start(); this.bgm = s; } };
 
@@ -209,7 +209,7 @@ function killFoe(f) {
   if (!f.boss && Math.random() < (f.elite ? 1 : 0.012)) G.hearts = (G.hearts || []).concat([{ x: f.x, y: f.y - 6, t: 0 }]);   /* 회복: 영혼 심장 */
   if (f.elite && G.idle && !G.dg) META.coffin = Math.min(200, (META.coffin || 0) + 1);
   if (f.elite) { G.chestN++; G.queue = (G.queue || 0) + 1; hitstop = 0.08; shake = Math.max(shake, 10); SND.play('boom', 0.5); say('정예 처치! 보물 카드', f.x, f.y - 90, { size: 22, col: '#ffd23a', life: 1.4 }); if (!G.cards) { G.queue--; G.cards = rollCards(); } }
-  if (f.boss && RIGS[f.s] && typeof rigShatter === 'function') G.shat = (G.shat || []).concat(rigShatter(f.s, f.x, f.y, f.h * 1.2, f.dir, bossPose(T, null, f.act, f.at || 0, 1)));   /* 관절이 풀려 부위가 흩어짐 */
+  if (f.boss && RIGS[f.s] && typeof rigShatter === 'function') { SND.play('shatter', 0.7); G.shat = (G.shat || []).concat(rigShatter(f.s, f.x, f.y, f.h * 1.2, f.dir, bossPose(T, null, f.act, f.at || 0, 1))); }   /* 관절이 풀려 부위가 흩어짐 */
   if (f.boss) { G.bossSay = { s: CHAPTERS[G.ch].lines[2], t: 0, x: f.x, y: f.y - f.h - 10 }; hitstop = 0.25; shake = 30; SND.play('win', 0.8); if (G.idle) { G.boss = null; G.bossOn = 0; raiseChamp(f); stageClear(); } else { G.win = 1; G.over = 2.5; } }
   if (G.idle && !f.boss && !G.stBoss) { G.stK++; if (G.stK >= G.stNeed) stageClear(); }
   const alive = G.allies.filter(a => !a.dead).length;
@@ -237,7 +237,7 @@ function spawnFoe(kind, elite) {
 function spawnBoss() {
   const P = G.P, C = CHAPTERS[G.ch]; G.bossOn = 1; const hp = 3400 * (1 + G.d / 250) * C.hp * (G.idle ? 0.8 * Math.pow(1.07, Math.max(0, G.stage - 15)) : 1);
   G.boss = { kind: 'boss', s: C.bs, boss: 1, x: P.x + W * 0.42, y: P.y - 60, hp, max: hp, spd: 38, dmg: 22 * (1 + G.ch * 0.4), r: 40, h: G.ch ? 200 : 190, xp: 1, kx: 0, ky: 0, flash: 0, wf: 0, dir: -1, heavy: 1, act: 'idle', actT: 3, af: 0 };
-  G.foes.push(G.boss); SND.play('stamp', 0.7); shake = 18; G.banner = { text: C.boss + ' 등장', t: 0 }; if (C.weak) G.weakTip = { t: 0, k: C.weak }; G.bossSay = { s: C.lines[0], t: 0 }; G.bossHalf = 0;
+  G.foes.push(G.boss); SND.play('bossin', 0.7); SND.play('stamp', 0.4); shake = 18; G.banner = { text: C.boss + ' 등장', t: 0 }; if (C.weak) G.weakTip = { t: 0, k: C.weak }; G.bossSay = { s: C.lines[0], t: 0 }; G.bossHalf = 0;
 }
 
 /* ── 한 걸음 ── */
@@ -331,7 +331,7 @@ function weapons(dt) {
     G.orbP = []; for (let i = 0; i < n; i++) { const a = G.orbA + i * 6.283 / n, x = P.x + Math.cos(a) * R, y = P.y - 30 + Math.sin(a) * R * 0.75; G.orbP.push({ x, y, a });
       near(x, y + 50, 70, f => { if (f.dead) return; f.orbT = f.orbT || 0; if (G.t < f.orbT) return; if (Math.hypot(f.x - x, f.y - f.h * 0.4 - y) < f.r + 14) { f.orbT = G.t + 0.45; hurtFoe(f, dmg, P.x, P.y - 30, 110, 'orbit'); } }); } }
   /* 저주 늪 */
-  if (W_.pool) { G.cd.pool -= dt; if (G.cd.pool <= 0) { const l = W_.pool, n = 1 + (l >= 2) + (l >= 5) * 2; G.cd.pool = 2.6 * h; if (G.lord === 2) { P.cast = 0.2; const tg = nearestFoe(P.x, P.y, 330); if (tg) P.dir = Math.sign(tg.x - P.x) || P.dir; } for (let i = 0; i < n; i++) { const f = G.foes.filter(o => !o.dead && Math.hypot(o.x - P.x, o.y - P.y) < 330)[Math.floor(Math.random() * 40)] || nearestFoe(P.x, P.y, 330); if (f) G.pools.push({ x: f.x + rnd(-20, 20), y: f.y + rnd(-10, 10), t: 0, life: 3, r: 58 * (l >= 3 ? 1.4 : 1), dps: 14 * (l >= 4 ? 1.6 : 1) }); } } }
+  if (W_.pool) { G.cd.pool -= dt; if (G.cd.pool <= 0) { const l = W_.pool, n = 1 + (l >= 2) + (l >= 5) * 2; G.cd.pool = 2.6 * h; SND.play('pool', 0.22, rnd(0.9, 1.1)); if (G.lord === 2) { P.cast = 0.2; const tg = nearestFoe(P.x, P.y, 330); if (tg) P.dir = Math.sign(tg.x - P.x) || P.dir; } for (let i = 0; i < n; i++) { const f = G.foes.filter(o => !o.dead && Math.hypot(o.x - P.x, o.y - P.y) < 330)[Math.floor(Math.random() * 40)] || nearestFoe(P.x, P.y, 330); if (f) G.pools.push({ x: f.x + rnd(-20, 20), y: f.y + rnd(-10, 10), t: 0, life: 3, r: 58 * (l >= 3 ? 1.4 : 1), dps: 14 * (l >= 4 ? 1.6 : 1) }); } } }
   for (const p of G.pools) { p.t += dt; near(p.x, p.y, p.r, f => { if (!f.dead && (f.x - p.x) ** 2 / (p.r * p.r) + (f.y - p.y) ** 2 / (p.r * p.r * 0.4) < 1) { f.poolT = (f.poolT || 0) + dt; f.slowT = 0.3; f.inPool = G.t + 0.4; if (f.poolT > 0.35) { f.poolT = 0; hurtFoe(f, p.dps * 0.35, f.x, f.y, 0, 'pool'); } } }); }
   G.pools = G.pools.filter(p => p.t < p.life);
   /* 영혼 사슬 */
@@ -342,7 +342,7 @@ function weapons(dt) {
   if (W_.hands) { G.cd.hands -= dt; if (G.cd.hands <= 0) { const l = W_.hands, n = 1 + (l >= 2) + (l >= 4) * 2, dmg = 16 * (l >= 5 ? 1.8 : 1), root = l >= 3 ? 1.6 : 1.0; G.cd.hands = 2.6 * h; const cand = G.foes.filter(o => !o.dead && !o.boss && Math.hypot(o.x - P.x, o.y - P.y) < 320);
     for (let i = 0; i < n && cand.length; i++) { const f = cand.splice(Math.floor(Math.random() * cand.length), 1)[0]; f.rootT = root; G.handFx.push({ x: f.x, y: f.y, t: 0 }); hurtFoe(f, dmg, f.x, f.y + 10, 0, 'hands'); } if (n) SND.play('rise', 0.18, 1.4); } }
   /* 사신의 낫 */
-  if (W_.scythe) { G.cd.scythe -= dt; const l = W_.scythe; if (G.cd.scythe <= 0) { G.cd.scythe = (G.E.scythe ? 1.2 : l >= 4 ? 2.4 : 3.2) * h; G.sweep = { t: 0, r: 120 * (l >= 3 ? 1.3 : 1) * (G.E.scythe ? 1.25 : 1), dmg: 30 * (l >= 2 ? 1.5 : 1) * (l >= 5 ? 1.8 : 1), hit: new Set() }; SND.play('slam', 0.25, 1.6); if (G.lord === 1) P.cast = 0.2; } }
+  if (W_.scythe) { G.cd.scythe -= dt; const l = W_.scythe; if (G.cd.scythe <= 0) { G.cd.scythe = (G.E.scythe ? 1.2 : l >= 4 ? 2.4 : 3.2) * h; G.sweep = { t: 0, r: 120 * (l >= 3 ? 1.3 : 1) * (G.E.scythe ? 1.25 : 1), dmg: 30 * (l >= 2 ? 1.5 : 1) * (l >= 5 ? 1.8 : 1), hit: new Set() }; SND.play('slash', 0.35, rnd(0.92, 1.08)); if (G.lord === 1) P.cast = 0.2; } }
   if (G.sweep) { const s = G.sweep; s.t += dt; const a = s.t / 0.32 * 6.283; near(P.x, P.y, s.r, f => { if (f.dead || s.hit.has(f)) return; const fa = Math.atan2(f.y - P.y, f.x - P.x); let da = ((a % 6.283) - ((fa + 6.283) % 6.283) + 6.283) % 6.283; if (da < 0.9 && Math.hypot(f.x - P.x, (f.y - P.y) / 0.7) < s.r) { s.hit.add(f); hurtFoe(f, s.dmg, P.x, P.y, 160, 'scythe'); } }); if (s.t > 0.36) G.sweep = null; }
 }
 function bossAct(b, dt, d) {
@@ -404,9 +404,9 @@ function gearMul() { const E = META.gear || {}, v = k => gearVal(E[k]) / 100; re
 function gearRoll() { const lv = Math.max(1, META.bestStage || META.stage || 1), sl = GSLOT[Math.floor(Math.random() * 4)].k; let x = Math.random(), r = 0; const boost = (META.cl || 0) * 0.15; for (let i = GRAR.length - 1; i >= 0; i--) { const pr = GRAR.slice(i).reduce((a, b) => a + b.p, 0) * (1 + boost); if (x < pr && i > 0) { r = i; break; } } return { s: sl, r, lv }; }
 function gearSell(g) { return Math.max(1, Math.round(GRAR[g.r].m * (1 + g.lv * 0.08))); }
 function gearApply(oldM) { if (!G || MODE !== 'play') return; const m = gearMul(); G.S.pow *= m.p / oldM.p; const k = m.h / oldM.h; G.P.max *= k; G.P.hp *= k; G.S.allyPow *= m.a / oldM.a; }
-function coffinOpen() { if (!(META.coffin > 0) || (G.gc && !G.gc.done)) return; META.coffin--; META.qn = META.qn || {}; META.qn.cof = (META.qn.cof || 0) + 1; const g = gearRoll(); G.gc = { g, t: 0 }; SND.play('rise', 0.5, 1.2); burst(G.P.x, G.P.y - 60, 12, ['#c9a2ff', '#fff', GRAR[g.r].c], 220, 0.5); if (g.r >= 3) { shake = Math.max(shake, 10); G.flashW = 0.35; } }
+function coffinOpen() { if (!(META.coffin > 0) || (G.gc && !G.gc.done)) return; META.coffin--; META.qn = META.qn || {}; META.qn.cof = (META.qn.cof || 0) + 1; const g = gearRoll(); G.gc = { g, t: 0 }; SND.play(g.r >= 3 ? 'legend' : 'coffin', g.r >= 3 ? 0.7 : 0.45); burst(G.P.x, G.P.y - 60, 12, ['#c9a2ff', '#fff', GRAR[g.r].c], 220, 0.5); if (g.r >= 3) { shake = Math.max(shake, 10); G.flashW = 0.35; } }
 function gearTake(equip) { const q = G.gc; if (!q || q.done) return; const g = q.g, E = META.gear = META.gear || {}; if (equip) { const om = gearMul(), old = E[g.s]; E[g.s] = g; gearApply(om); if (old) META.gems += gearSell(old); G.pill = { text: `${GRAR[g.r].n} ${GSLOT.find(x => x.k === g.s).n} 장착!`, ic: GSLOT.find(x => x.k === g.s).ic, t: 0 }; }
-  else { const n = gearSell(g); META.gems += n; G.gemPop = 0.18; } q.done = 1; q.dt = 0; saveMeta(); }
+  else { const n = gearSell(g); META.gems += n; G.gemPop = 0.18; SND.play('gem', 0.3, 1.1); } q.done = 1; q.dt = 0; saveMeta(); }
 function gearAuto(dt) { if (!(META.coffin > 0) && !(G.gc && !G.gc.done)) return; const on = BOT || META.autoGear; if (!on) return; G.gaT = (G.gaT || 0) + dt; if (G.gc && !G.gc.done) { if (G.gaT > 0.9) { G.gaT = 0; const E = META.gear || {}; gearTake(gearVal(G.gc.g) > gearVal(E[G.gc.g.s])); } } else if (G.gaT > 1.2) { G.gaT = 0; coffinOpen(); } }
 function relOf() { const R = META.rel || {}; return { p: R.p || 1, h: R.h || 1, g: R.g || 0, c: R.c || 0 }; }
 function openBox(n) { const out = []; META.rel = relOf(); for (let i = 0; i < n; i++) { META.pity = (META.pity || 0) + 1; let x = Math.random(), k = 0; for (; k < 3; k++) { if (x < RELICS[k].p) break; x -= RELICS[k].p; } if (META.pity >= 50) k = 3; if (k === 3) META.pity = 0;
@@ -766,7 +766,7 @@ function drawHud() {
     if (c.first && k > 0.9) { const k3 = Math.min(1, (k - 0.9) * 3), y3 = cy + 76; ctx.globalAlpha = a * k3; ctx.fillStyle = 'rgba(10,30,24,.88)'; rr(20, y3, W - 40, 84, 14); ctx.fill(); ctx.strokeStyle = '#5fffc8'; ctx.lineWidth = 2; ctx.stroke();   /* 첫 보스: 내 군단이 얼마나 컸는지(차별점을 한눈에) */
       txt('군단 첫 승리!', W / 2, y3 + 22, 18, '#9effd0', { box: W - 60 }); txt(`일으킨 해골 ${G.raisedN || 0} · 군단 최대 ${G.armyMax || 0}`, W / 2, y3 + 50, W < 400 ? 17 : 19, '#ffffff', { box: W - 60 }); txt('쓰러뜨린 적이 모두 내 편이 됐어요', W / 2, y3 + 72, 13, '#b9e8d8', { box: W - 60 }); }
     ctx.globalAlpha = 1;
-    for (const g of c.g) { if (k < g.d || g.done) continue; const p = Math.min(1, (k - g.d) / 0.5), e = p * p, x = g.x + (22 - g.x) * e, y = g.y + (46 - g.y) * e - Math.sin(p * Math.PI) * 70; ctx.save(); ctx.shadowColor = '#ffe08a'; ctx.shadowBlur = 14; icon('i_gem', x, y, 34 - e * 12); ctx.restore(); if (p >= 1) { g.done = 1; G.gemPop = 0.18; } }
+    for (const g of c.g) { if (k < g.d || g.done) continue; const p = Math.min(1, (k - g.d) / 0.5), e = p * p, x = g.x + (22 - g.x) * e, y = g.y + (46 - g.y) * e - Math.sin(p * Math.PI) * 70; ctx.save(); ctx.shadowColor = '#ffe08a'; ctx.shadowBlur = 14; icon('i_gem', x, y, 34 - e * 12); ctx.restore(); if (p >= 1) { g.done = 1; G.gemPop = 0.18; SND.play('gem', 0.18, rnd(1, 1.3)); } }
   }
   if (G.bossSay) { const q = G.bossSay, a = Math.min(1, q.t * 5, (2.8 - q.t) * 3), y = Math.max(126, H * 0.3 - 54), tw = Math.min(W - 30, 360);   /* 보스 대사 — 화면 고정 칸(머리 위는 위 띠에 가려짐) */
     ctx.globalAlpha = a; ctx.fillStyle = 'rgba(255,244,230,.95)'; rr(W / 2 - tw / 2, y - 22, tw, 44, 12); ctx.fill(); txt('「' + q.s + '」', W / 2, y, 17, '#3a0a14', { stroke: 0, box: tw - 24 }); ctx.globalAlpha = 1; }
@@ -796,7 +796,7 @@ function doRally() { if (G.rallyCd > 0 || G.over) return; if (!META.tipRally) { 
 const ULT = [{ n: '영혼 폭풍', c: ['#c9a2ff', '#8a5cff', '#ffffff'] }, { n: '뼈 창 대지', c: ['#f2e6c8', '#ffd23a', '#ffffff'] }, { n: '역병 해일', c: ['#8affb0', '#3ad87a', '#eaffd0'] }];
 function ultDmg() { return 70 * (1 + G.d / 90); }
 function ultHit(x, y, r, k, kb = 220) { for (const f of G.foes) { if (f.dead) continue; const d = Math.hypot(f.x - x, (f.y - y) / 0.7); if (d < r) hurtFoe(f, ultDmg() * k * (f.boss ? 0.5 : 1), x, y, f.boss ? 0 : kb, 'ult'); } }
-function doUlt() { if ((G.ult || 0) < 1 || G.over || G.U) return; META.qn = META.qn || {}; META.qn.ult = (META.qn.ult || 0) + 1; const P = G.P, L = G.lord || 0; G.ult = 0; G.U = { t: 0, L, x: P.x, y: P.y, ev: [] }; hitstop = 0.14; G.flashW = 0.55; shake = 26; SND.play('boom', 0.8); SND.play('win', 0.4, 0.7);
+function doUlt() { if ((G.ult || 0) < 1 || G.over || G.U) return; META.qn = META.qn || {}; META.qn.ult = (META.qn.ult || 0) + 1; const P = G.P, L = G.lord || 0; G.ult = 0; G.U = { t: 0, L, x: P.x, y: P.y, ev: [] }; hitstop = 0.14; G.flashW = 0.55; shake = 26; SND.play('ult', 0.8);
   if (META.vib && navigator.vibrate) try { navigator.vibrate([40, 30, 60]); } catch (e) {}
   const foes = G.foes.filter(f => !f.dead && Math.abs(f.x - P.x) < W * 0.5 - 10 && f.y - P.y > -H * 0.45 && f.y - P.y < H * 0.4).sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y)).slice(0, 30);
   if (L === 0) { for (let i = 0; i < 22; i++) { const f = foes[i % Math.max(1, foes.length)], a = Math.random() * 6.283, rr2 = 60 + Math.random() * 230, tx = f && i < foes.length ? f.x + rnd(-20, 20) : P.x + Math.cos(a) * rr2, ty = f && i < foes.length ? f.y + rnd(-14, 14) : P.y + Math.sin(a) * rr2 * 0.6; G.U.ev.push({ k: 'met', at: 0.12 + i * 0.045, x: tx, y: ty }); } G.U.end = 1.5; }   /* 하늘에서 영혼 불덩이가 쏟아짐 */
