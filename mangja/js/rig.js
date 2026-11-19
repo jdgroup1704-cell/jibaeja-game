@@ -84,3 +84,40 @@ RIGS.witch = { img: 'rig_lords', k: 0.45, R: LR, foot: 315, hpx: 1000, style: 'c
     bArmU: [18, 130, 25, 'torso', 32, 55, 10], bArmF: [19, 30, 30, 'bArmU', 70, 252, 50], staff: [15, 110, 560, 'bArmF', 205, 72, -62],
     fArmU: [16, 140, 25, 'torso', 172, 52, -15], fArmF: [17, 25, 205, 'fArmU', 60, 252, 0] },
   order: ['bArmU', 'staff', 'bArmF', 'skirt', 'torso', 'head', 'fArmU', 'fArmF'] };
+
+/* 보스 3마리 (rig_boss.webp, 부위 그림 800 기준 × 0.8) — 치켜들기(raise) → 내려찍기(slam) */
+const BR = [[0, 0, 163, 211], [165, 0, 128, 192], [295, 0, 173, 183], [470, 0, 109, 170], [581, 0, 140, 86], [723, 0, 115, 156], [840, 0, 116, 80], [958, 0, 90, 137], [1050, 0, 87, 156], [1139, 0, 82, 147], [1223, 0, 90, 150], [0, 213, 158, 265], [160, 213, 155, 214], [317, 213, 135, 192], [454, 213, 179, 206], [635, 213, 115, 204], [752, 213, 134, 86], [888, 213, 114, 173], [1004, 213, 124, 90], [1130, 213, 79, 144], [1211, 213, 95, 174], [1308, 213, 86, 164], [0, 480, 103, 158], [105, 480, 164, 270], [271, 480, 158, 213], [431, 480, 130, 187], [563, 480, 183, 192], [748, 480, 111, 185], [861, 480, 146, 104], [1009, 480, 126, 170], [1137, 480, 131, 94], [1270, 480, 86, 139], [0, 752, 92, 162], [94, 752, 84, 152], [180, 752, 87, 154], [269, 752, 157, 272]];
+function bossRig(o, c) { const P = {}; for (const n in c) { const v = c[n].slice(); v[0] += o; P[n] = v; }
+  return { img: 'rig_boss', k: 0.8, R: BR, foot: 300, hpx: 640, style: 'boss', glow: ['weap', 100, 60], P,
+    order: ['cape', 'bArmU', 'bArmF', 'bLegU', 'bLegL', 'fLegU', 'fLegL', 'torso', 'head', 'weap', 'fArmU', 'fArmF'] }; }
+RIGS.bossPaladin = bossRig(0, { torso: [1, 80, 165, null, 0, 0, 0], head: [0, 160, 205, 'torso', 85, 25, 0], cape: [2, 108, 22, 'torso', 80, 30, 0, 1.15],
+  bArmU: [5, 85, 40, 'torso', 30, 55, 0], bArmF: [6, 22, 40, 'bArmU', 55, 175, 90], fArmU: [3, 95, 45, 'torso', 140, 55, 0], fArmF: [4, 25, 55, 'fArmU', 113, 195, 90],
+  weap: [11, 100, 250, 'fArmF', 140, 55, -13, 1.3],
+  bLegU: [7, 55, 15, 'torso', 55, 165, 0], bLegL: [9, 55, 10, 'bLegU', 58, 140, 0], fLegU: [7, 55, 15, 'torso', 105, 170, 0], fLegL: [8, 70, 15, 'fLegU', 58, 140, 0] });
+RIGS.bossBlood = bossRig(12, { torso: [1, 85, 170, null, 0, 0, 0], head: [0, 140, 225, 'torso', 85, 18, 0], cape: [2, 112, 25, 'torso', 85, 28, 0, 1.15],
+  bArmU: [5, 85, 55, 'torso', 30, 55, 0], bArmF: [6, 25, 35, 'bArmU', 40, 195, 90], fArmU: [3, 95, 40, 'torso', 145, 55, 0], fArmF: [4, 20, 40, 'fArmU', 115, 225, 90],
+  weap: [11, 115, 230, 'fArmF', 140, 50, -13, 1.3],
+  bLegU: [7, 55, 15, 'torso', 60, 170, 0], bLegL: [9, 55, 10, 'bLegU', 60, 150, 0], fLegU: [7, 55, 15, 'torso', 110, 172, 0], fLegL: [8, 60, 15, 'fLegU', 60, 150, 0] });
+RIGS.bossIce = bossRig(24, { torso: [1, 85, 165, null, 0, 0, 0], head: [0, 150, 200, 'torso', 90, 20, 0], cape: [2, 115, 25, 'torso', 85, 28, 0, 1.15],
+  bArmU: [5, 90, 55, 'torso', 28, 55, 0], bArmF: [6, 25, 35, 'bArmU', 45, 185, 90], fArmU: [3, 90, 50, 'torso', 140, 55, 0], fArmF: [4, 20, 45, 'fArmU', 95, 190, 90],
+  weap: [11, 95, 240, 'fArmF', 140, 55, -13, 1.3],
+  bLegU: [7, 55, 15, 'torso', 58, 165, 0], bLegL: [9, 55, 10, 'bLegU', 55, 145, 0], fLegU: [7, 55, 15, 'torso', 108, 168, 0], fLegL: [8, 70, 15, 'fLegU', 55, 145, 0] });
+/* 보스 동작: mv=걷기 위상, act='idle'|'raise'|'slam', at=그 동작 시간(초) */
+function bossPose(t, mv, act, at, hurt) {
+  const b = Math.sin(t * 1.8), P = { dy: b * 3, root: 0.015 * b, head: 0.04 * Math.sin(t * 1.8 - 0.7), cape: 0.06 * Math.sin(t * 1.4),
+    fArmU: 0.1 + 0.05 * b, fArmF: -1.1 + 0.06 * Math.sin(t * 1.8 + 0.5), bArmU: -0.1 + 0.05 * b, bArmF: -0.5, weap: 0.04 * Math.sin(t * 1.8) };
+  if (mv != null) { const s = Math.sin(mv), c = Math.cos(mv);
+    P.fLegU = -0.4 * s; P.bLegU = 0.4 * s; P.fLegL = 0.5 * Math.max(0, c); P.bLegL = 0.5 * Math.max(0, -c);
+    P.bArmU += -0.3 * s; P.dy += -Math.abs(s) * 8 + 3; P.root += 0.05; P.cape += 0.1 + 0.05 * c; }
+  const E = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+  let up = 0, k = 0;
+  if (act === 'raise') { up = E(at / 0.75); P.dy += Math.sin(t * 40) * 1.5 * E((at - 0.75) / 0.25); }   /* 끝에서 부르르 — 곧 내려친다 */
+  else if (act === 'slam') { const d = E(at / 0.13), r = E((at - 0.3) / 0.3); up = 1 - d; k = d * (1 - r); }
+  if (up > 0 || k > 0) {
+    P.fArmU += -2.9 * up - 0.85 * k; P.fArmF += 0.45 * up + 1.0 * k; P.weap += 1.55 * k;
+    P.bArmU += -2.2 * up - 0.6 * k; P.bArmF += -0.3 * up;
+    P.root += -0.16 * up + 0.3 * k; P.dy += -10 * up + 18 * k; P.dx = -6 * up + 18 * k; P.head += -0.12 * up + 0.15 * k; P.cape += 0.1 * up + 0.3 * k;
+    P.fLegU = (P.fLegU || 0) - 0.15 * up - 0.35 * k; P.fLegL = (P.fLegL || 0) + 0.4 * k; P.bLegU = (P.bLegU || 0) + 0.1 * up + 0.2 * k; P.bLegL = (P.bLegL || 0) + 0.3 * k; }
+  if (hurt > 0) { P.root -= 0.08 * hurt; P.head += 0.12 * hurt; P.dx = (P.dx || 0) - 6 * hurt; }
+  return P;
+}
