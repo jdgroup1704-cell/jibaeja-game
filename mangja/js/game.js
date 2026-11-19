@@ -44,7 +44,7 @@ const SP = {
   bossIce: { i: 'boss_ice', cw: 565, ch: 640, ax: 245, ay: 634, hpx: 590, n: 1, cols: 1, face: 1 },
 };
 for (const k in SP) img(SP[k].i);
-for (const n of ['u_magic', 'u_summon', 'u_bone', 'u_harvest', 'i_soul', 'i_army', 'relic_chain', 'relic_staff', 'relic_cloak', 'relic_ring', 'relic_crown', 'relic_glass', 'chest2', 'lord', 'i_gem']) img(n);
+for (const n of ['u_magic', 'u_summon', 'u_bone', 'u_harvest', 'i_soul', 'i_army', 'relic_chain', 'relic_staff', 'relic_cloak', 'relic_ring', 'relic_crown', 'relic_glass', 'chest2', 'lord', 'i_gem', 'u_pool', 'u_horn', 'u_bonearmor']) img(n);
 const RIM = {}; function rimOf(n, I, col) { const k = n + col; if (RIM[k] !== undefined) return RIM[k]; if (!I._ok) { if (!I._dec) I._dec = (I.decode ? I.decode() : Promise.resolve()).then(() => { I._ok = 1; }, () => { I._ok = 1; }); return null; } try { const c = document.createElement('canvas'); c.width = I.naturalWidth; c.height = I.naturalHeight; const x = c.getContext('2d'); x.drawImage(I, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height); RIM[k] = c; } catch (e) { RIM[k] = null; } return RIM[k]; }   /* 아군 테두리(밝은 윤곽) — 어두운 땅에서도 내 군단이 보이게 */
 /* ── 군주 3명 ── */
 const LORDS = [
@@ -93,9 +93,9 @@ function buyUp(u) { const l = META.up[u.id], cost = u.cost(l); if (l >= u.max ||
 /* 방치형 강화: 끝없이 오르고 값은 곱으로 커짐(공격 · 체력은 곱으로 세짐) — 막히면 강화 → 뚫음 */
 const HPM = l => Math.pow(1.07, l), POWM = l => Math.pow(1.08, l);
 const META_UP = [
-  { id: 'hp', name: '뼈 갑옷', desc: l => `최대 체력 ×${HPM(l).toFixed(2)}`, cost: l => Math.round(20 * Math.pow(1.13, l)), max: 300, icon: 'relic_cloak' },
+  { id: 'hp', name: '뼈 갑옷', desc: l => `최대 체력 ×${HPM(l).toFixed(2)}`, cost: l => Math.round(20 * Math.pow(1.13, l)), max: 300, icon: 'u_bonearmor' },
   { id: 'pow', name: '흑마력', desc: l => `모든 공격 ×${POWM(l).toFixed(2)}`, cost: l => Math.round(25 * Math.pow(1.13, l)), max: 300, icon: 'relic_staff' },
-  { id: 'rise', name: '죽음의 부름', desc: l => `일으킬 확률 +${l * 3}%`, cost: l => 30 + l * 30, max: 10, icon: 'relic_chain' },
+  { id: 'rise', name: '죽음의 부름', desc: l => `일으킬 확률 +${l * 3}%`, cost: l => 30 + l * 30, max: 10, icon: 'u_horn' },
   { id: 'cap', name: '군단기', desc: l => `군단 최대 +${l * 2}`, cost: l => Math.round(40 * Math.pow(1.3, l)), max: 15, icon: 'relic_crown' },
   { id: 'gold', name: '영혼 수확', desc: l => `얻는 결정 +${l * 10}%`, cost: l => Math.round(50 * Math.pow(1.35, l)), max: 20, icon: 'i_gem' },
 ];
@@ -147,25 +147,25 @@ const KEYS = {}; addEventListener('keydown', e => { KEYS[e.key.toLowerCase()] = 
 const CARDS = [
   { id: 'bolt', w: 1, name: '영혼탄', icon: 'u_magic', max: 6, desc: l => l <= 1 ? '가장 가까운 적에게 영혼탄' : ['', '', '탄 +1', '피해 +40%', '탄 +1 · 꿰뚫기', '피해 +40%', '탄 +2'][l] },
   { id: 'orbit', w: 1, name: '뼈 방패', icon: 'u_bone', max: 5, desc: l => l <= 1 ? '뼈가 몸 둘레를 돌며 때림' : ['', '', '뼈 +1', '피해 +50%', '뼈 +1 · 더 넓게', '뼈 +2'][l] },
-  { id: 'pool', w: 1, name: '저주 늪', icon: 'u_harvest', max: 5, desc: l => l <= 1 ? '적 무리 밑에 독 늪' : ['', '', '늪 +1', '더 넓게', '피해 +60%', '늪 +2'][l] },
-  { id: 'scythe', w: 1, name: '사신의 낫', icon: 'relic_ring', max: 5, desc: l => l <= 1 ? '둘레를 한 바퀴 베어 냄' : ['', '', '피해 +50%', '더 넓게', '더 자주', '피해 +80%'][l] },
+  { id: 'pool', w: 1, name: '저주 늪', icon: 'u_pool', max: 5, desc: l => l <= 1 ? '적 무리 밑에 독 늪' : ['', '', '늪 +1', '더 넓게', '피해 +60%', '늪 +2'][l] },
+  { id: 'scythe', w: 1, name: '사신의 낫', icon: 'u_harvest', max: 5, desc: l => l <= 1 ? '둘레를 한 바퀴 베어 냄' : ['', '', '피해 +50%', '더 넓게', '더 자주', '피해 +80%'][l] },
   { id: 'chain', w: 1, name: '영혼 사슬', icon: 'relic_chain', max: 5, desc: l => l <= 1 ? '번개가 적 사이를 튀며 지짐' : ['', '', '한 번 더 튐', '피해 +50%', '두 번 더 튐', '더 자주'][l] },
   { id: 'hands', w: 1, name: '망자의 손', icon: 'u_summon', max: 5, desc: l => l <= 1 ? '땅에서 손이 솟아 적을 붙잡음' : ['', '', '손 +1', '더 오래 붙잡음', '손 +2', '피해 +80%'][l] },
-  { id: 'rise', name: '죽음의 부름', icon: 'chest2', max: 5, desc: () => '쓰러진 적이 일어날 확률 +12%' },
+  { id: 'rise', name: '죽음의 부름', icon: 'u_horn', max: 5, desc: () => '쓰러진 적이 일어날 확률 +12%' },
   { id: 'cap', name: '군단 확장', icon: 'i_army', max: 6, desc: () => '군단 최대 +6' },
   { id: 'allyPow', name: '망자의 힘', icon: 'relic_crown', max: 5, desc: () => '해골 병사 공격 · 체력 +35%' },
   { id: 'spd', name: '그림자 걸음', icon: 'relic_cloak', max: 4, desc: () => '이동 속도 +12%' },
-  { id: 'hp', name: '뼈 갑옷', icon: 'relic_glass', max: 5, desc: () => '최대 체력 +25 · 다 회복' },
+  { id: 'hp', name: '뼈 갑옷', icon: 'u_bonearmor', max: 5, desc: () => '최대 체력 +25 · 다 회복' },
   { id: 'magnet', name: '영혼 끌개', icon: 'i_soul', max: 4, desc: () => '영혼을 더 멀리서 끌어옴' },
-  { id: 'haste', name: '서두르는 주문', icon: 'relic_staff', max: 5, desc: () => '모든 마법 대기 −8%' },
+  { id: 'haste', name: '서두르는 주문', icon: 'relic_glass', max: 5, desc: () => '모든 마법 대기 −8%' },
 ];
 const lv = id => (G.W[id] != null ? G.W[id] : (G.L[id] || 0));
 /* 무기 진화: 무기 최대 + 짝 강화 1 이상이면 금빛 진화 카드(뱀파이어 서바이버식 「찾아내는 재미」) */
 const EVO = [
   { id: 'bolt', need: 'haste', name: '영혼 폭풍', desc: '영혼탄 +3 · 모두 꿰뚫음 · 피해 ×1.5', icon: 'u_magic' },
   { id: 'orbit', need: 'hp', name: '뼈의 성채', desc: '뼈 8개가 크게 돌며 피해 ×2', icon: 'u_bone' },
-  { id: 'pool', need: 'magnet', name: '망자의 늪', desc: '늪에서 죽은 적은 반드시 해골로 일어남', icon: 'u_harvest' },
-  { id: 'scythe', need: 'spd', name: '사신 강림', desc: '낫이 두 겹 · 1.2초마다', icon: 'relic_ring' },
+  { id: 'pool', need: 'magnet', name: '망자의 늪', desc: '늪에서 죽은 적은 반드시 해골로 일어남', icon: 'u_pool' },
+  { id: 'scythe', need: 'spd', name: '사신 강림', desc: '낫이 두 겹 · 1.2초마다', icon: 'u_harvest' },
   { id: 'chain', need: 'cap', name: '망령 폭풍', desc: '사슬이 8번 튀고 맞은 적이 잠깐 멈춤', icon: 'relic_chain' },
   { id: 'hands', need: 'allyPow', name: '무덤의 문', desc: '손에 붙잡혀 죽은 적이 큰 해골로 일어남', icon: 'u_summon' },
 ];
