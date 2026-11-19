@@ -692,16 +692,21 @@ function drawResult() {
 }
 function titleSk(i, x, y, d) { const K = ['skWalk', 'skArch', 'skShield'][i % 3], I = K !== 'skWalk' && IMG[SP[K].i]; if (I && I.naturalWidth) { const KW = K + 'W', w = Math.floor(T * 4 + i) % 2 && IMG[SP[KW].i] && IMG[SP[KW].i].naturalWidth; spr(w ? KW : K, 0, x, y - Math.abs(Math.sin(T * 8 + i)) * 2, 52, d, { a: 0.85, rim: '#5fffc8' }); } else spr('skWalk', T * 20 + i * 4, x, y, 52, d, { a: 0.85, rim: '#5fffc8' }); }   /* 첫 화면: 검 · 활 · 방패 해골이 섞여 돎 */
 function drawBg() { ctx.fillStyle = GROUND[META.ch || 0] || TILE; ctx.save(); ctx.translate(-T * 12 % 512, -T * 6 % 512); ctx.fillRect(0, 0, W + 512, H + 512); ctx.restore(); const vg = ctx.createRadialGradient(W / 2, H * 0.45, 40, W / 2, H * 0.45, Math.hypot(W, H) * 0.6); vg.addColorStop(0, 'rgba(60,20,110,.35)'); vg.addColorStop(1, 'rgba(4,0,10,.85)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H); }
+let TSW = -9;
+function WEAPONS_OF(id) { for (const c of CARDS) if (c.id === id && c.w) return c; return null; }
 function drawTitle() {
   drawBg(); const cx = W / 2;
   txt('망자의 군주', cx, H * 0.13, 46, '#e9dcff', { sc: '#2a0a50', lw: 9 }); txt('쓰러뜨린 적이 나의 군단이 된다', cx, H * 0.13 + 44, 16, '#c9a2ff', { w: 800 });
   const li = META.lord || 0, LD = LORDS[li], open = lordOpen(li), fy = Math.min(H * 0.5, H * 0.7 - 146), h = Math.min(230, H * 0.27, fy - H * 0.13 - 66);
   for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + T * 0.4, x = cx + Math.cos(a) * 120, y = fy + 6 + Math.sin(a) * 26; if (Math.sin(a) < 0) titleSk(i, x, y, Math.cos(a + 1.57) > 0 ? 1 : -1); }
-  spr(lordSpr('lordIdle', li), T * 14, cx - 6, fy, h, 1, open ? {} : { a: 0.28 });
+  { const k1 = T - TSW, k2 = T % 3.4, k = k1 < 0.5 ? k1 : open && k2 < 0.5 ? k2 : -1, ln = k >= 0 ? Math.sin(k / 0.5 * Math.PI) : 0, ART = !!LD.art, hh = ART ? h * 0.86 : h, sc = hh / 112;   /* 고유 그림 군주는 몸이 넓어 화살표를 덜 가리게 조금 작게 */   /* 첫 화면 군주: 넘길 때 · 3.4초마다 무기를 한 번 휘두름 */
+    spr(lordSpr('lordIdle', li), T * 14, cx - 6 + ln * 12 * sc, fy, hh, 1, open ? { rot: ln * 0.13, flash: ln * 0.1 } : { a: 0.28, rot: ln * 0.13 });
+    if (ln > 0.05 && open) { const hx = cx - 6 + ln * 12 * sc + (ART ? (li === 1 ? 44 : 40) : 34) * sc, hy = fy + (ART ? (li === 1 ? -92 : -70) : -58) * sc, r = 22 * sc * (0.4 + ln), g = ctx.createRadialGradient(hx, hy, 0, hx, hy, r); if (ART) { g.addColorStop(0, 'rgba(240,255,220,.95)'); g.addColorStop(0.4, 'rgba(130,255,90,.6)'); g.addColorStop(1, 'rgba(60,200,40,0)'); } else { g.addColorStop(0, 'rgba(255,240,255,.95)'); g.addColorStop(0.4, 'rgba(180,120,255,.6)'); g.addColorStop(1, 'rgba(120,60,255,0)'); } ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hx, hy, r, 0, 7); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; } }
   for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + T * 0.4, x = cx + Math.cos(a) * 120, y = fy + 6 + Math.sin(a) * 26; if (Math.sin(a) >= 0) titleSk(i, x, y, Math.cos(a + 1.57) > 0 ? 1 : -1); }
   if (!open) txt('🔒', cx, fy - h * 0.45, 40, '#fff', { stroke: 0 });
+  { const WD = WEAPONS_OF(LD.w); if (WD) { ctx.font = `900 22px ${FONT}`; const tw = ctx.measureText(LD.name).width; ctx.save(); if (!open) ctx.globalAlpha = 0.4; ctx.fillStyle = 'rgba(20,6,40,.75)'; ctx.beginPath(); ctx.arc(cx - tw / 2 - 22, fy + 36, 15, 0, 7); ctx.fill(); icon(WD.icon, cx - tw / 2 - 22, fy + 36, 24); ctx.restore(); } }   /* 이름 왼쪽에 시작 무기 아이콘 */
   txt(LD.name, cx, fy + 36, 22, open ? '#ffe08a' : '#9a8fae', { sc: '#1a0830', lw: 6 }); txt(open ? LD.desc : LD.need, cx, fy + 62, 13, open ? '#d9c8ff' : '#ff9a8a', { w: 800 });
-  button(cx - 160, fy - h * 0.55, 46, 52, '◀', () => { META.lord = (li + LORDS.length - 1) % LORDS.length; saveMeta(); }, { size: 18 }); button(cx + 114, fy - h * 0.55, 46, 52, '▶', () => { META.lord = (li + 1) % LORDS.length; saveMeta(); }, { size: 18 });
+  button(cx - 160, fy - h * 0.55, 46, 52, '◀', () => { META.lord = (li + LORDS.length - 1) % LORDS.length; saveMeta(); TSW = T; }, { size: 18 }); button(cx + 114, fy - h * 0.55, 46, 52, '▶', () => { META.lord = (li + 1) % LORDS.length; saveMeta(); TSW = T; }, { size: 18 });
   { const st = META.stage || 1, C = CHAPTERS[Math.floor((st - 1) / 20) % 3], y = H * 0.7 - 46; ctx.fillStyle = 'rgba(20,10,36,.8)'; rr(cx - 140, y - 22, 280, 44, 12); ctx.fill(); txt(`스테이지 ${st} · ${C.name}`, cx, y, 18, '#ffe9c0'); }
   if (0) { const C = CHAPTERS[META.ch], y = H * 0.7 - 46;
     if (META.ch > 0) button(cx - 140, y - 22, 44, 44, '◀', () => { META.ch--; saveMeta(); }, { size: 16 }); if (META.ch + 1 < META.open) button(cx + 96, y - 22, 44, 44, '▶', () => { META.ch++; saveMeta(); }, { size: 16 });
