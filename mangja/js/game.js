@@ -461,6 +461,18 @@ function drawShop() {
   txt(IS_APP ? '앱 가격' : '웹 가격 — 앱보다 싸요', W / 2, H - 98, 12, '#9a8fae', { w: 700 });
   button(W / 2 - 120, H - 80, 240, 56, '돌아가기', () => { MODE = 'title'; }, {});
 }
+/* ── 매일 출석(11-19 대표님 「매일 출석 보상 넣어야지」 · 던전 히어로 · 세븐나이츠 키우기 7일판) ── 7일째 큰 보상 · 다 돌면 1일부터 다시 */
+const ATT = [{ g: 30 }, { c: 3 }, { g: 50 }, { c: 5 }, { g: 80 }, { c: 8 }, { g: 150, c: 10 }];
+function attReady() { const A = META.att || {}; return A.d !== today(); }
+function attClaim() { if (!attReady()) return; const A = META.att = META.att || { n: 0 }, i = (A.n || 0) % 7, R = ATT[i]; A.n = (A.n || 0) + 1; A.d = today(); if (R.g) META.gems += R.g; if (R.c) META.coffin = Math.min(200, (META.coffin || 0) + R.c); saveMeta(); SND.play('win', 0.7); toast(`출석 ${i + 1}일째! ${R.g ? '결정 +' + R.g : ''}${R.g && R.c ? ' · ' : ''}${R.c ? '관 +' + R.c : ''}`); }
+function drawAtt() { drawBg(); ctx.fillStyle = 'rgba(6,2,14,.55)'; ctx.fillRect(0, 0, W, H); const A = META.att || { n: 0 }, today_i = (A.n || 0) % 7, can = attReady(), cw = Math.min(W - 28, 400), x = (W - cw) / 2, y0 = Math.max(70, H * 0.16);
+  txt('매일 출석 보상', W / 2, y0, 28, '#ffe08a'); txt('7일째엔 큰 선물 · 매일 들어오면 쌓여요', W / 2, y0 + 32, 13, '#c9b8e8', { w: 700 });
+  const gw = (cw - 3 * 8) / 4, gh = 92; ATT.forEach((R, i) => { const big = i === 6, col = big ? 0 : i % 4, row = big ? 1 : Math.floor(i / 4), bx = big ? x + 2 * (gw + 8) : x + col * (gw + 8), by = y0 + 58 + row * (gh + 8), w2 = big ? gw * 2 + 8 : gw, got = i < today_i || (!can && today_i === 0 && (A.n || 0) > 0), now = can && i === today_i;
+    const g = ctx.createLinearGradient(0, by, 0, by + gh); g.addColorStop(0, now ? 'rgba(120,60,10,.96)' : big ? 'rgba(70,30,100,.95)' : 'rgba(36,20,60,.95)'); g.addColorStop(1, now ? 'rgba(60,24,4,.96)' : 'rgba(18,8,32,.95)'); ctx.fillStyle = g; rr(bx, by, w2, gh, 12); ctx.fill(); ctx.strokeStyle = now ? `rgba(255,210,58,${0.6 + Math.sin(T * 6) * 0.4})` : big ? '#c9a2ff' : '#4a3678'; ctx.lineWidth = now ? 3 : 1.5; ctx.stroke();
+    txt(`${i + 1}일`, bx + w2 / 2, by + 14, 12, now ? '#ffe08a' : '#d9c8ff', { w: 900 }); icon(R.c && !R.g ? 'gear_coffin' : big ? 'tab_gift' : 'i_gem', bx + w2 / 2, by + 44, big ? 52 : 36); txt([R.g ? `결정 ${R.g}` : '', R.c ? `관 ${R.c}` : ''].filter(Boolean).join(' + '), bx + w2 / 2, by + gh - 13, 11, '#ffffff', { w: 800, box: w2 - 4 });
+    if (got) { ctx.fillStyle = 'rgba(0,0,0,.55)'; rr(bx, by, w2, gh, 12); ctx.fill(); txt('✓', bx + w2 / 2, by + gh / 2, 30, '#8affb0', { stroke: 0 }); } });
+  const by2 = y0 + 58 + 2 * (gh + 8) + 10; button(W / 2 - 130, by2, 260, 58, can ? `${today_i + 1}일째 보상 받기` : '오늘은 받았어요 · 내일 또!', () => { if (can) attClaim(); else MODE = 'title'; }, { gold: can, size: 18 });
+  button(W / 2 - 100, by2 + 72, 200, 46, '닫기', () => { MODE = 'title'; }, { size: 16 }); }
 /* ── 무덤 토벌(일일 던전, 11-19 메이플 · 버섯커 키우기 성장 던전 참고): 하루 2번 · 60초 안에 토벌 보스 잡기 · 깬 단계는 「소탕」으로 바로 받기 ── */
 function dgRew(lv) { return { c: 2 + lv, g: Math.round(25 * lv * (1 + META.up.gold * 0.1)) }; }
 function dgStart(lv) { dayFix(); if (!((META.dgT ?? 2) > 0)) return; META.dgT = (META.dgT ?? 2) - 1; saveMeta(); newRun(); G.dg = { lv, t: 0, lim: 60 }; setStage(lv * 10); G.ch = (lv - 1) % 3; G.d = 12 + (lv * 10 - 1) * 11 * 1.15; G.banner = { text: `무덤 토벌 ${lv}단계 — 60초 안에 보스를!`, t: 0 }; }
@@ -552,6 +564,10 @@ const QUEST = [['stage', 3, '스테이지 3 돌파', 2], ['up', 1, '아래 강�
 function questNow() { const i = META.qi || 0; if (i < QUEST.length) return QUEST[i]; const n = 25 + (i - QUEST.length) * 5; return ['stage', n, `스테이지 ${n} 돌파`, 3 + Math.floor(n / 20)]; }
 function questVal(q) { const k = q[0], N = META.qn || {}; if (k === 'stage') return (META.bestStage || 0); if (k === 'dg') return META.dgBest || 0; if (k === 'rare') return Object.values(META.gear || {}).some(g => g.r >= 2) ? 1 : 0; return N[k] || 0; }
 function questClaim() { const q = questNow(); if (questVal(q) < q[1]) return; META.qi = (META.qi || 0) + 1; META.coffin = Math.min(200, (META.coffin || 0) + q[3]); saveMeta(); SND.play('win', 0.5); G.pill = { text: `임무 완료! 관 +${q[3]}`, ic: 'gear_coffin', t: 0 }; }
+/* 첫 안내 말풍선은 한 번에 하나만(11-19 처음 사람 3분: 강화 · 관 · 편성 말풍선이 한꺼번에 떠 헷갈림). 12초 보이면 본 것으로 침 */
+function tipPick() { if (!G || BOT || MODE !== 'play' || G.cards || G.paused) return null; const anyCan = META_UP.slice(0, 4).some(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]));
+  const L = [['tipUp', G.idle && !META.tipUp && G.stage >= 3 && !(G.rHint > 0) && anyCan], ['tipGear', G.idle && META.coffin > 0 && !META.tipGear && !G.gc], ['tipForm', G.idle && !META.tipForm && G.stage >= 2 && !G.clr], ['tipRally', !META.tipRally && G.rallyCd <= 0 && G.allies.length >= 3 && !G.gc]];
+  const f = L.find(x => x[1]); if (!f) return null; G.tipT = G.tipT || {}; G.tipT[f[0]] = (G.tipT[f[0]] || 0) + 1 / 60; if (G.tipT[f[0]] > 12) { META[f[0]] = 1; saveMeta(); } return f[0]; }
 function iconA(n, x, y, h) { const I = IMG[n]; if (I && I.complete && I.naturalWidth) { const w = h * I.naturalWidth / I.naturalHeight; ctx.drawImage(I, x - w / 2, y - h / 2, w, h); } }
 function icon(n, x, y, s) { const I = IMG[n]; if (I && I.complete && I.naturalWidth) ctx.drawImage(I, x - s / 2, y - s / 2, s, s); }
 
@@ -573,6 +589,7 @@ function drawMain() {
   if (MODE === 'meta') return drawMeta();
   if (MODE === 'daily') return drawDaily();
   if (MODE === 'dg') return drawDg();
+  if (MODE === 'att') return drawAtt();
   if (MODE === 'shop') return drawShop();
   if (MODE === 'box') return drawBox();
   if (MODE === 'pass') return drawPass();
@@ -693,6 +710,7 @@ function drawHud() {
   const army = G.allies.filter(a => !a.dead).length; icon('i_army', W - 118, top + 36, 24); txt(`${army}/${G.S.cap}`, W - 102, top + 37, 17, army >= G.S.cap ? '#ffd23a' : '#c9a2ff', { align: 'left' });
   if (MODE === 'play' && G.idle && META.speed2 && !G.cards) { const sx = W - 46, sy = 86; ctx.fillStyle = META.spd === 2 ? 'rgba(90,60,10,.9)' : 'rgba(20,10,36,.85)'; rr(sx, sy, 36, 30, 9); ctx.fill(); ctx.strokeStyle = META.spd === 2 ? '#ffd23a' : '#6a4aa0'; ctx.lineWidth = 1.5; ctx.stroke(); txt(META.spd === 2 ? "×2" : "×1", sx + 18, sy + 15, 14, META.spd === 2 ? '#ffe08a' : '#c9b8e8'); BTNS.push({ x: sx, y: sy, w: 36, h: 30, fn: () => { META.spd = META.spd === 2 ? 1 : 2; saveMeta(); } }); }
   if (MODE === 'play' && !G.cards && !G.over && !G.reviveAsk) { const bx = W - 46, by = top + 20; ctx.fillStyle = 'rgba(20,10,36,.85)'; rr(bx, by, 36, 34, 10); ctx.fill(); ctx.strokeStyle = '#6a4aa0'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.fillStyle = '#e8dcff'; ctx.fillRect(bx + 12, by + 10, 4, 14); ctx.fillRect(bx + 20, by + 10, 4, 14); BTNS.push({ x: bx - 6, y: by - 6, w: 48, h: 46, fn: () => { G.paused = 1; JOY.on = false; } }); }
+  const TIP = tipPick();
   if (MODE === 'play' && G.idle && !G.cards && !G.paused) { const bw = Math.min(64, (W - 110) / 4 - 4), bh = 58, y0 = H - bh - 12;   /* 아래 강화 칸: 방치형은 막히면 여기서 바로 강화 */
     if (G.rHint > 0) { G.rHint -= 1 / 60; const anyCan = META_UP.slice(0, 4).some(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id])), al = Math.min(1, G.rHint, (9 - G.rHint) * 3), ty = y0 - 22;   /* 후퇴 뒤 9초: 무엇을 하면 되는지 알려 줌 */
       ctx.globalAlpha = al; ctx.fillStyle = 'rgba(16,6,30,.85)'; rr(8, ty - 15, W - 110, 30, 10); ctx.fill(); txt(anyCan ? (G.rHintSlow ? '⬇ 강화하면 더 빨리 넘어요' : '⬇ 강화하면 다시 넘어요') : '결정 모으는 중 · 힘을 모아요', 8 + (W - 110) / 2, ty, 14, anyCan ? '#ffe08a' : '#d9c8ff', { w: 800, box: W - 126 }); ctx.globalAlpha = 1; }
@@ -700,19 +718,19 @@ function drawHud() {
       ctx.fillStyle = 'rgba(16,8,30,.86)'; rr(x, y0, bw, bh, 10); ctx.fill(); ctx.strokeStyle = can ? (G.rHint > 0 ? `rgba(255,230,120,${0.55 + Math.sin(T * 10) * 0.45})` : '#ffd23a') : '#4a3678'; ctx.lineWidth = can ? (G.rHint > 0 ? 3.5 : 2) : 1; ctx.stroke();
       icon(u.icon, x + bw / 2, y0 + 20, 28); txt(({ hp: '체력', pow: '공격', rise: '부활', cap: '군단' }[u.id] || 'Lv') + ' ' + l, x + bw / 2, y0 + 8, 10, '#d9c8ff', { w: 800, lw: 2, box: bw - 4 }); txt(max ? '최대' : cost + '', x + bw / 2, y0 + 45, 13, can ? '#ffe08a' : '#8f84a6', { box: bw - 6 });
       if (can) BTNS.push({ x, y: y0, w: bw, h: bh, fn: () => buyUp(u) }); });
-    const tipUpOn = !META.tipUp && G.stage >= 3 && !(G.rHint > 0) && META_UP.slice(0, 4).some(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]));
+    const tipUpOn = TIP === 'tipUp';
     if (!G.dg && !BOT && !tipUpOn) { const q = questNow(), v = Math.min(q[1], questVal(q)), done = v >= q[1], qw = W - 110, qy = y0 - 34 - (G.rHint > 0 ? 34 : 0), pr = q[0] === 'stage' ? '' : ` (${v}/${q[1]})`;   /* 길잡이 임무 한 줄 */
       ctx.fillStyle = done ? 'rgba(60,40,6,.92)' : 'rgba(16,6,30,.82)'; rr(8, qy, qw, 28, 14); ctx.fill(); ctx.strokeStyle = done ? `rgba(255,210,58,${0.6 + Math.sin(T * 8) * 0.4})` : 'rgba(201,162,255,.35)'; ctx.lineWidth = done ? 2 : 1.2; ctx.stroke();
       txt('임무', 30, qy + 14.5, 11, '#ffd23a', { w: 900 }); txt(q[2] + pr, 52, qy + 14.5, 12, '#ffffff', { align: 'left', w: 800, box: qw - 120 }); icon('gear_coffin', 8 + qw - 52, qy + 14, 22); txt(done ? '받기' : `+${q[3]}`, 8 + qw - 24, qy + 14.5, 12, done ? '#ffe08a' : '#c9b8e8', { w: 900 });
       if (done) BTNS.push({ x: 8, y: qy - 4, w: qw, h: 36, fn: questClaim }); }
-    if (!META.tipUp && !BOT && G.stage >= 3 && !(G.rHint > 0)) { const i = META_UP.slice(0, 4).findIndex(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]));   /* 처음 한 번: 아래 강화 칸을 누르면 된다고 알려 줌(11-19 처음 사람 6분 동안 결정 282 안 씀) */
+    if (TIP === 'tipUp') { const i = META_UP.slice(0, 4).findIndex(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]));   /* 처음 한 번: 아래 강화 칸을 누르면 된다고 알려 줌(11-19 처음 사람 6분 동안 결정 282 안 씀) */
       if (i >= 0) { const tw = 168, ax = 8 + i * (bw + 4) + bw / 2, tx = Math.max(8, Math.min(W - tw - 8, ax - tw / 2)), k = Math.abs(Math.sin(T * 5)) * 6, ty = y0 - 50 - k;
         ctx.fillStyle = 'rgba(255,236,170,.97)'; rr(tx, ty, tw, 36, 10); ctx.fill(); ctx.beginPath(); ctx.moveTo(ax - 8, ty + 36); ctx.lineTo(ax, ty + 46); ctx.lineTo(ax + 8, ty + 36); ctx.fill();
         txt('눌러서 강화! 결정으로 세져요', tx + tw / 2, ty + 18, 13, '#3a1a08', { box: tw - 10, stroke: 0, w: 800 }); } } }
   if (MODE === 'play' && G.idle && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const fw = 48, fh = 42, fx = W - fw - 8, fy = META.speed2 ? 124 : 86, FM = META.form || 0;   /* 군단 편성 단추(누를 때마다 바뀜) */
     ctx.fillStyle = FM ? 'rgba(10,50,40,.9)' : 'rgba(20,10,36,.85)'; rr(fx, fy, fw, fh, 10); ctx.fill(); const wk = G.boss && !G.boss.dead && CHAPTERS[G.ch].weak, hint = wk && FORM[FM].k !== wk; ctx.strokeStyle = hint ? `rgba(255,210,58,${0.6 + Math.sin(T * 8) * 0.4})` : FM ? '#5fffc8' : '#6a4aa0'; ctx.lineWidth = hint ? 3 : 1.5; ctx.stroke();
     txt('편성', fx + fw / 2, fy + 13, 11, '#b9a8d8', { w: 700, box: fw - 6 }); txt(FORM[FM].n, fx + fw / 2, fy + 29, 15, FM ? '#9effd0' : '#ffffff', { box: fw - 6 });
-    if (!META.tipForm && !BOT && G.stage >= 2 && !G.clr) { const k = Math.sin(T * 7) * 4, tw = 150, tx = W - tw - 8, ty = fy + fh + 10 + k, ax = fx + fw / 2;   /* 처음 한 번: 편성 단추 알려주기 — 단추 아래(보스 이름을 안 가리게, 11-19) */
+    if (TIP === 'tipForm') { const k = Math.sin(T * 7) * 4, tw = 150, tx = W - tw - 8, ty = fy + fh + 10 + k, ax = fx + fw / 2;   /* 처음 한 번: 편성 단추 알려주기 — 단추 아래(보스 이름을 안 가리게, 11-19) */
       ctx.fillStyle = 'rgba(255,244,230,.96)'; rr(tx, ty, tw, 36, 10); ctx.fill(); ctx.beginPath(); ctx.moveTo(ax - 7, ty); ctx.lineTo(ax, ty - 9); ctx.lineTo(ax + 7, ty); ctx.fill(); txt('누르면 병종을 골라요', tx + tw / 2, ty + 18, 13, '#3a1a5a', { box: tw - 10, stroke: 0, w: 800 }); }
     BTNS.push({ x: fx, y: fy, w: fw, h: fh, fn: () => { META.tipForm = 1; META.form = ((META.form || 0) + 1) % 4; saveMeta(); G.banner = { text: `편성 「${FORM[META.form].n}」 ${FORM[META.form].d}`, t: 0.6 }; } }); }
   if (MODE === 'play' && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const r = 34, bx = W - r - 18, by = H - r - 34, ready = G.rallyCd <= 0;   /* 함성 단추 */
@@ -731,8 +749,8 @@ function drawHud() {
       icon(G.gc && !G.gc.done ? 'gear_open' : 'gear_coffin', cxx, cyy - 2 + bob, 44); if (META.autoGear) txt('자동', cxx, cyy + cr - 4, 10, '#9effd0', { w: 900 });
       if (n) { ctx.fillStyle = '#ff3b4a'; ctx.beginPath(); ctx.arc(cxx + cr - 4, cyy - cr + 6, 11, 0, 7); ctx.fill(); txt(n > 99 ? '99+' : n + '', cxx + cr - 4, cyy - cr + 6.5, n > 99 ? 9 : 11, '#fff', { stroke: 0, w: 900 }); }
       BTNS.push({ x: cxx - cr - 6, y: cyy - cr - 6, w: cr * 2 + 12, h: cr * 2 + 12, fn: () => { if (G.gc && !G.gc.done) return; coffinOpen(); if (!META.tipGear) { META.tipGear = 1; saveMeta(); } } });
-      if (n && !META.tipGear && !BOT) { const k = Math.sin(T * 6) * 5, tw = 150, tx = cxx - cr - tw - 8 + k, ty = cyy - 17; ctx.fillStyle = 'rgba(236,222,255,.97)'; rr(tx, ty, tw, 34, 10); ctx.fill(); ctx.beginPath(); ctx.moveTo(tx + tw, ty + 11); ctx.lineTo(tx + tw + 9, ty + 17); ctx.lineTo(tx + tw, ty + 23); ctx.fill(); txt('관을 열면 장비가 나와요!', tx + tw / 2, ty + 17, 12, '#2a0a50', { stroke: 0, w: 800, box: tw - 8 }); } }
-    if (ready && !META.tipRally && !BOT && G.allies.length >= 3 && !G.gc && !(META.coffin > 0 && !META.tipGear)) { const k = Math.sin(T * 7) * 6, tw = 196, tx = bx - r - tw + 6 + k, ty = by - r - 60;   /* 처음 한 번: 함성 단추 알려주기(단추 왼쪽, 위엔 필살기 · 관) */
+      if (TIP === 'tipGear') { const k = Math.sin(T * 6) * 5, tw = 150, tx = cxx - cr - tw - 8 + k, ty = cyy - 17; ctx.fillStyle = 'rgba(236,222,255,.97)'; rr(tx, ty, tw, 34, 10); ctx.fill(); ctx.beginPath(); ctx.moveTo(tx + tw, ty + 11); ctx.lineTo(tx + tw + 9, ty + 17); ctx.lineTo(tx + tw, ty + 23); ctx.fill(); txt('관을 열면 장비가 나와요!', tx + tw / 2, ty + 17, 12, '#2a0a50', { stroke: 0, w: 800, box: tw - 8 }); } }
+    if (TIP === 'tipRally') { const k = Math.sin(T * 7) * 6, tw = 196, tx = bx - r - tw + 6 + k, ty = by - r - 60;   /* 처음 한 번: 함성 단추 알려주기(단추 왼쪽, 위엔 필살기 · 관) */
       ctx.fillStyle = 'rgba(255,244,230,.96)'; rr(tx, ty, tw, 44, 12); ctx.fill(); ctx.beginPath(); ctx.moveTo(tx + tw - 26, ty + 44); ctx.lineTo(tx + tw - 4, ty + 44); ctx.lineTo(tx + tw + 8, ty + 58); ctx.fill();
       txt('눌러 보세요! 군단이 세져요', tx + tw / 2, ty + 22, 15, '#3a0a14', { stroke: 0, box: tw - 16 }); } }
   if (G.boss && !G.boss.dead) { const w = W - 60, x = 30, y = top + 58; ctx.fillStyle = 'rgba(0,0,0,.7)'; rr(x, y, w, 12, 6); ctx.fill(); ctx.fillStyle = '#ff4a3a'; rr(x + 1, y + 1, (w - 2) * G.boss.hp / G.boss.max, 10, 5); ctx.fill(); txt(CHAPTERS[G.ch].boss, W / 2, y + 22, 13, '#ffd2c8'); }
@@ -836,6 +854,9 @@ function WEAPONS_OF(id) { for (const c of CARDS) if (c.id === id && c.w) return 
 function drawTitle() {
   drawBg(); const cx = W / 2;
   { ctx.font = `900 17px ${FONT}`; const gt = (META.gems || 0).toLocaleString(), tw = ctx.measureText(gt).width + 46; ctx.fillStyle = 'rgba(16,6,30,.82)'; rr(12, 14, tw, 32, 16); ctx.fill(); ctx.strokeStyle = 'rgba(201,162,255,.35)'; ctx.lineWidth = 1.5; ctx.stroke(); icon('i_gem', 30, 30, 24); txt(gt, 44 + (tw - 46) / 2, 31, 17, '#ffffff'); }   /* 위 결정 알약(로비, 11-19 던전 히어로 대조) */
+  if (attReady() && !BOT && META.attSeen !== today() && (META.runs || META.stage > 1 || META.bestStage)) { META.attSeen = today(); MODE = 'att'; }   /* 하루 처음 로비에 오면 출석판을 한 번 띄움(첫 실행은 바로 싸움부터) */
+  { const bx = 12, by = 132, bw = 62, bh = 66, r1 = attReady(); const g = ctx.createLinearGradient(0, by, 0, by + bh); g.addColorStop(0, 'rgba(70,40,10,.95)'); g.addColorStop(1, 'rgba(34,16,4,.95)'); ctx.fillStyle = g; rr(bx, by, bw, bh, 14); ctx.fill(); ctx.strokeStyle = r1 ? '#ffd23a' : 'rgba(201,162,255,.4)'; ctx.lineWidth = r1 ? 2 : 1.5; ctx.stroke();   /* 출석 단추 */
+    icon('tab_gift', bx + bw / 2, by + 27, 42); txt('출석', bx + bw / 2, by + bh - 11, 12, '#fff', { w: 800 }); if (r1) { ctx.fillStyle = '#ff3b4a'; ctx.beginPath(); ctx.arc(bx + bw - 6, by + 6, 10, 0, 7); ctx.fill(); txt('!', bx + bw - 6, by + 6.5, 12, '#fff', { stroke: 0, w: 900 }); } BTNS.push({ x: bx, y: by, w: bw, h: bh, fn: () => { MODE = 'att'; } }); }
   { dayFix(); const bx = 12, by = 58, bw = 62, bh = 66, n = META.dgT ?? 2; const g = ctx.createLinearGradient(0, by, 0, by + bh); g.addColorStop(0, 'rgba(70,30,40,.95)'); g.addColorStop(1, 'rgba(30,10,24,.95)'); ctx.fillStyle = g; rr(bx, by, bw, bh, 14); ctx.fill(); ctx.strokeStyle = n ? '#ff9a6a' : 'rgba(201,162,255,.4)'; ctx.lineWidth = n ? 2 : 1.5; ctx.stroke();   /* 무덤 토벌 단추(로비 왼쪽 위) */
     iconA(SP.bossPaladin.i, bx + bw / 2, by + 28, 46); txt('토벌', bx + bw / 2, by + bh - 11, 12, '#fff', { w: 800 }); if (n) { ctx.fillStyle = '#ff3b4a'; ctx.beginPath(); ctx.arc(bx + bw - 6, by + 6, 10, 0, 7); ctx.fill(); txt(n + '', bx + bw - 6, by + 6.5, 11, '#fff', { stroke: 0, w: 900 }); } BTNS.push({ x: bx, y: by, w: bw, h: bh, fn: () => { MODE = 'dg'; } }); }
   if (META.bestStage) { ctx.fillStyle = 'rgba(16,6,30,.82)'; rr(W - 132, 14, 120, 32, 16); ctx.fill(); txt(`🏆 최고 ${META.bestStage}`, W - 72, 31, 14, '#ffe08a', { stroke: 0, w: 800 }); }
