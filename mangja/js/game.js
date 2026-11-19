@@ -698,6 +698,8 @@ function drawTitle() {
   drawBg(); const cx = W / 2;
   txt('망자의 군주', cx, H * 0.13, 46, '#e9dcff', { sc: '#2a0a50', lw: 9 }); txt('쓰러뜨린 적이 나의 군단이 된다', cx, H * 0.13 + 44, 16, '#c9a2ff', { w: 800 });
   const li = META.lord || 0, LD = LORDS[li], open = lordOpen(li), fy = Math.min(H * 0.5, H * 0.7 - 146), h = Math.min(230, H * 0.27, fy - H * 0.13 - 66);
+  { const C = [[150, 90, 255], [90, 235, 110], [175, 235, 60]][li] || [150, 90, 255], k = (open ? 0.26 : 0.1) * (0.85 + Math.sin(T * 1.6) * 0.15), gy = fy - h * 0.45, g = ctx.createRadialGradient(cx, gy, 10, cx, gy, Math.max(W, H) * 0.55);   /* 고른 군주 색이 은은히 번짐(망령=보라 · 장군=초록 · 마녀=독 연두) */
+    g.addColorStop(0, `rgba(${C},${k})`); g.addColorStop(0.45, `rgba(${C},${k * 0.35})`); g.addColorStop(1, `rgba(${C},0)`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
   for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + T * 0.4, x = cx + Math.cos(a) * 120, y = fy + 6 + Math.sin(a) * 26; if (Math.sin(a) < 0) titleSk(i, x, y, Math.cos(a + 1.57) > 0 ? 1 : -1); }
   { const k1 = T - TSW, k2 = T % 3.4, k = k1 < 0.5 ? k1 : open && k2 < 0.5 ? k2 : -1, ln = k >= 0 ? Math.sin(k / 0.5 * Math.PI) : 0, ART = !!LD.art, hh = ART ? h * 0.86 : h, sc = hh / 112;   /* 고유 그림 군주는 몸이 넓어 화살표를 덜 가리게 조금 작게 */   /* 첫 화면 군주: 넘길 때 · 3.4초마다 무기를 한 번 휘두름 */
     spr(lordSpr('lordIdle', li), T * 14, cx - 6 + ln * 12 * sc, fy, hh, 1, open ? { rot: ln * 0.13, flash: ln * 0.1 } : { a: 0.28, rot: ln * 0.13 });
