@@ -2221,7 +2221,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1119142630'; let updReady = null;
+  const BUILD = '1119143205'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'], UPD2 = ['raid', 'arena', 'help', 'gear', 'cosm', 'dgsel'];
   function updToast() { try { if (document.getElementById('updT')) return; const d = document.createElement('div'); d.id = 'updT'; d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:98;background:rgba(40,16,8,.94);border:2px solid #ffc864;border-radius:14px;padding:10px 16px;color:#ffe9b0;font:15px "Do Hyeon","Black Han Sans",sans-serif;text-align:center;pointer-events:none;max-width:92vw'; d.innerHTML = '🆕 새 업데이트가 올라왔어요<div style="font-size:12.5px;font-weight:700;color:#fff;margin-top:3px">마을로 가면 바로 적용돼요</div>'; document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch (e) {} }, 6000); } catch (e) {} }
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
@@ -4797,7 +4797,7 @@
   function jRevive() { const R2 = JR, S = R2.S, L = S.L, z = R2.bz, c = jRevCost(); if ((meta.dia || 0) < c) { jBanner('💎 다이아가 모자라요', c + '개 필요'); return; } meta.dia -= c; R2.dz = (R2.dz || 0) + c; jFl(z, 4, c); R2.rv = (R2.rv || 0) + 1; if (!meta.jrv || meta.jrv.d !== today()) meta.jrv = { d: today(), c: {} }; meta.jrv.c[z] = (meta.jrv.c[z] || 0) + 1;
     const best = L.zones[z].sp || L.plats[0];
     JC.place(S, best.x + best.w / 2, best.y); S.P.ground = best; R2.camY = S.P.y - 500; R2.rvT = -999; saveMeta(); jSave(); jBanner('🧗 ' + (z + 1) + '구역 시작점부터!', '다시 올라가요 · ' + jPrize()); }
-  { const _jd109 = jDraw; jDraw = function () { _jd109(); const R2 = JR; if (R2 && !R2.tup && !jTz && (R2.bz || 0) > JC.zoneAt(R2.S.L, R2.S.P.y) && !(R2.S.P.stun > 0)) { button('💎' + jRevCost() + ' → ' + (R2.bz + 1) + '구역 시작점으로', W / 2 - 120, 178, 240, 46, jRevive, true); } if (R2 && R2.tup) jTupDraw(); }; }
+  { const _jd109 = jDraw; jDraw = function () { _jd109(); const R2 = JR; if (R2 && !R2.tup && !jTz && (R2.bz || 0) > JC.zoneAt(R2.S.L, R2.S.P.y) && !(R2.S.P.stun > 0)) { button('💎' + jRevCost() + ' → ' + (R2.bz + 1) + '구역 시작점으로', W / 2 - 120, 300, 240, 46, jRevive, true); } if (R2 && R2.tup) jTupDraw(); }; }
   { const _u109 = update; update = function (k) { _u109(k); if (meta.jVer !== JVER) jMig(); }; }
 
 
@@ -7336,7 +7336,7 @@
   const op297 = () => !!(fbUser && OPU.has(fbUser.uid)) || !!window.__op297;
   function jGo297(z) { const R2 = JR; if (!R2) return; const S = R2.S, L = S.L; if (!L.zones[z]) return; const sp = L.zones[z].sp || L.plats[0]; R2.op = 1; JC.place(S, sp.x + sp.w / 2, sp.y); S.P.ground = sp; R2.camY = S.P.y - 500; R2.bz = Math.max(R2.bz || 0, z); jBanner('🛡️ 운영자 시험 · ' + (z + 1) + '구역', '이 판은 순위 · 선착순에 안 올라가요'); }
   { const _jw297 = jWin; jWin = function () { if (JR && JR.op) { jBanner('🛡️ 운영자 시험 완주!', '순위에는 안 올라가요'); try { sfx.fanfare(); } catch (e) {} return; } return _jw297(); }; }
-  { const _jd297 = jDraw; jDraw = function () { _jd297(); try { if (!JR || !op297()) return; [7, 8, 9].forEach((z, j) => button('🛡️' + (z + 1), 12 + j * 52, 176, 48, 34, () => jGo297(z), false)); if (JR.op) tfit('🛡️ 운영자 시험 판', 172, 193, 12.5, '#9fd0ff', 140, FB, 'left'); } catch (e) {} }; }
+  { const _jd297 = jDraw; jDraw = function () { _jd297(); try { if (!JR || !op297()) return; [7, 8, 9].forEach((z, j) => button((z + 1) + '구역', 116 + j * 60, 133, 56, 34, () => jGo297(z), false)); tfit(JR.op ? '운영자 시험 판' : '운영자 바로 가기', 300, 150, 12.5, '#9fd0ff', 112, FB, 'left'); } catch (e) {} }; }
   setTimeout(() => { try { Object.assign(window.__dh, { jGoX: z => jGo297(z) }); } catch (e) {} }, 0);
 
   try { if ((meta.dia | 0) < 0) { meta.dia = 0; saveMeta(); } } catch (e) {}
