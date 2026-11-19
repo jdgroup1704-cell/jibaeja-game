@@ -207,6 +207,7 @@ function killFoe(f) {
   for (let i = 0; i < (f.boss ? 30 : f.elite ? 8 : 1); i++) G.orbs.push({ x: f.x + rnd(-8, 8) * (i ? 3 : 0), y: f.y - 10 + rnd(-8, 8) * (i ? 3 : 0), v: f.xp * (1 + G.d / 160) * (1 + G.ch * 0.25), t: 0 });
   if (!f.boss && Math.random() < (f.elite ? 1 : 0.012)) G.hearts = (G.hearts || []).concat([{ x: f.x, y: f.y - 6, t: 0 }]);   /* 회복: 영혼 심장 */
   if (f.elite) { G.chestN++; G.queue = (G.queue || 0) + 1; hitstop = 0.08; shake = Math.max(shake, 10); SND.play('boom', 0.5); say('정예 처치! 보물 카드', f.x, f.y - 90, { size: 22, col: '#ffd23a', life: 1.4 }); if (!G.cards) { G.queue--; G.cards = rollCards(); } }
+  if (f.boss && RIGS[f.s] && typeof rigShatter === 'function') G.shat = (G.shat || []).concat(rigShatter(f.s, f.x, f.y, f.h * 1.2, f.dir, bossPose(T, null, f.act, f.at || 0, 1)));   /* 관절이 풀려 부위가 흩어짐 */
   if (f.boss) { G.bossSay = { s: CHAPTERS[G.ch].lines[2], t: 0, x: f.x, y: f.y - f.h - 10 }; hitstop = 0.25; shake = 30; SND.play('win', 0.8); if (G.idle) { G.boss = null; G.bossOn = 0; raiseChamp(f); stageClear(); } else { G.win = 1; G.over = 2.5; } }
   if (G.idle && !f.boss && !G.stBoss) { G.stK++; if (G.stK >= G.stNeed) stageClear(); }
   const alive = G.allies.filter(a => !a.dead).length;
@@ -578,6 +579,7 @@ function drawMain() {
     else if (e.af >= 0) spr('skAtk', e.af, e.x, e.y, h, e.dir, { rim, flash: 0.06 }); else spr('skWalk', e.wf, e.x, e.y, h, e.dir, { rim, flash: 0.06 });
   }
   if (cjOn) ctx.restore();
+  if (G.shat && G.shat.length) { G.shat = stepShatter(G.shat, 1 / 60); drawShatter(ctx, IMG, G.shat); }
   if (G.sl && G.sl.length) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (const q of G.sl) { q.t += 1 / 60; const k = q.t / 0.16; if (k >= 1) continue; const L = (q.big ? 34 : 22) * (0.6 + k * 0.6); ctx.globalAlpha = 1 - k; ctx.strokeStyle = q.big ? '#fff2b0' : '#ffffff'; ctx.lineWidth = (q.big ? 5 : 3) * (1 - k);   /* 맞은 자리 X자 빛 */
     for (const d of [q.a + 0.8, q.a - 0.8]) { ctx.beginPath(); ctx.moveTo(q.x - Math.cos(d) * L / 2, q.y - Math.sin(d) * L / 2); ctx.lineTo(q.x + Math.cos(d) * L / 2, q.y + Math.sin(d) * L / 2); ctx.stroke(); } }
     ctx.restore(); G.sl = G.sl.filter(q => q.t < 0.16); }

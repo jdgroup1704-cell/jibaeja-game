@@ -121,3 +121,16 @@ function bossPose(t, mv, act, at, hurt) {
   if (hurt > 0) { P.root -= 0.08 * hurt; P.head += 0.12 * hurt; P.dx = (P.dx || 0) - 6 * hurt; }
   return P;
 }
+/* 관절 풀려 흩어지기: 쓰러질 때 부위마다 따로 날아감 (11-19) */
+function rigShatter(key, x, y, h, dir, pose) {
+  const R = RIGS[key], s = h / (R.hpx || 640), out = [];
+  const base = new DOMMatrix().translate(x, y).scale(dir * s, s).translate(pose.dx || 0, -(R.foot) + (pose.dy || 0)).rotate((pose.root || 0) * 180 / Math.PI);
+  R.order.forEach((n, i) => { const p = R.P[n], r = R.R[p[0]], m = rigMat(R, n, pose, base), w = r[2] / R.k, hh = r[3] / R.k, c = new DOMPoint(w / 2, hh / 2).matrixTransform(m);
+    const det = m.a * m.d - m.b * m.c, sx = Math.hypot(m.a, m.b), sy = det / sx, side = Math.sign(c.x - x) || (Math.random() < 0.5 ? -1 : 1);
+    out.push({ key, ri: p[0], z: i, x: c.x, y: c.y, a: Math.atan2(m.b, m.a), sx, sy, w, h: hh, vx: side * (60 + Math.random() * 200), vy: -(220 + Math.random() * 260), vr: (Math.random() - 0.5) * 12, gy: y + (Math.random() - 0.5) * 24, t: 0, life: 1.3 + Math.random() * 0.5 }); });
+  return out;
+}
+function stepShatter(list, dt) { for (const q of list) { q.t += dt; q.vy += 900 * dt; q.x += q.vx * dt; q.y += q.vy * dt; q.a += q.vr * dt;
+  const bot = q.gy - Math.min(q.w, q.h) * Math.abs(q.sy) * 0.3; if (q.y > bot) { q.y = bot; q.vy *= -0.32; q.vx *= 0.6; q.vr *= 0.5; } } return list.filter(q => q.t < q.life); }
+function drawShatter(ctx, IMG, list) { for (const q of list) { const R = RIGS[q.key], I = IMG[R.img]; if (!I || !I.naturalWidth) continue; const r = R.R[q.ri];
+  ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, (q.life - q.t) * 2.5)); ctx.translate(q.x, q.y); ctx.rotate(q.a); ctx.scale(q.sx, q.sy); ctx.drawImage(I, r[0], r[1], r[2], r[3], -q.w / 2, -q.h / 2, q.w, q.h); ctx.restore(); } }
