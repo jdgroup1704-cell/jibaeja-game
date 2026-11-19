@@ -7,7 +7,7 @@ const RIGS = {
       bArmU: [3, 180, 60, 'torso', 32, 92, 0], bArmF: [6, 55, 25, 'bArmU', 60, 262, 0], fArmU: [5, 25, 55, 'torso', 170, 92, 0], fArmF: [4, 30, 250, 'fArmU', 145, 235, 0],
       bLegU: [7, 60, 25, 'torso', 50, 250, 0], bLegL: [8, 60, 25, 'bLegU', 80, 195, 0], fLegU: [9, 75, 25, 'torso', 118, 252, 0], fLegL: [10, 65, 25, 'fLegU', 66, 195, 0] },
     order: ['cape', 'bArmU', 'bArmF', 'bLegU', 'bLegL', 'fLegU', 'fLegL', 'torso', 'head', 'fArmU', 'fArmF'],
-    foot: 345, hpx: 880 }   // 엉덩이 관절에서 발바닥까지(원본 px) — 땅에 붙이기
+    foot: 345, hpx: 880, glow: ['fArmF', 150, 95] }   // 엉덩이 관절에서 발바닥까지(원본 px) — 땅에 붙이기
 };
 function rigMat(R, name, pose, base) {   // 부위 그림 좌표 → 화면 행렬
   const p = R.P[name], rot = ((p[6] || 0) * Math.PI / 180) + (pose[name] || 0);
@@ -27,12 +27,16 @@ function drawRig(ctx, IMG, key, x, y, h, dir, pose, o = {}) {
 }
 
 /* 동작: t=시간(초), mv=걷기 위상(없으면 서 있음), atk=공격 진행 0~1(없으면 -1), hurt=0~1 */
-function rigPose(t, mv, atk, hurt) {
+function rigPose(t, mv, atk, hurt, style) {
   const b = Math.sin(t * 2.2), P = { dy: b * 3, root: 0.012 * b, head: 0.035 * Math.sin(t * 2.2 - 0.7), cape: 0.05 * Math.sin(t * 1.7),
     fArmU: -0.2 + 0.05 * b, fArmF: -0.65 + 0.08 * Math.sin(t * 2.2 + 0.5), bArmU: 0.06 * b, bArmF: 0.05 * Math.sin(t * 2.2 + 1) };
   if (mv != null) { const s = Math.sin(mv), c = Math.cos(mv);
     P.fLegU = -0.45 * s; P.bLegU = 0.45 * s; P.fLegL = 0.55 * Math.max(0, c); P.bLegL = 0.55 * Math.max(0, -c);
     P.bArmU += -0.35 * s; P.fArmU += 0.18 * s; P.dy += -Math.abs(Math.sin(mv)) * 10 + 4; P.root += 0.06; P.cape += 0.12 + 0.05 * c; P.head -= 0.04; }
+  P.skirt = 0.025 * Math.sin(t * 1.9); P.weap = 0.04 * Math.sin(t * 2.2); P.staff = 0.03 * Math.sin(t * 2.2 + 1);
+  if (mv != null) P.skirt += 0.07 * Math.sin(mv * 2);
+  if (atk >= 0 && style === 'swing') { const up = atk < 0.35 ? atk / 0.35 : 1, dn = atk < 0.35 ? 0 : atk < 0.6 ? (atk - 0.35) / 0.25 : 1, bk = atk < 0.6 ? 0 : (atk - 0.6) / 0.4, k = dn * (1 - bk), pull = up * (1 - dn);   /* 낫: 크게 치켜들었다 앞으로 베어 내림 */
+    P.fArmU += -1.9 * pull + 0.9 * k; P.fArmF += -0.4 * pull + 0.3 * k; P.weap += -0.5 * pull + 0.9 * k; P.root += -0.1 * pull + 0.18 * k; P.dx = -8 * pull + 22 * k; P.head += 0.1 * k; P.bArmU += 0.4 * pull - 0.3 * k; P.cape += 0.25 * k; P.fLegU = (P.fLegU || 0) - 0.35 * k; P.bLegU = (P.bLegU || 0) + 0.3 * k; atk = -1; }
   if (atk >= 0) { const e = atk < 0.3 ? atk / 0.3 : 1, f = atk < 0.3 ? 0 : atk < 0.55 ? (atk - 0.3) / 0.25 : 1, r = atk < 0.55 ? 0 : (atk - 0.55) / 0.45, k = f * (1 - r);   /* 젖히기 → 내지르기 → 돌아오기 */
     const pull = e * (1 - f);
     P.fArmU += 0.7 * pull - 1.25 * k; P.fArmF += 0.5 * pull + 0.55 * k; P.root += -0.07 * pull + 0.14 * k; P.dx = (-6 * pull + 18 * k); P.head += 0.08 * k; P.bArmU += -0.3 * k; P.cape += 0.15 * k;
@@ -65,3 +69,18 @@ function skPose(t, wf, atk, ut, seed) {
     else { P.fArm += -1.5 * pull + 1.3 * k; P.root = (P.root || 0) - 0.08 * pull + 0.2 * k; P.dx = -5 * pull + 14 * k; P.head += 0.1 * k; P.fLeg = (P.fLeg || 0) - 0.3 * k; P.bLeg = (P.bLeg || 0) + 0.25 * k; } }   /* 칼 치켜들었다 내려베기 */
   return P;
 }
+
+/* 뼈의 장군 · 역병 마녀 (rig_lords.webp, 원본 대비 0.45) */
+const LR = [[0.0, 0.0, 107.1, 134.6], [108.9, 0.0, 89.1, 158.8], [199.8, 0.0, 116.5, 134.1], [318.2, 0.0, 87.3, 139.1], [407.2, 0.0, 71.5, 99.5], [480.6, 0.0, 66.2, 112.5], [548.6, 0.0, 71.5, 95.4], [0.0, 160.7, 63.9, 101.7], [65.7, 160.7, 97.7, 180.9], [165.2, 160.7, 70.7, 141.3], [237.6, 160.7, 61.6, 111.6], [301.1, 160.7, 76.0, 132.8],
+  [378.9, 160.7, 141.8, 164.7], [522.5, 160.7, 88.2, 151.7], [0.0, 343.4, 133.2, 149.4], [135.0, 343.4, 99.5, 429.8], [236.2, 343.4, 78.3, 125.1], [316.4, 343.4, 118.4, 146.2], [436.5, 343.4, 76.0, 127.4], [514.4, 343.4, 115.7, 87.3]];
+RIGS.bone = { img: 'rig_lords', k: 0.45, R: LR, foot: 450, hpx: 1000, style: 'swing', glow: ['weap', 195, 70],
+  P: { torso: [1, 95, 315, null, 0, 0, 0], head: [0, 115, 282, 'torso', 100, 24, 0], cape: [2, 145, 22, 'torso', 100, 40, 0, 1.15],
+    bArmU: [5, 75, 70, 'torso', 25, 78, 0], bArmF: [6, 55, 15, 'bArmU', 110, 235, 0], fArmU: [3, 100, 90, 'torso', 175, 78, 0], fArmF: [4, 40, 15, 'fArmU', 100, 292, -20],
+    weap: [8, 85, 250, 'fArmF', 112, 168, 60, 1.8],
+    bLegU: [10, 65, 20, 'torso', 62, 300, 0], bLegL: [11, 65, 20, 'bLegU', 55, 222, 0], fLegU: [7, 55, 20, 'torso', 128, 300, 0], fLegL: [9, 65, 20, 'fLegU', 55, 202, 0] },
+  order: ['cape', 'bArmU', 'bArmF', 'bLegU', 'bLegL', 'fLegU', 'fLegL', 'torso', 'head', 'weap', 'fArmU', 'fArmF'] };
+RIGS.witch = { img: 'rig_lords', k: 0.45, R: LR, foot: 315, hpx: 1000, style: 'cast', glow: ['fArmF', 195, 150],
+  P: { torso: [13, 100, 320, null, 0, 0, 0], skirt: [14, 155, 18, 'torso', 100, 312, 0], head: [12, 195, 330, 'torso', 100, 22, 0],
+    bArmU: [18, 130, 25, 'torso', 32, 55, 10], bArmF: [19, 30, 30, 'bArmU', 70, 252, 50], staff: [15, 110, 560, 'bArmF', 205, 72, -62],
+    fArmU: [16, 140, 25, 'torso', 172, 52, -15], fArmF: [17, 25, 205, 'fArmU', 60, 252, 0] },
+  order: ['bArmU', 'staff', 'bArmF', 'skirt', 'torso', 'head', 'fArmU', 'fArmF'] };
