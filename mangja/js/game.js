@@ -344,7 +344,8 @@ function weapons(dt) {
 function bossAct(b, dt, d) {
   b.actT -= dt; b.af += dt * 20;
   if (b.act === 'idle' && b.actT <= 0 && d < 420) { b.act = 'raise'; b.af = 0; b.at = 0; G.slam = { x: G.P.x, y: G.P.y, r: 120 + G.ch * 15, t: 0 }; }
-  else if (b.act === 'raise') { b.at += dt; if (b.at >= 1.0) { b.act = 'slam'; b.af = 0; b.at = 0; } }
+  else if (b.act === 'raise') { b.at += dt; if (G.slam) { const s = G.slam, gx = s.x - Math.sign(s.x - b.x || 1) * b.h * 0.64, gy = s.y - 4, ex = gx - b.x, ey = gy - b.y, ed = Math.hypot(ex, ey); if (ed > 2) { const st = Math.min(ed, 240 * dt); b.x += ex / ed * st; b.y += ey / ed * st; } }   /* 무기가 붉은 원에 떨어지게 다가감 */
+    if (b.at >= 1.0) { b.act = 'slam'; b.af = 0; b.at = 0; } }
   else if (b.act === 'slam') { b.at += dt; if (b.at >= 0.15 && G.slam) { shake = 22; SND.play('boom', 0.7); const s = G.slam; burst(s.x, s.y, 40, ['#e8dcc0', '#9a7ad8', '#ff8a6a'], 400, 0.8); G.ring = { x: s.x, y: s.y, r: s.r, t: 0 }; if (Math.hypot((G.P.x - s.x), (G.P.y - s.y) / 0.6) < s.r) hurtLord(28 * (1 + G.ch * 0.3), 'boss'); for (const a of G.allies) if (Math.hypot(a.x - s.x, (a.y - s.y) / 0.6) < s.r) a.hp -= 22; G.slam = null; }
     if (b.at >= 0.6) { b.act = 'idle'; b.actT = Math.max(1.4, 2.6 - G.ch * 0.4); } }
 }
