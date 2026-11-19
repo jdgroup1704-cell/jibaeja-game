@@ -663,7 +663,7 @@ function drawHud() {
 }
 function drawCards() {
   ctx.fillStyle = 'rgba(6,2,14,.82)'; ctx.fillRect(0, 0, W, H);
-  txt('레벨 업!', W / 2, H * 0.17, 34, '#ffe08a'); txt('하나를 고르세요', W / 2, H * 0.17 + 36, 16, '#d9c8ff', { w: 800 });
+  txt('레벨 업!', W / 2, H * 0.17, 34, '#ffe08a'); txt(G.idle && META.autoPick !== 0 && !BOT ? '하나를 고르세요 · 안 고르면 자동' : '하나를 고르세요', W / 2, H * 0.17 + 36, 16, '#d9c8ff', { w: 800 }); if (G.idle && META.autoPick !== 0 && !BOT) { const q = Math.min(1, (G.cardT || 0) / 1.6), bw = 140; ctx.fillStyle = 'rgba(255,255,255,.15)'; rr(W / 2 - bw / 2, H * 0.17 + 52, bw, 5, 3); ctx.fill(); ctx.fillStyle = '#ffe08a'; rr(W / 2 - bw / 2, H * 0.17 + 52, bw * q, 5, 3); ctx.fill(); }   /* 자동 선택까지 남은 시간(처음 사람이 멈춘 줄 모르게) */
   const cw = Math.min(W - 40, 380), ch = Math.min(110, H * 0.15), x = (W - cw) / 2; let y = H * 0.27;
   G.cards.forEach(c => {
     const l = lv(c.id) + 1, g = ctx.createLinearGradient(0, y, 0, y + ch); g.addColorStop(0, c.w ? '#3a1f6a' : '#2a1c48'); g.addColorStop(1, '#1a0f30'); ctx.fillStyle = g; rr(x, y, cw, ch, 16); ctx.fill(); ctx.strokeStyle = l === 1 && c.w ? '#ffd76a' : '#8c5cff'; ctx.lineWidth = 2.5; ctx.stroke();
