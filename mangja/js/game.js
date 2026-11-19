@@ -220,7 +220,7 @@ function raiseChamp(f) {   /* 쓰러진 보스가 해골 장군으로 일어나 
   G.marks.push({ x: f.x, y: f.y, t: 0 }); G.pillars.push({ x: f.x, y: f.y, t: 0, big: true }); say('해골 장군 합류!', f.x, f.y - 150, { size: 24, col: '#9effd0', life: 1.8, vy: -25 });
 }
 function raise(x, y, big, kind) {   /* kind: 'sword' 칼 · 'arch' 활(뒤에서 쏨) · 'shield' 방패(몸 튼튼) */
-  kind = big ? 'sword' : kind || 'sword'; const FM = META.form || 0; if (!big && FM && Math.random() < 0.6) kind = FORM[FM].k;   /* 군단 편성: 고른 병종이 60% */ const S = G.S, hp = (big ? 120 : 40) * S.allyPow * (1 + G.d / 200) * (kind === 'shield' ? 2.6 : kind === 'arch' ? 0.7 : 1);
+  G.raisedN = (G.raisedN || 0) + 1; kind = big ? 'sword' : kind || 'sword'; const FM = META.form || 0; if (!big && FM && Math.random() < 0.6) kind = FORM[FM].k;   /* 군단 편성: 고른 병종이 60% */ const S = G.S, hp = (big ? 120 : 40) * S.allyPow * (1 + G.d / 200) * (kind === 'shield' ? 2.6 : kind === 'arch' ? 0.7 : 1);
   G.allies.push({ ut: kind, x, y, hp, max: hp, rise: 0, t: rnd(0, 5), atkT: rnd(0, 0.6), dir: 1, big, dead: false, wf: rnd(0, 20), af: -1, ang: Math.random() * 6.283 });
   G.marks.push({ x, y, t: 0 }); G.pillars.push({ x, y, t: 0, big }); SND.play('rise', 0.22, rnd(0.9, 1.15));
 }
@@ -358,7 +358,7 @@ function updateFx(dt) {
   for (const m of G.marks) m.t += dt; G.marks = G.marks.filter(m => m.t < 0.9);
   for (const d of G.dead) d.t += dt; G.dead = G.dead.filter(d => d.t < 0.5); for (const p of G.pillars) p.t += dt; G.pillars = G.pillars.filter(p => p.t < 0.55);
   for (const z of G.zaps) z.t += dt; G.zaps = G.zaps.filter(z => z.t < 0.2); for (const q of G.handFx) q.t += dt; G.handFx = G.handFx.filter(q => q.t < 0.8); G.flashW = Math.max(0, (G.flashW || 0) - dt * 2);
-  G.rallyCd -= dt; G.rallyOn -= dt; { let n = 0; for (const a of G.allies) if (!a.dead) n++; if (n > (G.armyMax || 0)) G.armyMax = n; } if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } if (G.gemPop > 0) G.gemPop -= dt; if (G.weakTip) { G.weakTip.t += dt; if (G.weakTip.t > 7 || !G.boss) G.weakTip = null; } if (G.clr) { G.clr.t += dt; if (G.clr.t > (G.clr.boss ? 3.4 : 2.6)) G.clr = null; } if (G.bossSay) { G.bossSay.t += dt; if (G.bossSay.t > 2.8) G.bossSay = null; } if (G.boss && !G.boss.dead && !G.bossHalf && G.boss.hp < G.boss.max * 0.5) { G.bossHalf = 1; G.bossSay = { s: CHAPTERS[G.ch].lines[1], t: 0 }; }
+  G.rallyCd -= dt; G.rallyOn -= dt; { let n = 0; for (const a of G.allies) if (!a.dead) n++; if (n > (G.armyMax || 0)) G.armyMax = n; } if (G.slam) G.slam.t += dt; if (G.ring) { G.ring.t += dt; if (G.ring.t > 0.5) G.ring = null; } if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } if (G.gemPop > 0) G.gemPop -= dt; if (G.weakTip) { G.weakTip.t += dt; if (G.weakTip.t > 7 || !G.boss) G.weakTip = null; } if (G.clr) { G.clr.t += dt; if (G.clr.t > (G.clr.first ? 5 : G.clr.boss ? 3.4 : 2.6)) G.clr = null; } if (G.bossSay) { G.bossSay.t += dt; if (G.bossSay.t > 2.8) G.bossSay = null; } if (G.boss && !G.boss.dead && !G.bossHalf && G.boss.hp < G.boss.max * 0.5) { G.bossHalf = 1; G.bossSay = { s: CHAPTERS[G.ch].lines[1], t: 0 }; }
 }
 /* ── 오늘의 임무(하루 3개 · 날짜 바뀌면 새로) ── */
 const DAILY = [{ key: 'k', name: '적 500명 쓰러뜨리기', need: 500, gem: 40 }, { key: 's', name: '스테이지 5개 돌파하기', need: 5, gem: 40 }, { key: 'e', name: '마법 진화 1번 하기', need: 1, gem: 40 }];
@@ -651,11 +651,13 @@ function drawHud() {
   if (G.weakTip && G.weakTip.t > 0.8) { const q = G.weakTip, a = Math.min(1, (q.t - 0.8) * 4, (7 - q.t) * 2), fi = FORM.findIndex(f => f.k === q.k), ok = (META.form || 0) === fi, y = H * 0.8;   /* 보스 약점 알림 — 아래쪽(보스 · 군주를 가리지 않게, 11-19) */
     ctx.globalAlpha = a; ctx.fillStyle = 'rgba(10,40,30,.85)'; rr(16, y - 18, W - 32, 36, 12); ctx.fill(); ctx.strokeStyle = '#5fffc8'; ctx.lineWidth = 1.5; ctx.stroke();
     txt(`약점: ${FORM[fi].n} 해골 피해 ×1.5` + (ok ? ' · 편성 맞음!' : ` · 편성을 「${FORM[fi].n}」${(c => c % 28 === 0 || c % 28 === 8 ? '로' : '으로')(FORM[fi].n.charCodeAt(FORM[fi].n.length - 1) - 0xAC00)}`), W / 2, y + 1, 16, ok ? '#9effd0' : '#ffffff', { box: W - 48 }); ctx.globalAlpha = 1; }
-  if (G.clr && G.clr.t >= 0) { const c = G.clr, k = c.t, L = c.boss ? 3.4 : 2.6, a = Math.max(0, Math.min(1, k * 5, (L - k) * 2.5)), cy = Math.max(120, H * 0.22), sc = k < 0.22 ? 0.5 + k / 0.22 * 0.65 : k < 0.36 ? 1.15 - (k - 0.22) / 0.14 * 0.15 : 1;
+  if (G.clr && G.clr.t >= 0) { const c = G.clr, k = c.t; if (c.boss && c.first == null) { c.first = !META.firstBoss && !BOT ? 1 : 0; if (c.first) { META.firstBoss = 1; saveMeta(); } } const L = c.first ? 5 : c.boss ? 3.4 : 2.6, a = Math.max(0, Math.min(1, k * 5, (L - k) * 2.5)), cy = Math.max(120, H * 0.22), sc = k < 0.22 ? 0.5 + k / 0.22 * 0.65 : k < 0.36 ? 1.15 - (k - 0.22) / 0.14 * 0.15 : 1;
     G.bossSay = null; if (c.boss && k < 0.4) { ctx.fillStyle = `rgba(255,236,190,${0.5 * (1 - k / 0.4)})`; ctx.fillRect(0, 0, W, H); }
     ctx.globalAlpha = a; ctx.fillStyle = c.boss ? 'rgba(50,20,0,.78)' : 'rgba(20,6,40,.75)'; ctx.fillRect(0, cy - 44, W, 104); ctx.fillStyle = c.boss ? '#ffc94a' : '#a77bff'; ctx.fillRect(0, cy - 44, W, 3); ctx.fillRect(0, cy + 57, W, 3);
     txt(c.boss ? '보스 격파!' : `스테이지 ${c.s} 돌파!`, W / 2, cy - 8, Math.round((W < 400 ? 30 : 36) * sc), c.boss ? '#ffd86a' : '#ffffff', { box: W - 30 });
     if (k > 0.45) { const k2 = Math.min(1, (k - 0.45) * 4); ctx.globalAlpha = a * k2; txt(c.reg ? `새 지역 — ${c.reg}` : c.boss ? `스테이지 ${c.s} · 결정 +${c.gain}` : `결정 +${c.gain}`, W / 2 + (1 - k2) * 40, cy + 34, W < 400 ? 17 : 19, c.reg ? '#9effd0' : '#ffe9a8', { box: W - 40 }); }
+    if (c.first && k > 0.9) { const k3 = Math.min(1, (k - 0.9) * 3), y3 = cy + 76; ctx.globalAlpha = a * k3; ctx.fillStyle = 'rgba(10,30,24,.88)'; rr(20, y3, W - 40, 84, 14); ctx.fill(); ctx.strokeStyle = '#5fffc8'; ctx.lineWidth = 2; ctx.stroke();   /* 첫 보스: 내 군단이 얼마나 컸는지(차별점을 한눈에) */
+      txt('군단 첫 승리!', W / 2, y3 + 22, 18, '#9effd0', { box: W - 60 }); txt(`일으킨 해골 ${G.raisedN || 0} · 군단 최대 ${G.armyMax || 0}`, W / 2, y3 + 50, W < 400 ? 17 : 19, '#ffffff', { box: W - 60 }); txt('쓰러뜨린 적이 모두 내 편이 됐어요', W / 2, y3 + 72, 13, '#b9e8d8', { box: W - 60 }); }
     ctx.globalAlpha = 1;
     for (const g of c.g) { if (k < g.d || g.done) continue; const p = Math.min(1, (k - g.d) / 0.5), e = p * p, x = g.x + (22 - g.x) * e, y = g.y + (46 - g.y) * e - Math.sin(p * Math.PI) * 70; ctx.save(); ctx.shadowColor = '#ffe08a'; ctx.shadowBlur = 14; icon('i_gem', x, y, 34 - e * 12); ctx.restore(); if (p >= 1) { g.done = 1; G.gemPop = 0.18; } }
   }
