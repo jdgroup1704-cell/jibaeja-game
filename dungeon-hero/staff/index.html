@@ -2222,7 +2222,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1120003303'; let updReady = null;
+  const BUILD = '1120004710'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'], UPD2 = ['raid', 'arena', 'help', 'gear', 'cosm', 'dgsel'];
   function updToast() { try { if (document.getElementById('updT')) return; const d = document.createElement('div'); d.id = 'updT'; d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:98;background:rgba(40,16,8,.94);border:2px solid #ffc864;border-radius:14px;padding:10px 16px;color:#ffe9b0;font:15px "Do Hyeon","Black Han Sans",sans-serif;text-align:center;pointer-events:none;max-width:92vw'; d.innerHTML = '🆕 새 업데이트가 올라왔어요<div style="font-size:12.5px;font-weight:700;color:#fff;margin-top:3px">마을로 가면 바로 적용돼요</div>'; document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch (e) {} }, 6000); } catch (e) {} }
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
@@ -7932,7 +7932,7 @@
       const x0 = 62, x1 = W - 12, y = 14, h = 44; buttons = buttons.filter(b => !(b.y < y + h && b.y + b.h > y && b.x >= x0 - 4));
       ctx.save(); ctx.fillStyle = 'rgba(14,10,20,.97)'; rrect(x0 - 4, y - 4, x1 - x0 + 8, h + 8, 14); ctx.fill(); ctx.restore();
       const T = [['💳 충전 · 아바타', 'rec', () => { state = 'pshop'; psTab = 'rec'; }], ['💎 뽑기 · 재료', 'dia', () => { state = 'dshop'; }], ['🐾 펫', 'pet', () => { state = 'dshop'; PT281.on = true; }], ['🏺 유물', 'rl', () => { RL277.on = true; state = 'bag'; }]], tw = (x1 - x0 - 8) / T.length;
-      T.forEach((q, i) => { const on = q[1] === cur, bx = x0 + i * (tw + 4); ctx.save(); const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, on ? '#ffd76a' : 'rgba(60,50,80,.95)'); g.addColorStop(1, on ? '#c8781e' : 'rgba(30,24,44,.95)'); ctx.fillStyle = g; rrect(bx, y, tw, h, 12); ctx.fill(); ctx.strokeStyle = on ? '#fff2c0' : 'rgba(200,180,255,.45)'; ctx.lineWidth = on ? 2.5 : 1.5; ctx.stroke(); ctx.restore();
+      const TW = [1.3, 1.3, .7, .7].map(k => k * tw), TX = TW.map((w, i) => x0 + TW.slice(0, i).reduce((a, b) => a + b + 4, 0)); T.forEach((q, i) => { const tw = TW[i], on = q[1] === cur, bx = TX[i]; ctx.save(); const g = ctx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, on ? '#ffd76a' : 'rgba(60,50,80,.95)'); g.addColorStop(1, on ? '#c8781e' : 'rgba(30,24,44,.95)'); ctx.fillStyle = g; rrect(bx, y, tw, h, 12); ctx.fill(); ctx.strokeStyle = on ? '#fff2c0' : 'rgba(200,180,255,.45)'; ctx.lineWidth = on ? 2.5 : 1.5; ctx.stroke(); ctx.restore();
         tfit(q[0], bx + tw / 2, y + h / 2 + 1, 13.5, on ? '#2a1400' : '#e8e0ff', tw - 10, FT, 'center'); if (!on) buttons.push({ x: bx, y, w: tw, h, act: () => { try { sfx.pick(); } catch (e) {} q[2](); }, dis: false }); }); } catch (e) {} }
   { const _dp345 = drawPShop; drawPShop = function () { _dp345(); st345('rec'); }; }
   { const _dd345 = drawDShop; drawDShop = function () { _dd345(); if (!PT281.on && !RL277.on && !(typeof gach !== 'undefined' && gach)) { const n0 = buttons.length; buttons = buttons.filter(b => !(b.y > 90 && b.y < 140 && b.x < 240)); if (buttons.length < n0) { ctx.save(); ctx.fillStyle = '#120c1a'; ctx.fillRect(8, 98, 232, 38); ctx.restore(); tfit('💎 다이아로 사기', 22, 117, 15, '#bff4ff', 210, FT, 'left'); } } st345('dia'); }; }
