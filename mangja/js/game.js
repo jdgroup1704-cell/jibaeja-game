@@ -530,7 +530,7 @@ function drawMain() {
   if (MODE === 'shop') return drawShop();
   if (MODE === 'box') return drawBox();
   if (MODE === 'pass') return drawPass();
-  const P = G.P, sx = (Math.random() - 0.5) * shake, sy = (Math.random() - 0.5) * shake, cx = W / 2 - P.x + sx, cy = H * 0.52 - P.y + sy;
+  const P = G.P, sx = (Math.random() - 0.5) * shake, sy = (Math.random() - 0.5) * shake, cx = W / 2 - P.x + sx, bl = G.boss && !G.boss.dead ? Math.max(-90, Math.min(0, (G.boss.y - G.boss.h * 0.5 - P.y) * 0.4)) : 0; G.camB = (G.camB || 0) + (bl - (G.camB || 0)) * 0.06; const cy = H * 0.52 - P.y - G.camB + sy;   /* 보스가 위에 있으면 화면을 조금 올려 머리까지 보이게 */
   /* 바닥 */
   ctx.save(); ctx.translate(cx, cy); ctx.fillStyle = GROUND[G.ch] || TILE; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); { const tn = CHAPTERS[G.ch].tint; if (tn && !GROUND[G.ch]) { ctx.fillStyle = tn; ctx.fillRect(P.x - W, P.y - H, W * 2, H * 2); } }
   /* 늪 · 표시 */
@@ -645,7 +645,7 @@ function drawHud() {
       txt('눌러 보세요! 군단이 세져요', tx + tw / 2, ty + 22, 15, '#3a0a14', { stroke: 0, box: tw - 16 }); } }
   if (G.boss && !G.boss.dead) { const w = W - 60, x = 30, y = top + 58; ctx.fillStyle = 'rgba(0,0,0,.7)'; rr(x, y, w, 12, 6); ctx.fill(); ctx.fillStyle = '#ff4a3a'; rr(x + 1, y + 1, (w - 2) * G.boss.hp / G.boss.max, 10, 5); ctx.fill(); txt(CHAPTERS[G.ch].boss, W / 2, y + 22, 13, '#ffd2c8'); }
   if (G.banner) { const k = G.banner.t, a = Math.min(1, k * 3, (2.6 - k) * 2); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(40,0,10,.75)'; ctx.fillRect(0, H * 0.3 - 30, W, 60); txt(G.banner.text, W / 2, H * 0.3, 26, '#ffd2c8', { box: W - 24 }); ctx.globalAlpha = 1; }
-  if (G.weakTip && G.weakTip.t > 0.8) { const q = G.weakTip, a = Math.min(1, (q.t - 0.8) * 4, (7 - q.t) * 2), fi = FORM.findIndex(f => f.k === q.k), ok = (META.form || 0) === fi, y = H * 0.3 + 46;   /* 보스 약점 알림 */
+  if (G.weakTip && G.weakTip.t > 0.8) { const q = G.weakTip, a = Math.min(1, (q.t - 0.8) * 4, (7 - q.t) * 2), fi = FORM.findIndex(f => f.k === q.k), ok = (META.form || 0) === fi, y = H * 0.8;   /* 보스 약점 알림 — 아래쪽(보스 · 군주를 가리지 않게, 11-19) */
     ctx.globalAlpha = a; ctx.fillStyle = 'rgba(10,40,30,.85)'; rr(16, y - 18, W - 32, 36, 12); ctx.fill(); ctx.strokeStyle = '#5fffc8'; ctx.lineWidth = 1.5; ctx.stroke();
     txt(`약점: ${FORM[fi].n} 해골 피해 ×1.5` + (ok ? ' · 편성 맞음!' : ` · 편성을 「${FORM[fi].n}」${(c => c % 28 === 0 || c % 28 === 8 ? '로' : '으로')(FORM[fi].n.charCodeAt(FORM[fi].n.length - 1) - 0xAC00)}`), W / 2, y + 1, 16, ok ? '#9effd0' : '#ffffff', { box: W - 48 }); ctx.globalAlpha = 1; }
   if (G.clr && G.clr.t >= 0) { const c = G.clr, k = c.t, L = c.boss ? 3.4 : 2.6, a = Math.max(0, Math.min(1, k * 5, (L - k) * 2.5)), cy = Math.max(120, H * 0.22), sc = k < 0.22 ? 0.5 + k / 0.22 * 0.65 : k < 0.36 ? 1.15 - (k - 0.22) / 0.14 * 0.15 : 1;
