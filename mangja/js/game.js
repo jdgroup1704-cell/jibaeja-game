@@ -203,7 +203,7 @@ function hurtFoe(f, dmg, sx, sy, kb = 60, src) {
   if (f.hp <= 0) killFoe(f);
 }
 function killFoe(f) {
-  f.dead = true; G.kills++; META.kt = (META.kt || 0) + 1; if (!G.U) G.ult = Math.min(1, (G.ult || 0) + (f.boss ? 0.3 : f.elite ? 0.08 : 1 / 60)); if (!f.boss) G.dead.push({ s: f.s, wf: f.wf, x: f.x, y: f.y, h: f.h, dir: f.dir, t: 0 }); if (G.dead.length > 40) G.dead.shift();
+  f.dead = true; G.kills++; META.kt = (META.kt || 0) + 1; if (!G.dg && typeof wkAdd === 'function') wkAdd(); if (!G.U) G.ult = Math.min(1, (G.ult || 0) + (f.boss ? 0.3 : f.elite ? 0.08 : 1 / 60)); if (!f.boss) G.dead.push({ s: f.s, wf: f.wf, x: f.x, y: f.y, h: f.h, dir: f.dir, t: 0 }); if (G.dead.length > 40) G.dead.shift();
   if (META.vib && f.elite && navigator.vibrate) try { navigator.vibrate(40); } catch (e) {} burst(f.x, f.y - f.h * 0.5, f.boss ? 60 : f.elite ? 26 : 9, ['#e8dcc0', '#bfb59a', '#ffffff', '#9a7ad8'], f.boss ? 420 : 220);
   for (let i = 0; i < (f.boss ? 30 : f.elite ? 8 : 1); i++) G.orbs.push({ x: f.x + rnd(-8, 8) * (i ? 3 : 0), y: f.y - 10 + rnd(-8, 8) * (i ? 3 : 0), v: f.xp * (1 + G.d / 160) * (1 + G.ch * 0.25), t: 0 });
   if (!f.boss && Math.random() < (f.elite ? 1 : 0.012)) G.hearts = (G.hearts || []).concat([{ x: f.x, y: f.y - 6, t: 0 }]);   /* 회복: 영혼 심장 */
@@ -585,7 +585,7 @@ function draw() { drawMain(); if (OFF && !AD && (MODE === 'title' || MODE === 'p
 function drawMain() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); BTNS = [];
   if (!TILE) makeTile();
-  if (MODE === 'title') return drawTitle();
+  if (MODE === 'title') { drawTitle(); if (typeof drawPrize === 'function') drawPrize(); return; }
   if (MODE === 'meta') return drawMeta();
   if (MODE === 'daily') return drawDaily();
   if (MODE === 'dg') return drawDg();
