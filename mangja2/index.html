@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#07040d">
+<title>망자의 군주 — 새판</title>
+<style>
+  @font-face{font-family:JB;src:url(fonts/jb900.woff) format('woff');font-weight:900}
+  @font-face{font-family:JB;src:url(fonts/jb700.woff) format('woff');font-weight:700}
+  html,body{margin:0;height:100%;background:#07040d;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  /* 폰에서는 화면 전체, PC에서는 갤럭시 S26 울트라(412×891) 틀 안에 */
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;gap:34px}
+  #phone{position:relative;flex:none}
+  body.pc{background:radial-gradient(ellipse at 50% 40%,#2a1240 0%,#0d0716 55%,#050308 100%)}
+  body.pc #phone{border-radius:46px;padding:12px;background:linear-gradient(145deg,#3a3444,#15121b 40%,#2b2633);box-shadow:0 0 0 2px #4a4456,0 30px 80px rgba(0,0,0,.7),inset 0 0 0 2px #0a080d}
+  body.pc #phone::after{content:'';position:absolute;top:24px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#050307;box-shadow:0 0 0 2px #1c1822;z-index:3}
+  body.pc canvas{border-radius:34px}
+  canvas{display:block;touch-action:none}
+  #side{display:none;color:#cdb8ff;font:700 15px/1.7 JB,'Malgun Gothic',sans-serif;max-width:250px}
+  body.pc #side{display:block}
+  #side b{display:block;color:#fff;font:900 22px JB,'Malgun Gothic',sans-serif;margin-bottom:6px}
+  #side .k{display:inline-block;min-width:22px;padding:0 6px;border:1px solid #6a4fa0;border-radius:6px;color:#fff;margin-right:6px;text-align:center}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="phone"><canvas id="c"></canvas></div>
+<div id="side"><b>망자의 군주</b>갤럭시 S26 울트라 화면<br>(412 × 891)<br><br>마우스로 누르면 손가락 터치와 같아요.<br><br><span class="k">1</span>영혼 폭풍<br><span class="k">2</span>망자의 행진(필살기)<br><span class="k">3</span>군단 강화<br><span class="k">M</span>소리 켜기/끄기</div></div>
+<script src="js/main.js?v=1"></script>
+</body>
+</html>
