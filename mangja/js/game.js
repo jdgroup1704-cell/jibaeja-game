@@ -377,6 +377,7 @@ const SHOP = [
   { id: 'g3', name: '결정 3,300', sub: '+35% 더', web: 23000, app: 29000, give: () => { META.gems += 3300; } },
   { id: 'g4', name: '결정 19,000', sub: '+60% 더 · 가장 큰 묶음', web: 119000, app: 149000, give: () => { META.gems += 19000; } },
   { id: 'box11', name: '유물 상자 11개', sub: '10번 값에 11번', web: 9900, app: 12000, give: () => { openBox(11); MODE = 'box'; } },
+  { id: 'coffin50', name: '망자의 관 50개', sub: '장비 50번 뽑기 · 바로 받기', web: 4900, app: 5900, ic: 'gear_coffin', give: () => { META.coffin = (META.coffin || 0) + 50; } },
   { id: 'pass', name: '성장 패스', sub: '결정 8,300 + 상자 12개', web: 11000, app: 13900, once: 1, give: () => { META.passBuy = 1; } },
   { id: 'month', name: '월정액', sub: '매일 결정 100 · 30일', web: 9900, app: 12000, give: () => { META.gems += 300; META.monthUntil = Math.max(Date.now(), META.monthUntil || 0) + 30 * 864e5; } },
   { id: 'lordpack', name: '군주 묶음', sub: '두 군주 열기 + 결정 500', web: 9900, app: 12000, once: 1, give: () => { META.lordpack = 1; META.gems += 500; } },
@@ -452,9 +453,11 @@ function drawShop() {
   const cw = Math.min(W - 24, 420), x0 = (W - cw) / 2, gw = (cw - 10) / 2, gh = Math.min(104, (H - 210) / Math.ceil(SHOP.length / 2) - 10); let i = 0;
   for (const it of SHOP) { const x = x0 + (i % 2) * (gw + 10), y = 104 + Math.floor(i / 2) * (gh + 10), got = gotOf(it); i++;
     ctx.fillStyle = 'rgba(30,18,52,.92)'; rr(x, y, gw, gh, 12); ctx.fill(); ctx.strokeStyle = it.id === 'first' ? '#ff8ad2' : '#4a3678'; ctx.lineWidth = it.id === 'first' ? 2 : 1; ctx.stroke();
-    const sm = gh < 90; icon(it.id[0] === 'g' ? 'i_gem' : it.id === 'noad' ? 'chest2' : it.id === 'month' ? 'relic_crown' : it.id === 'awake' ? 'u_magic' : it.id === 'speed' ? 'relic_ring' : 'lord', x + 22, y + (sm ? 22 : 26), sm ? 28 : 34);
+    const sm = gh < 90; if (gh < 74) { icon(it.ic ? it.ic : it.id[0] === 'g' ? 'i_gem' : it.id === 'noad' ? 'chest2' : it.id === 'month' ? 'relic_crown' : it.id === 'awake' ? 'u_magic' : it.id === 'speed' ? 'relic_ring' : 'lord', x + 21, y + gh / 2, 30); } else icon(it.ic ? it.ic : it.id[0] === 'g' ? 'i_gem' : it.id === 'noad' ? 'chest2' : it.id === 'month' ? 'relic_crown' : it.id === 'awake' ? 'u_magic' : it.id === 'speed' ? 'relic_ring' : 'lord', x + 22, y + (sm ? 22 : 26), sm ? 28 : 34);
+    const price = priceOf(it), tight = gh < 74;   /* 작은 폰: 값 단추를 아래 대신 오른쪽에(설명 글이 가려지던 것, 11-19) */
+    if (tight) { txt(got && it.tiers ? '각성 완료' : nmOf(it), x + 42, y + 15, 13, '#fff', { align: 'left', box: gw - 48 }); button(x + 42, y + gh - 31, gw - 50, 26, got ? '가짐' : won(price), () => { if (!got) buy(it); }, { off: got, size: 13 }); continue; }   /* 작은 폰: 설명 글은 빼고 이름 + 값만 */
     txt(got && it.tiers ? '군주 각성 완료' : nmOf(it), x + 42, y + (sm ? 15 : 20), 15, '#fff', { align: 'left', box: gw - 48 }); txt(it.sub, x + 42, y + (sm ? 32 : 40), 11, '#c9b8e8', { align: 'left', w: 700, box: gw - 48 });
-    const price = priceOf(it); button(x + 8, y + gh - (sm ? 32 : 42), gw - 16, sm ? 27 : 34, got ? '가짐' : won(price), () => { if (!got) buy(it); }, { off: got, size: 15 }); }
+    button(x + 8, y + gh - (sm ? 32 : 42), gw - 16, sm ? 27 : 34, got ? '가짐' : won(price), () => { if (!got) buy(it); }, { off: got, size: 15 }); }
   txt(IS_APP ? '앱 가격' : '웹 가격 — 앱보다 싸요', W / 2, H - 98, 12, '#9a8fae', { w: 700 });
   button(W / 2 - 120, H - 80, 240, 56, '돌아가기', () => { MODE = 'title'; }, {});
 }
