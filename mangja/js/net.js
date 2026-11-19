@@ -24,10 +24,10 @@ async function fbInit() {
 
 /* 내 기록 올리기: 최고 단계 · 무덤 토벌 최고 · 쓰러뜨린 적 수. 1분에 한 번만(바뀐 게 있을 때) */
 async function rkPush(force) {
-  if (!fb || !fbUser) return; const best = Math.max(0, Math.min(5000, META.bestStage | 0)); if (best < 1) return;
-  const d = { name: myNick(), best, power: Math.max(0, META.dgBest | 0), kills: Math.max(0, META.kt | 0), ts: Date.now() }, key = d.name + '|' + d.best + '|' + d.power + '|' + Math.floor(wkN() / 200);
+  if (!fb || !fbUser) return; const sb = META.rkSent | 0, sp = META.rkSentP | 0, best = Math.max(0, Math.min(5000, META.bestStage | 0, sb ? sb + 60 : 400)); if (best < 1) return;   /* 서버 규칙: 한 번에 60단계 · 토벌 20까지만 오름 → 나눠서 따라잡음 */
+  const d = { name: myNick(), best, power: Math.max(0, Math.min(META.dgBest | 0, sb ? sp + 20 : 100)), kills: Math.max(0, META.kt | 0), ts: Date.now() }, key = d.name + '|' + d.best + '|' + d.power + '|' + Math.floor(wkN() / 200);
   if (!force && (key === rkLastKey || Date.now() - rkLastPush < 60000)) return; rkLastPush = Date.now(); rkLastKey = key;
-  try { const { S, db } = fb; await S.setDoc(S.doc(db, 'rank', RK_S, 'list', fbUser.uid), d); const n = wkN(); if (n > 0) await S.setDoc(S.doc(db, 'rank', META.wk.k, 'list', fbUser.uid), Object.assign({}, d, { kills: n })); RK.at = [0, 0, 0]; } catch (e) { RK.err = e.code || 'write'; }
+  try { const { S, db } = fb; await S.setDoc(S.doc(db, 'rank', RK_S, 'list', fbUser.uid), d); const n = wkN(); if (n > 0) await S.setDoc(S.doc(db, 'rank', META.wk.k, 'list', fbUser.uid), Object.assign({}, d, { kills: n })); META.rkSent = d.best; META.rkSentP = d.power; saveMeta(); RK.at = [0, 0, 0]; } catch (e) { RK.err = e.code || 'write'; }
 }
 
 /* 순위 불러오기: 위 50명 + 내 등수(나보다 높은 사람 수 + 1) */
