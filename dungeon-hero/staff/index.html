@@ -2222,7 +2222,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1119230054'; let updReady = null;
+  const BUILD = '1119230257'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'], UPD2 = ['raid', 'arena', 'help', 'gear', 'cosm', 'dgsel'];
   function updToast() { try { if (document.getElementById('updT')) return; const d = document.createElement('div'); d.id = 'updT'; d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:98;background:rgba(40,16,8,.94);border:2px solid #ffc864;border-radius:14px;padding:10px 16px;color:#ffe9b0;font:15px "Do Hyeon","Black Han Sans",sans-serif;text-align:center;pointer-events:none;max-width:92vw'; d.innerHTML = '🆕 새 업데이트가 올라왔어요<div style="font-size:12.5px;font-weight:700;color:#fff;margin-top:3px">마을로 가면 바로 적용돼요</div>'; document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch (e) {} }, 6000); } catch (e) {} }
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
@@ -3505,7 +3505,7 @@
     }
     if (!fbAsk) { const on = !!(meta.adOK && meta.adOK.v); button((on ? '📢 이벤트 · 혜택 소식 받기: 켜짐' : '📢 이벤트 · 혜택 소식 받기: 꺼짐') + ' (선택)', X + 20, Y + 334, CW - 40, 40, () => { meta.adOK = { v: on ? 0 : 1, d: new Date().toISOString().slice(0, 10) }; saveMeta(); if (on) { pushOff(); acctSay('소식 받기를 껐어요'); } else { acctSay('알림 허용을 물어볼게요…'); pushOn().then(m => acctSay(m)); } }, on); }
     if (t - acctMsgT < 240) tfit(acctMsg, W / 2, fbAsk ? Y + 384 : Y + 320, 14, '#ffe14d', CW - 30, FB, 'center');
-    if (!fbAsk) { const so = !!meta.strm348; button(so ? '📺 방송 모드: 켜짐 (채팅 · 다른 사람 이름 가림)' : '📺 방송 모드: 꺼짐 · 방송할 때 켜요', X + 20, Y + 382, CW - 40, 40, () => { meta.strm348 = so ? 0 : 1; saveMeta(); try { rankKey = ''; } catch (e) {} acctSay(so ? '방송 모드를 껐어요' : '📺 방송 모드: 채팅과 다른 사람 이름을 가렸어요'); }, !so); }
+    if (!fbAsk) { const so = !!meta.strm348; button(so ? '📺 방송 모드: 켜짐 (채팅 · 다른 사람 이름 가림)' : '📺 방송 모드: 꺼짐 · 방송할 때 켜요', X + 20, Y + 382, CW - 40, 40, () => { meta.strm348 = so ? 0 : 1; saveMeta(); try { rankKey = ''; } catch (e) {} acctSay(so ? '방송 모드를 껐어요 · 화면을 새로 불러와요' : '📺 방송 모드: 채팅과 다른 사람 이름을 가려요 · 화면을 새로 불러와요'); setTimeout(() => { try { location.reload(); } catch (e) {} }, 900); }, !so); }
     button('닫기', X + 110, Y + CH - 54, CW - 220, 40, () => { acctPop = false; }, false); button('📄 약관', X + 14, Y + CH - 54, 88, 40, () => { legalPop = 1; }, false);
   }
 
