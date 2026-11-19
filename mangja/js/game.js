@@ -88,7 +88,7 @@ const saveMeta = () => { META.seen = Date.now(); try { localStorage.setItem(SAVE
 let OFF = null;
 function offCheck() { const now = Date.now(), last = META.seen || now, min = Math.min(480, (now - last) / 60000); if (min < 2 || !META.bestStage || BOT) return; const g = Math.floor(min * 0.25 * (1 + META.bestStage * 0.12) * gemMul()); if (g > 0) OFF = { g, min: Math.floor(min) }; }
 offCheck(); setTimeout(() => { try { monthCheck(); } catch (e) {} }, 500); addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveMeta(); else if (!OFF) offCheck(); });
-function buyUp(u) { const l = META.up[u.id], cost = u.cost(l); if (l >= u.max || META.gems < cost) return false; META.gems -= cost; META.up[u.id]++; META.tipUp = 1;
+function buyUp(u) { const l = META.up[u.id], cost = u.cost(l); if (l >= u.max || META.gems < cost) return false; META.gems -= cost; META.up[u.id]++; META.tipUp = 1; META.qn = META.qn || {}; META.qn.up = (META.qn.up || 0) + 1;
   if (G && MODE === 'play') { const S = G.S, P = G.P, n = l + 1; if (u.id === 'pow') S.pow *= POWM(n) / POWM(l); if (u.id === 'rise') S.rise += 0.03; if (u.id === 'cap') S.cap += 2; if (u.id === 'hp') { const k = HPM(n) / HPM(l); P.max *= k; P.hp *= k; } burst(P.x, P.y - 40, 16, ['#ffe08a', '#ffffff'], 200, 0.5); }
   saveMeta(); if (G && G.idle) saveRun(); SND.play('up', 0.5); return true; }   /* 군주 강화 — 싸우는 중에 사도 바로 들어감 */
 /* 방치형 강화: 끝없이 오르고 값은 곱으로 커짐(공격 · 체력은 곱으로 세짐) — 막히면 강화 → 뚫음 */
@@ -404,7 +404,7 @@ function gearMul() { const E = META.gear || {}, v = k => gearVal(E[k]) / 100; re
 function gearRoll() { const lv = Math.max(1, META.bestStage || META.stage || 1), sl = GSLOT[Math.floor(Math.random() * 4)].k; let x = Math.random(), r = 0; const boost = (META.cl || 0) * 0.15; for (let i = GRAR.length - 1; i >= 0; i--) { const pr = GRAR.slice(i).reduce((a, b) => a + b.p, 0) * (1 + boost); if (x < pr && i > 0) { r = i; break; } } return { s: sl, r, lv }; }
 function gearSell(g) { return Math.max(1, Math.round(GRAR[g.r].m * (1 + g.lv * 0.08))); }
 function gearApply(oldM) { if (!G || MODE !== 'play') return; const m = gearMul(); G.S.pow *= m.p / oldM.p; const k = m.h / oldM.h; G.P.max *= k; G.P.hp *= k; G.S.allyPow *= m.a / oldM.a; }
-function coffinOpen() { if (!(META.coffin > 0) || (G.gc && !G.gc.done)) return; META.coffin--; const g = gearRoll(); G.gc = { g, t: 0 }; SND.play('rise', 0.5, 1.2); burst(G.P.x, G.P.y - 60, 12, ['#c9a2ff', '#fff', GRAR[g.r].c], 220, 0.5); if (g.r >= 3) { shake = Math.max(shake, 10); G.flashW = 0.35; } }
+function coffinOpen() { if (!(META.coffin > 0) || (G.gc && !G.gc.done)) return; META.coffin--; META.qn = META.qn || {}; META.qn.cof = (META.qn.cof || 0) + 1; const g = gearRoll(); G.gc = { g, t: 0 }; SND.play('rise', 0.5, 1.2); burst(G.P.x, G.P.y - 60, 12, ['#c9a2ff', '#fff', GRAR[g.r].c], 220, 0.5); if (g.r >= 3) { shake = Math.max(shake, 10); G.flashW = 0.35; } }
 function gearTake(equip) { const q = G.gc; if (!q || q.done) return; const g = q.g, E = META.gear = META.gear || {}; if (equip) { const om = gearMul(), old = E[g.s]; E[g.s] = g; gearApply(om); if (old) META.gems += gearSell(old); G.pill = { text: `${GRAR[g.r].n} ${GSLOT.find(x => x.k === g.s).n} 장착!`, ic: GSLOT.find(x => x.k === g.s).ic, t: 0 }; }
   else { const n = gearSell(g); META.gems += n; G.gemPop = 0.18; } q.done = 1; q.dt = 0; saveMeta(); }
 function gearAuto(dt) { if (!(META.coffin > 0) && !(G.gc && !G.gc.done)) return; const on = BOT || META.autoGear; if (!on) return; G.gaT = (G.gaT || 0) + dt; if (G.gc && !G.gc.done) { if (G.gaT > 0.9) { G.gaT = 0; const E = META.gear || {}; gearTake(gearVal(G.gc.g) > gearVal(E[G.gc.g.s])); } } else if (G.gaT > 1.2) { G.gaT = 0; coffinOpen(); } }
@@ -547,6 +547,11 @@ function button(x, y, w, h, label, fn, o = {}) {
   ctx.fillStyle = o.off ? '#3a3046' : g; rr(x, y, w, h, 14); ctx.fill(); ctx.strokeStyle = o.gold ? '#fff2c0' : o.green ? '#c0ffe0' : '#b99aff'; ctx.lineWidth = 2; ctx.stroke();
   txt(label, x + w / 2, y + h / 2 + 1, o.size || 20, o.off ? '#9a8fae' : '#ffffff', { box: w - 10, sc: o.gold ? '#6a3a00' : o.green ? '#06321c' : '#1a0638' }); if (!o.off) BTNS.push({ x, y, w, h, fn });
 }
+/* ── 길잡이 임무(11-19 국내 방치형 공통: 왼쪽 아래 한 줄 임무 · 다음 할 일 알려 주고 관으로 보상) ── 결정은 안 줌(공짜 재화는 대표님 답 뒤에) */
+const QUEST = [['stage', 3, '스테이지 3 돌파', 2], ['up', 1, '아래 강화 1번 하기', 2], ['cof', 3, '망자의 관 3번 열기', 3], ['ult', 1, '필살기 1번 쓰기', 2], ['stage', 10, '첫 보스(스테이지 10) 잡기', 4], ['dg', 1, '무덤 토벌 1단계 깨기', 3], ['up', 10, '강화 모두 10번', 3], ['rare', 1, '희귀 이상 장비 끼기', 3], ['stage', 20, '스테이지 20 돌파', 5]];
+function questNow() { const i = META.qi || 0; if (i < QUEST.length) return QUEST[i]; const n = 25 + (i - QUEST.length) * 5; return ['stage', n, `스테이지 ${n} 돌파`, 3 + Math.floor(n / 20)]; }
+function questVal(q) { const k = q[0], N = META.qn || {}; if (k === 'stage') return (META.bestStage || 0); if (k === 'dg') return META.dgBest || 0; if (k === 'rare') return Object.values(META.gear || {}).some(g => g.r >= 2) ? 1 : 0; return N[k] || 0; }
+function questClaim() { const q = questNow(); if (questVal(q) < q[1]) return; META.qi = (META.qi || 0) + 1; META.coffin = Math.min(200, (META.coffin || 0) + q[3]); saveMeta(); SND.play('win', 0.5); G.pill = { text: `임무 완료! 관 +${q[3]}`, ic: 'gear_coffin', t: 0 }; }
 function iconA(n, x, y, h) { const I = IMG[n]; if (I && I.complete && I.naturalWidth) { const w = h * I.naturalWidth / I.naturalHeight; ctx.drawImage(I, x - w / 2, y - h / 2, w, h); } }
 function icon(n, x, y, s) { const I = IMG[n]; if (I && I.complete && I.naturalWidth) ctx.drawImage(I, x - s / 2, y - s / 2, s, s); }
 
@@ -695,6 +700,11 @@ function drawHud() {
       ctx.fillStyle = 'rgba(16,8,30,.86)'; rr(x, y0, bw, bh, 10); ctx.fill(); ctx.strokeStyle = can ? (G.rHint > 0 ? `rgba(255,230,120,${0.55 + Math.sin(T * 10) * 0.45})` : '#ffd23a') : '#4a3678'; ctx.lineWidth = can ? (G.rHint > 0 ? 3.5 : 2) : 1; ctx.stroke();
       icon(u.icon, x + bw / 2, y0 + 20, 28); txt(({ hp: '체력', pow: '공격', rise: '부활', cap: '군단' }[u.id] || 'Lv') + ' ' + l, x + bw / 2, y0 + 8, 10, '#d9c8ff', { w: 800, lw: 2, box: bw - 4 }); txt(max ? '최대' : cost + '', x + bw / 2, y0 + 45, 13, can ? '#ffe08a' : '#8f84a6', { box: bw - 6 });
       if (can) BTNS.push({ x, y: y0, w: bw, h: bh, fn: () => buyUp(u) }); });
+    const tipUpOn = !META.tipUp && G.stage >= 3 && !(G.rHint > 0) && META_UP.slice(0, 4).some(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]));
+    if (!G.dg && !BOT && !tipUpOn) { const q = questNow(), v = Math.min(q[1], questVal(q)), done = v >= q[1], qw = W - 110, qy = y0 - 34 - (G.rHint > 0 ? 34 : 0), pr = q[0] === 'stage' ? '' : ` (${v}/${q[1]})`;   /* 길잡이 임무 한 줄 */
+      ctx.fillStyle = done ? 'rgba(60,40,6,.92)' : 'rgba(16,6,30,.82)'; rr(8, qy, qw, 28, 14); ctx.fill(); ctx.strokeStyle = done ? `rgba(255,210,58,${0.6 + Math.sin(T * 8) * 0.4})` : 'rgba(201,162,255,.35)'; ctx.lineWidth = done ? 2 : 1.2; ctx.stroke();
+      txt('임무', 30, qy + 14.5, 11, '#ffd23a', { w: 900 }); txt(q[2] + pr, 52, qy + 14.5, 12, '#ffffff', { align: 'left', w: 800, box: qw - 120 }); icon('gear_coffin', 8 + qw - 52, qy + 14, 22); txt(done ? '받기' : `+${q[3]}`, 8 + qw - 24, qy + 14.5, 12, done ? '#ffe08a' : '#c9b8e8', { w: 900 });
+      if (done) BTNS.push({ x: 8, y: qy - 4, w: qw, h: 36, fn: questClaim }); }
     if (!META.tipUp && !BOT && G.stage >= 3 && !(G.rHint > 0)) { const i = META_UP.slice(0, 4).findIndex(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]));   /* 처음 한 번: 아래 강화 칸을 누르면 된다고 알려 줌(11-19 처음 사람 6분 동안 결정 282 안 씀) */
       if (i >= 0) { const tw = 168, ax = 8 + i * (bw + 4) + bw / 2, tx = Math.max(8, Math.min(W - tw - 8, ax - tw / 2)), k = Math.abs(Math.sin(T * 5)) * 6, ty = y0 - 50 - k;
         ctx.fillStyle = 'rgba(255,236,170,.97)'; rr(tx, ty, tw, 36, 10); ctx.fill(); ctx.beginPath(); ctx.moveTo(ax - 8, ty + 36); ctx.lineTo(ax, ty + 46); ctx.lineTo(ax + 8, ty + 36); ctx.fill();
@@ -768,7 +778,7 @@ function doRally() { if (G.rallyCd > 0 || G.over) return; if (!META.tipRally) { 
 const ULT = [{ n: '영혼 폭풍', c: ['#c9a2ff', '#8a5cff', '#ffffff'] }, { n: '뼈 창 대지', c: ['#f2e6c8', '#ffd23a', '#ffffff'] }, { n: '역병 해일', c: ['#8affb0', '#3ad87a', '#eaffd0'] }];
 function ultDmg() { return 70 * (1 + G.d / 90); }
 function ultHit(x, y, r, k, kb = 220) { for (const f of G.foes) { if (f.dead) continue; const d = Math.hypot(f.x - x, (f.y - y) / 0.7); if (d < r) hurtFoe(f, ultDmg() * k * (f.boss ? 0.5 : 1), x, y, f.boss ? 0 : kb, 'ult'); } }
-function doUlt() { if ((G.ult || 0) < 1 || G.over || G.U) return; const P = G.P, L = G.lord || 0; G.ult = 0; G.U = { t: 0, L, x: P.x, y: P.y, ev: [] }; hitstop = 0.14; G.flashW = 0.55; shake = 26; SND.play('boom', 0.8); SND.play('win', 0.4, 0.7);
+function doUlt() { if ((G.ult || 0) < 1 || G.over || G.U) return; META.qn = META.qn || {}; META.qn.ult = (META.qn.ult || 0) + 1; const P = G.P, L = G.lord || 0; G.ult = 0; G.U = { t: 0, L, x: P.x, y: P.y, ev: [] }; hitstop = 0.14; G.flashW = 0.55; shake = 26; SND.play('boom', 0.8); SND.play('win', 0.4, 0.7);
   if (META.vib && navigator.vibrate) try { navigator.vibrate([40, 30, 60]); } catch (e) {}
   const foes = G.foes.filter(f => !f.dead && Math.abs(f.x - P.x) < W * 0.5 - 10 && f.y - P.y > -H * 0.45 && f.y - P.y < H * 0.4).sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y)).slice(0, 30);
   if (L === 0) { for (let i = 0; i < 22; i++) { const f = foes[i % Math.max(1, foes.length)], a = Math.random() * 6.283, rr2 = 60 + Math.random() * 230, tx = f && i < foes.length ? f.x + rnd(-20, 20) : P.x + Math.cos(a) * rr2, ty = f && i < foes.length ? f.y + rnd(-14, 14) : P.y + Math.sin(a) * rr2 * 0.6; G.U.ev.push({ k: 'met', at: 0.12 + i * 0.045, x: tx, y: ty }); } G.U.end = 1.5; }   /* 하늘에서 영혼 불덩이가 쏟아짐 */
