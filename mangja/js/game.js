@@ -88,7 +88,7 @@ const saveMeta = () => { META.seen = Date.now(); try { localStorage.setItem(SAVE
 let OFF = null;
 function offCheck() { const now = Date.now(), last = META.seen || now, min = Math.min(480, (now - last) / 60000); if (min < 2 || !META.bestStage || BOT) return; const g = Math.floor(min * 0.25 * (1 + META.bestStage * 0.12) * gemMul()); if (g > 0) OFF = { g, min: Math.floor(min) }; }
 offCheck(); setTimeout(() => { try { monthCheck(); } catch (e) {} }, 500); addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveMeta(); else if (!OFF) offCheck(); });
-function buyUp(u) { const l = META.up[u.id], cost = u.cost(l); if (l >= u.max || META.gems < cost) return false; META.gems -= cost; META.up[u.id]++;
+function buyUp(u) { const l = META.up[u.id], cost = u.cost(l); if (l >= u.max || META.gems < cost) return false; META.gems -= cost; META.up[u.id]++; META.tipUp = 1;
   if (G && MODE === 'play') { const S = G.S, P = G.P, n = l + 1; if (u.id === 'pow') S.pow *= POWM(n) / POWM(l); if (u.id === 'rise') S.rise += 0.03; if (u.id === 'cap') S.cap += 2; if (u.id === 'hp') { const k = HPM(n) / HPM(l); P.max *= k; P.hp *= k; } burst(P.x, P.y - 40, 16, ['#ffe08a', '#ffffff'], 200, 0.5); }
   saveMeta(); if (G && G.idle) saveRun(); SND.play('up', 0.5); return true; }   /* 군주 강화 — 싸우는 중에 사도 바로 들어감 */
 /* 방치형 강화: 끝없이 오르고 값은 곱으로 커짐(공격 · 체력은 곱으로 세짐) — 막히면 강화 → 뚫음 */
@@ -632,7 +632,11 @@ function drawHud() {
     META_UP.slice(0, 4).forEach((u, i) => { const l = META.up[u.id], max = l >= u.max, cost = u.cost(l), can = !max && META.gems >= cost, x = 8 + i * (bw + 4);
       ctx.fillStyle = 'rgba(16,8,30,.86)'; rr(x, y0, bw, bh, 10); ctx.fill(); ctx.strokeStyle = can ? (G.rHint > 0 ? `rgba(255,230,120,${0.55 + Math.sin(T * 10) * 0.45})` : '#ffd23a') : '#4a3678'; ctx.lineWidth = can ? (G.rHint > 0 ? 3.5 : 2) : 1; ctx.stroke();
       icon(u.icon, x + bw / 2, y0 + 20, 28); txt(({ hp: '체력', pow: '공격', rise: '부활', cap: '군단' }[u.id] || 'Lv') + ' ' + l, x + bw / 2, y0 + 8, 10, '#d9c8ff', { w: 800, lw: 2, box: bw - 4 }); txt(max ? '최대' : cost + '', x + bw / 2, y0 + 45, 13, can ? '#ffe08a' : '#8f84a6', { box: bw - 6 });
-      if (can) BTNS.push({ x, y: y0, w: bw, h: bh, fn: () => buyUp(u) }); }); }
+      if (can) BTNS.push({ x, y: y0, w: bw, h: bh, fn: () => buyUp(u) }); });
+    if (!META.tipUp && !BOT && G.stage >= 3 && !(G.rHint > 0)) { const i = META_UP.slice(0, 4).findIndex(u => META.up[u.id] < u.max && META.gems >= u.cost(META.up[u.id]));   /* 처음 한 번: 아래 강화 칸을 누르면 된다고 알려 줌(11-19 처음 사람 6분 동안 결정 282 안 씀) */
+      if (i >= 0) { const tw = 168, ax = 8 + i * (bw + 4) + bw / 2, tx = Math.max(8, Math.min(W - tw - 8, ax - tw / 2)), k = Math.abs(Math.sin(T * 5)) * 6, ty = y0 - 50 - k;
+        ctx.fillStyle = 'rgba(255,236,170,.97)'; rr(tx, ty, tw, 36, 10); ctx.fill(); ctx.beginPath(); ctx.moveTo(ax - 8, ty + 36); ctx.lineTo(ax, ty + 46); ctx.lineTo(ax + 8, ty + 36); ctx.fill();
+        txt('눌러서 강화! 결정으로 세져요', tx + tw / 2, ty + 18, 13, '#3a1a08', { box: tw - 10, stroke: 0, w: 800 }); } } }
   if (MODE === 'play' && G.idle && !G.cards && !G.over && !G.reviveAsk && !G.paused) { const fw = 48, fh = 42, fx = W - fw - 8, fy = META.speed2 ? 124 : 86, FM = META.form || 0;   /* 군단 편성 단추(누를 때마다 바뀜) */
     ctx.fillStyle = FM ? 'rgba(10,50,40,.9)' : 'rgba(20,10,36,.85)'; rr(fx, fy, fw, fh, 10); ctx.fill(); const wk = G.boss && !G.boss.dead && CHAPTERS[G.ch].weak, hint = wk && FORM[FM].k !== wk; ctx.strokeStyle = hint ? `rgba(255,210,58,${0.6 + Math.sin(T * 8) * 0.4})` : FM ? '#5fffc8' : '#6a4aa0'; ctx.lineWidth = hint ? 3 : 1.5; ctx.stroke();
     txt('편성', fx + fw / 2, fy + 13, 11, '#b9a8d8', { w: 700, box: fw - 6 }); txt(FORM[FM].n, fx + fw / 2, fy + 29, 15, FM ? '#9effd0' : '#ffffff', { box: fw - 6 });
