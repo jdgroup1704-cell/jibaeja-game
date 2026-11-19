@@ -196,7 +196,7 @@ function say(text, x, y, o = {}) { G.texts.push({ text, x, y, t: 0, life: o.life
 /* ── 피해 ── */
 function hurtFoe(f, dmg, sx, sy, kb = 60, src) {
   if (f.dead) return; dmg *= G.S.pow; const crit = Math.random() < 0.1; if (crit) { dmg *= 2; if (hitstop < 0.03) hitstop = 0.03; }
-  if (src) { G.dmg = G.dmg || {}; G.dmg[src] = (G.dmg[src] || 0) + Math.min(dmg, Math.max(0, f.hp)); } f.hp -= dmg; f.flash = 0.12; const d = Math.hypot(f.x - sx, f.y - sy) || 1, k = f.boss ? 0.1 : f.heavy ? 0.4 : 1; f.kx += (f.x - sx) / d * kb * k; f.ky += (f.y - sy) / d * kb * k;
+  if (src) { G.dmg = G.dmg || {}; G.dmg[src] = (G.dmg[src] || 0) + Math.min(dmg, Math.max(0, f.hp)); } f.hp -= dmg; f.flash = 0.12; if (!G.sl) G.sl = []; if (G.sl.length < 40 && (dmg > 6 || crit)) G.sl.push({ x: f.x + rnd(-6, 6), y: f.y - f.h * rnd(0.35, 0.65), a: Math.atan2(f.y - sy, f.x - sx) + rnd(-0.6, 0.6), t: 0, big: crit || f.elite || f.boss });   /* 타격 불꽃 */ const d = Math.hypot(f.x - sx, f.y - sy) || 1, k = f.boss ? 0.1 : f.heavy ? 0.4 : 1; f.kx += (f.x - sx) / d * kb * k; f.ky += (f.y - sy) / d * kb * k;
   if (Math.random() < (crit ? 1 : 0.5)) say(Math.round(dmg) + '', f.x + rnd(-10, 10), f.y - f.h - 4, { size: crit ? 22 : 15, col: crit ? '#ffd23a' : '#ffffff', life: 0.55 });
   SND.play('hit', crit ? 0.35 : 0.18, rnd(0.85, 1.25));
   if (f.hp <= 0) killFoe(f);
@@ -558,8 +558,8 @@ function drawMain() {
         spr(lordSpr('lordIdle', G.lord), T * (mv ? 22 : 14), P.x + P.dir * ln * 9, P.y + b2, h, P.dir, { flash: P.hurt + cs * 0.12, rot: (mv ? P.dir * 0.07 : 0) + P.dir * ln * 0.13, sx: 1 - cs * 0.06, sy: 1 + cs * 0.08 });
         if (cs > 0) { const HP = RK && IMG[RIGS[RK].img] && IMG[RIGS[RK].img].naturalWidth ? rigPt(RK, 'fArmF', 150, 95, P.x, P.y + 2, h * 1.22, P.dir, rp) : null, hx = HP ? HP[0] : P.x + P.dir * (LA ? (G.lord === 1 ? 44 : 40) : 34), hy = HP ? HP[1] : P.y + (LA ? (G.lord === 1 ? -92 : -70) : -58) + b2, g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 26 * (0.5 + cs)); if (LA && G.lord) { g.addColorStop(0, 'rgba(240,255,220,.95)'); g.addColorStop(0.4, 'rgba(130,255,90,.6)'); g.addColorStop(1, 'rgba(60,200,40,0)'); } else { g.addColorStop(0, 'rgba(255,240,255,.95)'); g.addColorStop(0.4, 'rgba(180,120,255,.6)'); g.addColorStop(1, 'rgba(120,60,255,0)'); } ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hx, hy, 26 * (0.5 + cs), 0, 7); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; } } ctx.restore(); continue; }
     if (e.kind) { const S = SP[e.s], atk = e.boss ? e.act !== 'idle' : e.atkA > 0, sa = SP[e.s + 'Atk'], hop = S.hop && !atk && !e.rootT ? Math.abs(Math.sin(e.wf * 0.28)) * (e.boss ? 6 : 5) : 0, br = e.boss && S.n === 1 ? 1 + Math.sin(T * 2.4) * 0.02 : 1;
-      if (atk && sa) spr(e.s + 'Atk', e.boss ? Math.min(sa.n - 1, (e.act === 'raise' ? e.at / 1.0 * 8 : 8 + e.at / 0.6 * 8)) : (1 - e.atkA / 0.5) * (sa.n - 1), e.x, e.y, e.h, e.dir, { flash: e.flash, sx: 1 + (e.boss ? 0 : Math.max(0, e.flash) / 0.12 * 0.14), sy: 1 - (e.boss ? 0 : Math.max(0, e.flash) / 0.12 * 0.12) });
-      else spr(e.s, S.hop ? T * 14 + e.wf * 0.1 : e.wf, e.x, e.y - hop, e.h * br, e.dir, { flash: e.flash, sy: e.boss && e.act === 'raise' ? 1.04 : 1 - (e.boss ? 0 : Math.max(0, e.flash) / 0.12 * 0.12), sx: 1 + (e.boss ? 0 : Math.max(0, e.flash) / 0.12 * 0.14) });   /* 맞으면 납작 — 손맛 */
+      if (atk && sa) spr(e.s + 'Atk', e.boss ? Math.min(sa.n - 1, (e.act === 'raise' ? e.at / 1.0 * 8 : 8 + e.at / 0.6 * 8)) : (1 - e.atkA / 0.5) * (sa.n - 1), e.x, e.y, e.h, e.dir, { flash: e.flash, rot: -e.dir * (e.boss ? 0.04 : 0.2) * Math.max(0, e.flash) / 0.12, sx: 1 + (e.boss ? 0 : Math.max(0, e.flash) / 0.12 * 0.14), sy: 1 - (e.boss ? 0 : Math.max(0, e.flash) / 0.12 * 0.12) });
+      else spr(e.s, S.hop ? T * 14 + e.wf * 0.1 : e.wf, e.x, e.y - hop, e.h * br, e.dir, { flash: e.flash, sy: e.boss && e.act === 'raise' ? 1.04 : 1 - (e.boss ? 0 : Math.max(0, e.flash) / 0.12 * 0.12), sx: 1 + (e.boss ? 0 : Math.max(0, e.flash) / 0.12 * 0.14), rot: -e.dir * (e.boss ? 0.04 : 0.2) * Math.max(0, e.flash) / 0.12 });   /* 맞으면 납작 + 뒤로 젖힘 — 손맛 */
       if (e.rootT > 0) { ctx.strokeStyle = 'rgba(200,150,255,.8)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(e.x, e.y, e.r * 1.2, e.r * 0.45, 0, 0, 7); ctx.stroke(); }
       if (e.boss) continue;
       if (e.elite) { ctx.strokeStyle = 'rgba(255,200,60,.85)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(e.x, e.y, e.r * 1.4, e.r * 0.5, 0, 0, 7); ctx.stroke(); }
@@ -574,6 +574,9 @@ function drawMain() {
     else if (e.af >= 0) spr('skAtk', e.af, e.x, e.y, h, e.dir, { rim, flash: 0.06 }); else spr('skWalk', e.wf, e.x, e.y, h, e.dir, { rim, flash: 0.06 });
   }
   if (cjOn) ctx.restore();
+  if (G.sl && G.sl.length) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (const q of G.sl) { q.t += 1 / 60; const k = q.t / 0.16; if (k >= 1) continue; const L = (q.big ? 34 : 22) * (0.6 + k * 0.6); ctx.globalAlpha = 1 - k; ctx.strokeStyle = q.big ? '#fff2b0' : '#ffffff'; ctx.lineWidth = (q.big ? 5 : 3) * (1 - k);   /* 맞은 자리 X자 빛 */
+    for (const d of [q.a + 0.8, q.a - 0.8]) { ctx.beginPath(); ctx.moveTo(q.x - Math.cos(d) * L / 2, q.y - Math.sin(d) * L / 2); ctx.lineTo(q.x + Math.cos(d) * L / 2, q.y + Math.sin(d) * L / 2); ctx.stroke(); } }
+    ctx.restore(); G.sl = G.sl.filter(q => q.t < 0.16); }
   /* 솟는 빛기둥 */
   ctx.save(); ctx.globalCompositeOperation = 'lighter'; for (const p of G.pillars) { const k = p.t / 0.55, a = (k < 0.2 ? k / 0.2 : 1 - (k - 0.2) / 0.8) * 0.8, w = p.big ? 34 : 22, hh = p.big ? 170 : 120; const gr = ctx.createLinearGradient(0, p.y - hh, 0, p.y); gr.addColorStop(0, 'rgba(150,80,255,0)'); gr.addColorStop(1, `rgba(190,130,255,${a})`); ctx.fillStyle = gr; ctx.fillRect(p.x - w / 2, p.y - hh, w, hh); } ctx.restore();
   /* 사슬 번개 */
