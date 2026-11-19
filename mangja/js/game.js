@@ -400,7 +400,7 @@ const GSLOT = [{ k: 'w', n: '무기', ic: 'gear_w', st: '공격' }, { k: 'a', n:
 const GRAR = [{ n: '일반', c: '#b8b0c8', m: 1, p: 0.6 }, { n: '고급', c: '#6fe08a', m: 1.6, p: 0.27 }, { n: '희귀', c: '#5fb6ff', m: 2.5, p: 0.1 }, { n: '영웅', c: '#c27bff', m: 4, p: 0.026 }, { n: '전설', c: '#ffc94a', m: 6.5, p: 0.004 }];
 function gearVal(g) { return g ? GRAR[g.r].m * (2 + g.lv * 0.12) : 0; }   /* % */
 function gearMul() { const E = META.gear || {}, v = k => gearVal(E[k]) / 100; return { p: (1 + v('w')) * (1 + v('r') * 0.5), h: (1 + v('a')) * (1 + v('r') * 0.5), a: 1 + v('b') }; }
-function gearRoll() { const lv = Math.max(1, META.bestStage || META.stage || 1), sl = GSLOT[Math.floor(Math.random() * 4)].k; let x = Math.random(), r = 0; const boost = 0; for (let i = GRAR.length - 1; i >= 0; i--) { const pr = GRAR.slice(i).reduce((a, b) => a + b.p, 0) * (1 + boost * 0.02); if (x < pr && i > 0) { r = i; break; } } return { s: sl, r, lv }; }
+function gearRoll() { const lv = Math.max(1, META.bestStage || META.stage || 1), sl = GSLOT[Math.floor(Math.random() * 4)].k; let x = Math.random(), r = 0; const boost = (META.cl || 0) * 0.15; for (let i = GRAR.length - 1; i >= 0; i--) { const pr = GRAR.slice(i).reduce((a, b) => a + b.p, 0) * (1 + boost); if (x < pr && i > 0) { r = i; break; } } return { s: sl, r, lv }; }
 function gearSell(g) { return Math.max(1, Math.round(GRAR[g.r].m * (1 + g.lv * 0.08))); }
 function gearApply(oldM) { if (!G || MODE !== 'play') return; const m = gearMul(); G.S.pow *= m.p / oldM.p; const k = m.h / oldM.h; G.P.max *= k; G.P.hp *= k; G.S.allyPow *= m.a / oldM.a; }
 function coffinOpen() { if (!(META.coffin > 0) || (G.gc && !G.gc.done)) return; META.coffin--; const g = gearRoll(); G.gc = { g, t: 0 }; SND.play('rise', 0.5, 1.2); burst(G.P.x, G.P.y - 60, 12, ['#c9a2ff', '#fff', GRAR[g.r].c], 220, 0.5); if (g.r >= 3) { shake = Math.max(shake, 10); G.flashW = 0.35; } }
@@ -836,7 +836,14 @@ function drawTitle() {
 }
 function drawMeta() {
   drawBg(); txt('군주 강화', W / 2, 54, 30, '#ffe08a'); { ctx.font = `900 20px ${FONT}`; const tw = ctx.measureText(`결정 ${META.gems}`).width; icon('i_gem', W / 2 + 10 - tw / 2 - 20, 92, 26); } txt(`결정 ${META.gems}`, W / 2 + 10, 93, 20, '#fff');
-  const cw = Math.min(W - 32, 400), x = (W - cw) / 2; let y = 124; const ch = Math.min(84, (H - 240) / META_UP.length - 10);
+  const cw = Math.min(W - 32, 400), x = (W - cw) / 2; let y = 116;
+  { const E = META.gear || {}, tw = (cw - 4 * 6) / 5, th = 78;   /* 망자의 관 장비 4칸 + 관 레벨(좋은 등급 확률 올리기) */
+    GSLOT.forEach((sl, i) => { const g = E[sl.k], tx = x + i * (tw + 6), C = g ? GRAR[g.r].c : '#4a3678'; ctx.fillStyle = 'rgba(30,18,52,.92)'; rr(tx, y, tw, th, 12); ctx.fill(); ctx.strokeStyle = C; ctx.lineWidth = g ? 2 : 1.5; ctx.stroke(); icon(sl.ic, tx + tw / 2, y + 28, 40); if (!g) { ctx.fillStyle = 'rgba(14,6,28,.6)'; rr(tx + 2, y + 2, tw - 4, th - 4, 10); ctx.fill(); }
+      txt(g ? `${GRAR[g.r].n}` : sl.n, tx + tw / 2, y + 56, 11, g ? C : '#8f84a6', { w: 800, box: tw - 4 }); txt(g ? `+${gearVal(g).toFixed(1)}%` : '없음', tx + tw / 2, y + 70, 10, '#d9c8ff', { w: 700, box: tw - 4 }); });
+    const cl = META.cl || 0, cc = Math.round(60 * Math.pow(1.4, cl)), tx = x + 4 * (tw + 6), can = cl < 20 && META.gems >= cc; ctx.fillStyle = 'rgba(40,20,64,.95)'; rr(tx, y, tw, th, 12); ctx.fill(); ctx.strokeStyle = '#c9a2ff'; ctx.lineWidth = 1.5; ctx.stroke(); icon('gear_coffin', tx + tw / 2, y + 22, 34); txt(`관 Lv ${cl}`, tx + tw / 2, y + 44, 11, '#ffe08a', { w: 900, box: tw - 4 });
+    button(tx + 3, y + th - 26, tw - 6, 22, cl >= 20 ? '최대' : `${cc}`, () => { if (cl < 20 && META.gems >= cc) { META.gems -= cc; META.cl = cl + 1; saveMeta(); SND.play('up', 0.5); toast(`관 Lv ${cl + 1} · 좋은 장비가 더 잘 나와요`); } }, { size: 11, gold: can, off: !can });
+    y += th + 10; }
+  const ch = Math.min(84, (H - y - 116) / META_UP.length - 10);
   for (const u of META_UP) { const l = META.up[u.id], max = l >= u.max, cost = u.cost(l), can = !max && META.gems >= cost;
     ctx.fillStyle = 'rgba(30,18,52,.92)'; rr(x, y, cw, ch, 14); ctx.fill(); ctx.strokeStyle = '#4a3678'; ctx.lineWidth = 1.5; ctx.stroke();
     icon(u.icon, x + 38, y + ch / 2, 48); txt(`${u.name}  Lv ${l}`, x + 72, y + ch * 0.34, 18, '#fff', { align: 'left', box: cw - 190 }); { const tg = { hp: '체력', pow: '공격', rise: '부활', cap: '군단' }[u.id]; if (tg) { ctx.fillStyle = 'rgba(255,224,138,.16)'; rr(x + 8, y + ch - 20, 60, 15, 7); ctx.fill(); txt(tg, x + 38, y + ch - 12.5, 10, '#ffe08a', { w: 800, box: 58 }); } }   /* 게임 아래 강화 칸과 같은 것임을 표시(이름이 달라 처음 사람이 헷갈림, 11-19) */ txt(u.desc(l + (max ? 0 : 1)), x + 72, y + ch * 0.7, 14, '#c9b8e8', { align: 'left', w: 700, lw: 2, box: cw - 190 });
