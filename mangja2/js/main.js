@@ -79,7 +79,7 @@ function burst(x, y, n, cols, sp = 220, g = 600, life = 0.7, sz = 3) { for (let 
 function ring(x, y, r, col, life = 0.4, w = 6) { G.fx.push({ k: 'r', x, y, r0: 10, r, col, t: 0, life, w }); }
 function num(x, y, v, col = '#fff', big) { G.nums.push({ x: x + (Math.random() - 0.5) * 16, y, v: Math.round(v), col, t: 0, big }); }
 function pop(x, y, text, col) { G.pops.push({ x, y, text, col, t: 0 }); }
-function hit(o, dmg, kx = 0, col) { o.hp -= dmg; o.flash = 0.75; if (kx) o.x += kx; num(o.x, (o.fyTop || zY(o.z) - 80), dmg, col || '#ffffff', dmg > 60); }
+function hit(o, dmg, kx = 0, col) { o.hp -= dmg; const big = dmg >= 40; o.flash = Math.max(o.flash || 0, big ? 0.7 : 0.22); if (kx) o.x += kx; if (big || Math.random() < 0.35) num(o.x, (o.fyTop || zY(o.z ?? 0.5) - 80), dmg, col || '#ffffff', dmg > 60); }
 
 /* ── 갱신 ── */
 function update(dt) {
@@ -91,8 +91,8 @@ function update(dt) {
   if (!fight) { G.scroll += dt * 60; }
   /* 적 나오기 */
   if (G.spawnLeft > 0) { G.spawnT -= dt; if (G.spawnT <= 0) { spawnFoe(); G.spawnLeft--; G.spawnT = 0.55 + Math.random() * 0.5; } }
-  else if (!G.foes.length && !(G.boss && !G.boss.dead) && G.phase === 'fight') { G.phase = 'march'; G.phaseT = 0; if (G.wave >= G.waveN) { G.stage++; G.wave = 1; G.banner = { text: `제 ${G.stage} 장`, sub: '군단이 다음 땅으로 행진한다', t: 0, col: '#c9a2ff' }; } else G.wave++; }
-  if (G.phase === 'march' && G.phaseT > 2.4) startWave();
+  else if (!G.foes.length && !G.boss && G.phase === 'fight') { G.phase = 'march'; G.phaseT = 0; if (G.wave >= G.waveN) { G.stage++; G.wave = 1; G.bq = { text: `제 ${G.stage} 장`, sub: '군단이 다음 땅으로 행진한다', t: 0, col: '#c9a2ff' }; } else G.wave++; }
+  if (G.phase === 'march' && G.phaseT > (G.bq || (G.banner && G.banner.text.startsWith('망령')) ? 4.5 : 2.4)) startWave();
   /* 군주 */
   const L = G.lord; L.flash = Math.max(0, L.flash - dt * 5); L.castT -= dt;
   if (L.atk >= 0) { L.at += dt * 10; const A = ANIM.lord, f = A.atk[0] + L.at; if (!L.fired && f >= A.hitAt) { L.fired = 1; castSoul(); } if (f >= A.atk[1]) L.atk = -1; }
@@ -125,7 +125,7 @@ function update(dt) {
   if (G.lord.hp <= 0) lordFall();
   /* 보스 */
   const B = G.boss;
-  if (B && !B.dead) { B.t += dt; B.flash = Math.max(0, B.flash - dt * 5);
+  if (B && !B.dead) { B.t += dt; B.flash = Math.max(0, B.flash - dt * 9);
     if (B.st === 'enter') { B.x -= 60 * dt; if (B.x <= W - 92) { B.st = 'walk'; } }
     else { const front = Math.min(...G.sk.filter(s => s.st === 'march').map(s => s.x), W); if (B.atk < 0) { if (B.x - front > 110 && B.x > W - 140) B.x -= 26 * dt; B.slamT -= dt; if (B.slamT <= 0) { B.atk = 0; B.at = 0; B.hitDone = 0; B.warn = 1; B.slamX = B.x - 110; SND.play('stamp', 0.4, 0.8); } }
       else { B.at += dt * 9; const A = ANIM.boss, fr = A.atk[0] + B.at; if (!B.hitDone && fr >= A.hitAt) { B.hitDone = 1; B.warn = 0; bossSlam(B); } if (fr >= A.atk[1]) { B.atk = -1; B.slamT = 3.2 + Math.random() * 1.2; } } }
@@ -145,11 +145,11 @@ function update(dt) {
   for (const n of G.nums) n.t += dt; G.nums = G.nums.filter(n => n.t < 0.9);
   for (const p of G.pops) p.t += dt; G.pops = G.pops.filter(p => p.t < 1.4);
   for (const b of G.bones) b.t += dt; G.bones = G.bones.filter(b => b.t < 6);
-  if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; }
+  if (G.banner) { G.banner.t += dt; if (G.banner.t > 2.6) G.banner = null; } else if (G.bq) { G.banner = G.bq; G.bq = null; }   /* 알림 띠는 차례대로 */
   if (BOT) botTick(dt);
 }
 function nearestFoe(x) { let b = null, bd = 1e9; for (const f of G.foes) if (f.hp > 0 && f.st === 'walk' && f.x < W - 80) { const d = Math.abs(f.x - x); if (d < bd) { bd = d; b = f; } } if (!b && G.boss && !G.boss.dead && G.boss.x < W) b = G.boss; return b; }
-function targetFor(s) { let b = null, bd = 1e9; for (const f of G.foes) if (f.hp > 0 && f.st === 'walk' && f.x < W - 95) { const d = Math.abs(f.x - s.x) + Math.abs(f.z - s.z) * 60; if (d < bd) { bd = d; b = f; } } if (G.boss && !G.boss.dead && G.boss.st !== 'enter') { const d = Math.abs(G.boss.x - 90 - s.x); if (!b || d < bd - 40) b = { x: G.boss.x - 70, z: s.z, boss: 1, get hp() { return G.boss.hp; }, set hp(v) { G.boss.hp = v; }, set flash(v) { G.boss.flash = v; } }; } return b; }
+function targetFor(s) { let b = null, bd = 1e9; for (const f of G.foes) if (f.hp > 0 && f.st === 'walk' && f.x < W - 95) { const d = Math.abs(f.x - s.x) + Math.abs(f.z - s.z) * 60; if (d < bd) { bd = d; b = f; } } if (G.boss && !G.boss.dead && G.boss.st !== 'enter') { const d = Math.abs(G.boss.x - 90 - s.x); if (!b || d < bd - 40) b = { x: G.boss.x - 70, z: s.z, boss: 1, get hp() { return G.boss.hp; }, set hp(v) { G.boss.hp = v; }, set flash(v) { G.boss.flash = Math.max(G.boss.flash, Math.min(v, 0.25)); } }; } return b; }
 function nearestAlly(x) { let b = null, bd = 1e9; for (const s of G.sk) if (s.st === 'march') { const d = x - s.x; if (d > -30 && d < bd) { bd = d; b = s; } } if (G.champ && G.champ.rise >= 1) { const d = x - G.champ.x - 40; if (d > -30 && d < bd) b = { x: G.champ.x + 40, z: 0.5, get hp() { return 1; }, set hp(v) {}, set flash(v) { G.champ.flash = v; } }; } if (!b) b = G.lord; return b; }
 
 function castSoul() { const L = G.lord, tg = nearestFoe(L.x); if (!tg) return; const big = G.sk.length >= 20; G.shots.push({ x: L.x + 30, y: zY(L.z) - 120, tg, t: 0, big }); SND.play('soul', 0.45); burst(L.x + 34, zY(L.z) - 118, 10, ['#c78bff', '#ffffff'], 160, 0, 0.35); }
@@ -166,10 +166,10 @@ function raiseFrom(f) {   /* ★ 쓰러진 기사의 영혼이 타오르고 해�
 function bossSlam(B) { const x = B.slamX, y = zY(0.5); ring(x, y, 170, '#ffd76a', 0.5, 10); ring(x, y, 110, '#ffffff', 0.3, 6); burst(x, y, 40, ['#ffd76a', '#fff2c0', '#c8a050'], 420, 900, 0.8, 4); G.shake = 22; G.hitstop = 0.08; G.flashW = 0.35; SND.play('slam', 0.8);
   for (const s of G.sk) if (s.st === 'march' && Math.abs(s.x - x) < 170) { const k = 1 - Math.abs(s.x - x) / 170; s.st = 'fly'; s.vx = -90 - 220 * k * Math.random(); s.vy = -260 - 260 * k * (0.6 + Math.random() * 0.6); s.fy = -1; s.spin = 0; s.vs = (Math.random() < 0.5 ? -1 : 1) * (5 + Math.random() * 7); s.hp -= 8 + 14 * k; s.atk = -1; }
   if (Math.abs(G.lord.x - x) < 170) { G.lord.hp -= 30; G.lord.flash = 1; } }
-function champSlam(C) { const x = C.x + 130, y = zY(0.5); ring(x, y, 150, '#5fffc8', 0.5, 9); burst(x, y, 30, ['#5fffc8', '#c9a2ff', '#ffffff'], 380, 900, 0.7, 4); G.shake = Math.max(G.shake, 12); G.hitstop = 0.05; SND.play('slam', 0.6, 1.1);
+function champSlam(C) { const x = C.x + 130, y = zY(0.8); ring(x, y, 150, '#5fffc8', 0.5, 9); burst(x, y, 30, ['#5fffc8', '#c9a2ff', '#ffffff'], 380, 900, 0.7, 4); G.shake = Math.max(G.shake, 12); G.hitstop = 0.05; SND.play('slam', 0.6, 1.1);
   for (const f of G.foes) if (f.hp > 0 && f.st === 'walk' && Math.abs(f.x - x) < 150) hit(f, 140 * (1 + G.stage * 0.4), 40, '#7affd8');
   if (G.boss && !G.boss.dead && Math.abs(G.boss.x - x) < 190) hit(G.boss, 160 * (1 + G.stage * 0.4), 0, '#7affd8'); }
-function bossDie(B) { B.dead = 0.001; G.slow = 0.25; G.slowT = 1.1; G.flashW = 1; G.shake = 30; G.hitstop = 0.12; SND.play('shatter', 0.8); SND.play('legend', 0.5);
+function bossDie(B) { B.dead = 0.001; G.slow = 0.25; G.slowT = 1.1; G.flashW = 0.55; G.shake = 30; G.hitstop = 0.12; SND.play('shatter', 0.8); SND.play('legend', 0.5);
   const m = META.boss, h = 300, fy = zY(B.z); G.shards = [];   /* 보스 그림을 조각내 흩뿌림 */
   for (let i = 0; i < 6; i++) for (let j = 0; j < 8; j++) G.shards.push({ i, j, x: B.x, y: fy, vx: (i - 2.5) * 60 + (Math.random() - 0.5) * 160, vy: -200 - Math.random() * 380 + j * 20, r: 0, vr: (Math.random() - 0.5) * 10, t: 0, f: ANIM.boss.atk[0], h });
   burst(B.x, fy - 120, 70, ['#ffd76a', '#ffffff', '#fff2c0'], 520, 500, 1.1, 5); G.banner = { text: '단장 격파!', sub: '그 영혼은 이제 군주의 것', t: 0, col: '#ffd76a' }; G.souls += 120 * G.stage; G.ult = Math.min(1, G.ult + 0.3); }
@@ -225,7 +225,7 @@ function draw() {
   for (const s of G.sk) L.push({ z: s.z, d: () => drawSk(s) });
   for (const f of G.foes) L.push({ z: f.z, d: () => drawFoe(f) });
   if (G.boss && !G.boss.dead) { const B = G.boss; L.push({ z: B.z, d: () => drawBoss(B) }); }
-  if (G.champ) { const C = G.champ; L.push({ z: 0.5, d: () => drawChamp(C) }); }
+  if (G.champ) { const C = G.champ; L.push({ z: 0.97, d: () => drawChamp(C) }); }
   L.sort((a, b) => a.z - b.z); for (const o of L) o.d();
   /* 보스 조각 */
   if (G.shards && META.boss && IMG.boss.naturalWidth) { const m = META.boss, I = IMG.boss, s = 300 / m.ch, f = ANIM.boss.atk[0], sx0 = (f % m.cols) * m.cw, sy0 = Math.floor(f / m.cols) * m.ch, pw = m.cw / 6, ph = m.ch / 8; for (const p of G.shards) { p.t += 1 / 60 * (G.slowT > 0 ? G.slow : 1); p.x += p.vx / 60; p.y += p.vy / 60; p.vy += 900 / 60; p.r += p.vr / 60; const a = Math.max(0, 1 - p.t / 1.6); if (a <= 0) continue; ctx.save(); ctx.globalAlpha = a; ctx.translate(p.x + (p.i - 3) * pw * s * -1, p.y - (m.foot - p.j * ph) * s); ctx.rotate(p.r); ctx.scale(-1, 1); ctx.drawImage(I, sx0 + p.i * pw, sy0 + p.j * ph, pw, ph, -pw * s / 2, -ph * s / 2, pw * s + 1, ph * s + 1); ctx.restore(); } }
@@ -263,7 +263,7 @@ function drawFoe(f) {
   if (f.st === 'walk' && f.hp < f.max) { const w = 34 * zS(f.z); ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(f.x - w / 2, fy - h - 6, w, 4); ctx.fillStyle = '#ff5a5a'; ctx.fillRect(f.x - w / 2, fy - h - 6, w * Math.max(0, f.hp / f.max), 4); }
 }
 function drawBoss(B) { const fy = zY(B.z), h = 300; shadow(B.x, fy, 70); const fr = B.atk >= 0 ? ANIM.boss.atk[0] + B.at : walkF('boss', B.t * 0.8); const gl = ctx.createRadialGradient(B.x, fy - 120, 20, B.x, fy - 120, 200); gl.addColorStop(0, 'rgba(255,215,106,.25)'); gl.addColorStop(1, 'rgba(255,215,106,0)'); ctx.fillStyle = gl; ctx.fillRect(B.x - 200, fy - 320, 400, 380); drawSp('boss', fr, B.x, fy, h, false, { flash: B.flash }); }
-function drawChamp(C) { const fy = zY(0.5), h = 280, k = C.rise || 0; ctx.save(); if (k < 1) { ctx.beginPath(); ctx.rect(C.x - 200, fy - h * 1.3, 400, h * 1.3 + 2); ctx.clip(); } shadow(C.x, fy, 60); const gl = ctx.createRadialGradient(C.x, fy - 110, 20, C.x, fy - 110, 190); gl.addColorStop(0, 'rgba(95,255,200,.28)'); gl.addColorStop(1, 'rgba(95,255,200,0)'); ctx.fillStyle = gl; ctx.fillRect(C.x - 200, fy - 300, 400, 360); const fr = C.atk >= 0 ? ANIM.boss.atk[0] + C.at : walkF('boss', C.t * 0.8); ctx.filter = 'hue-rotate(205deg) saturate(1.3) brightness(0.8) contrast(1.1)'; drawSp('boss', fr, C.x, fy + h * (1 - easeOut(k)), h, true, { flash: C.flash }); ctx.filter = 'none'; ctx.restore(); }
+function drawChamp(C) { const fy = zY(0.97), h = 280, k = C.rise || 0; ctx.save(); if (k < 1) { ctx.beginPath(); ctx.rect(C.x - 200, fy - h * 1.3, 400, h * 1.3 + 2); ctx.clip(); } shadow(C.x, fy, 60); const gl = ctx.createRadialGradient(C.x, fy - 110, 20, C.x, fy - 110, 190); gl.addColorStop(0, 'rgba(95,255,200,.28)'); gl.addColorStop(1, 'rgba(95,255,200,0)'); ctx.fillStyle = gl; ctx.fillRect(C.x - 200, fy - 300, 400, 360); const fr = C.atk >= 0 ? ANIM.boss.atk[0] + C.at : walkF('boss', C.t * 0.8); ctx.filter = 'hue-rotate(205deg) saturate(1.3) brightness(0.8) contrast(1.1)'; drawSp('boss', fr, C.x, fy + h * (1 - easeOut(k)), h, true, { flash: C.flash }); ctx.filter = 'none'; ctx.restore(); }
 const easeOut = k => 1 - Math.pow(1 - k, 3);
 
 function drawHud() {
