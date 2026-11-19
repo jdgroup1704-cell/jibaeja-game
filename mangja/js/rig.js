@@ -19,6 +19,7 @@ function drawRig(ctx, IMG, key, x, y, h, dir, pose, o = {}) {
   const s = h / (R.hpx || 640);   // 원본 px → 화면
   let base = new DOMMatrix().translate(x, y).scale(dir * s, s).translate(pose.dx || 0, -(R.foot) + (pose.dy || 0)).rotate((pose.root || 0) * 180 / Math.PI);
   ctx.save(); if (o.a != null) ctx.globalAlpha = o.a; const m0 = ctx.getTransform();
+  if (o.rim && typeof rimOf === 'function') { const RI = rimOf(R.img, I, o.rim); if (RI) { const k2 = 2 / s; for (const n of R.order) { const p = R.P[n], r = R.R[p[0]], m = m0.multiply(rigMat(R, n, pose, base)); for (const [ox, oy] of [[-k2, 0], [k2, 0], [0, -k2], [0, k2]]) { ctx.setTransform(m.translate(ox, oy)); ctx.drawImage(RI, r[0], r[1], r[2], r[3], 0, 0, r[2] / R.k, r[3] / R.k); } } } }
   for (const n of R.order) { const p = R.P[n], r = R.R[p[0]], m = m0.multiply(rigMat(R, n, pose, base)); ctx.setTransform(m); ctx.drawImage(I, r[0], r[1], r[2], r[3], 0, 0, r[2] / R.k, r[3] / R.k); }
   ctx.setTransform(m0);
   if (o.flash > 0) { /* 맞을 때 하얗게: 같은 부위를 밝게 덧그림 */ ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.min(1, o.flash) * 0.7; for (const n of R.order) { const p = R.P[n], r = R.R[p[0]]; ctx.setTransform(m0.multiply(rigMat(R, n, pose, base))); ctx.drawImage(I, r[0], r[1], r[2], r[3], 0, 0, r[2] / R.k, r[3] / R.k); } ctx.setTransform(m0); }
@@ -42,4 +43,25 @@ function rigPose(t, mv, atk, hurt) {
 function rigPt(key, part, px, py, x, y, h, dir, pose) {   // 부위 그림 위 한 점의 화면 좌표(불꽃 손 위치 등)
   const R = RIGS[key], s = h / (R.hpx || 640), base = new DOMMatrix().translate(x, y).scale(dir * s, s).translate(pose.dx || 0, -(R.foot) + (pose.dy || 0)).rotate((pose.root || 0) * 180 / Math.PI);
   const p = rigMat(R, part, pose, base).transformPoint(new DOMPoint(px, py)); return [p.x, p.y];
+}
+
+/* 해골 병사 3종(검 · 방패 · 활): 머리 · 몸통 · 앞팔(무기) · 뒷팔 · 다리 둘 */
+const SK_R = [[0.0, 0.0, 84.4, 91.2], [86.0, 0.0, 67.2, 94.8], [154.8, 0.0, 75.6, 102.8], [232.0, 0.0, 46.8, 71.6], [280.4, 0.0, 46.4, 87.6], [328.4, 0.0, 47.6, 81.6], [0.0, 104.4, 84.4, 89.6], [86.0, 104.4, 67.2, 92.8], [154.8, 104.4, 80.0, 77.6], [236.4, 104.4, 62.4, 72.4], [300.4, 104.4, 42.4, 86.8], [344.4, 104.4, 45.6, 81.2], [0.0, 198.8, 84.0, 90.0], [85.6, 198.8, 66.4, 93.2], [153.6, 198.8, 65.6, 110.0], [220.8, 198.8, 60.8, 76.8], [283.2, 198.8, 42.0, 88.4], [326.8, 198.8, 46.0, 84.0]];
+function skRig(o, fa, fx, fy, ba, bx, by) { return { img: 'rig_sk', k: 0.4, R: SK_R, foot: 190, hpx: 560,
+  P: { torso: [o + 1, 78, 205, null, 0, 0, 0], head: [o, 95, 208, 'torso', 77, 24, 0],
+    bArm: [o + 3, bx, by, 'torso', 30, 58, ba], fArm: [o + 2, fx, fy, 'torso', 142, 54, fa],
+    bLeg: [o + 5, 22, 22, 'torso', 58, 192, 0], fLeg: [o + 4, 36, 22, 'torso', 98, 194, 0] },
+  order: ['bArm', 'bLeg', 'fLeg', 'torso', 'head', 'fArm'] }; }
+RIGS.skSword = skRig(0, 0, 45, 95, 0, 80, 20);
+RIGS.skShield = skRig(6, -38, 22, 32, 0, 55, 40);
+RIGS.skArch = skRig(12, 0, 45, 95, 0, 55, 40);
+/* 병사 동작: wf=걷기 위상(움직일 때만), atk=공격 0~1, ut=병종 */
+function skPose(t, wf, atk, ut, seed) {
+  const b = Math.sin(t * 3 + seed), P = { dy: b * 2, head: 0.04 * Math.sin(t * 3 + seed - 0.8), fArm: 0.05 * b, bArm: -0.05 * b };
+  if (wf != null) { const s = Math.sin(wf), c = Math.cos(wf); P.fLeg = -0.55 * s; P.bLeg = 0.55 * s; P.bArm += 0.45 * s; P.fArm += -0.2 * s; P.dy += -Math.abs(s) * 9; P.root = 0.07 + 0.03 * c; P.head -= 0.05 * c; }
+  if (atk >= 0) { const up = atk < 0.35 ? atk / 0.35 : 1, dn = atk < 0.35 ? 0 : atk < 0.6 ? (atk - 0.35) / 0.25 : 1, back = atk < 0.6 ? 0 : (atk - 0.6) / 0.4, k = dn * (1 - back), pull = up * (1 - dn);
+    if (ut === 'arch') { P.bArm += 0.9 * pull - 0.2 * k; P.fArm += -0.35 * pull; P.root = (P.root || 0) - 0.06 * pull + 0.04 * k; P.dx = -4 * k; }   /* 시위 당겼다 놓기(반동) */
+    else if (ut === 'shield') { P.fArm += -0.5 * k + 0.2 * pull; P.bArm += -1.0 * k + 0.4 * pull; P.root = (P.root || 0) + 0.16 * k - 0.05 * pull; P.dx = 14 * k - 4 * pull; }   /* 방패로 밀치며 단검 찌르기 */
+    else { P.fArm += -1.5 * pull + 1.3 * k; P.root = (P.root || 0) - 0.08 * pull + 0.2 * k; P.dx = -5 * pull + 14 * k; P.head += 0.1 * k; P.fLeg = (P.fLeg || 0) - 0.3 * k; P.bLeg = (P.bLeg || 0) + 0.25 * k; } }   /* 칼 치켜들었다 내려베기 */
+  return P;
 }
