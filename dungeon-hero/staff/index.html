@@ -2007,7 +2007,7 @@
         button('강화  💰' + c.g.toLocaleString() + '  🔷' + c.s, 28, y + 108, meta.hammer ? W - 196 : W - 56, 34, () => enhance(k), can, !can);
         if (meta.hammer) button('🔨 확정 (' + meta.hammer + ')', W - 160, y + 108, 132, 34, () => enhance(k, 1), false, !(meta.gold >= c.g && meta.stone >= c.s));
       }
-      if (pop) { ctx.globalAlpha = pop; txt(forgePop.ok ? '강화 성공!! +' + forgePop.lv : meta.hammer ? '실패… 🔨 확정 강화를 써 보세요' : '실패… 다음엔 +6%', W / 2 + 40, y + 20 - (1 - pop) * 20, 24, forgePop.ok ? '#fff27a' : '#c8c8d8', FT); ctx.globalAlpha = 1; }
+      if (pop) { const s451 = forgePop.ok ? '강화 성공!! +' + forgePop.lv + (st452 >= 2 ? ' · 연속 ' + st452 + '번!' : '') : meta.hammer ? '실패… 🔨 확정 강화를 써 보세요' : '실패… 다음엔 +6%', yy451 = y + 2 - (1 - pop) * 16, sz451 = forgePop.ok ? 22 : 18; ctx.globalAlpha = Math.min(1, pop * 1.6); ctx.font = sz451 + 'px ' + FT; const w451 = Math.min(W - 40, ctx.measureText(s451).width + 36); ctx.fillStyle = forgePop.ok ? 'rgba(40,24,4,.94)' : 'rgba(18,18,26,.94)'; rrect(W / 2 - w451 / 2, yy451 - 18, w451, 36, 18); ctx.fill(); ctx.strokeStyle = forgePop.ok ? '#ffd34d' : '#9a9aae'; ctx.lineWidth = 2; ctx.stroke(); tfit(s451, W / 2, yy451, sz451, forgePop.ok ? '#fff27a' : '#dcdce6', w451 - 24, FT, 'center'); ctx.globalAlpha = 1; }
       y += 160;
     });
     if ((meta.best || 0) >= 10 && mnLeft() > 0) { const sh = ['w', 'a', 'r'].some(k2 => meta.eq[k2] < EQMAXF() && meta.stone < eqCost(meta.eq[k2]).s); button('🔷 수정 광산에서 강화석 캐기 (오늘 ' + mnLeft() + '/' + MN_N + ')', 30, y - 8, W - 60, 28, () => mnGo(), sh); }
@@ -2229,7 +2229,7 @@
   requestAnimationFrame(frame);
 
   // ===================== 자동 업데이트 =====================
-  const BUILD = '1121142540'; let updReady = null;
+  const BUILD = '1121143414'; let updReady = null;
   const MENU = ['town', 'shop', 'book', 'forge', 'dshop', 'pshop', 'trialsel', 'bag', 'hero'], UPD2 = ['raid', 'arena', 'help', 'gear', 'cosm', 'dgsel'];
   function updToast() { try { if (document.getElementById('updT')) return; const d = document.createElement('div'); d.id = 'updT'; d.style.cssText = 'position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:98;background:rgba(40,16,8,.94);border:2px solid #ffc864;border-radius:14px;padding:10px 16px;color:#ffe9b0;font:15px "Do Hyeon","Black Han Sans",sans-serif;text-align:center;pointer-events:none;max-width:92vw'; d.innerHTML = '🆕 새 업데이트가 올라왔어요<div style="font-size:12.5px;font-weight:700;color:#fff;margin-top:3px">마을로 가면 바로 적용돼요</div>'; document.body.appendChild(d); setTimeout(() => { try { d.remove(); } catch (e) {} }, 6000); } catch (e) {} }
   function updGo() { let rec = null; try { rec = JSON.parse(sessionStorage.getItem('dh-upd-try') || 'null'); } catch (e) {} if (rec && rec.v === updReady && Date.now() - rec.t < 180000) return;
@@ -8702,15 +8702,15 @@ function qr4(text) { const by = Array.from(new TextEncoder().encode(text)); if (
       return _tc449(s, x, y, size, col, maxw, font, align); }; }
 
   // ===================== 빌드 450: 대장간 강화 한 번마다 손맛 연출 =====================
-  let fx450 = null;
-  { const _en450 = enhance; enhance = function (k, h) { const r = _en450(k, h); try { if (r === 1 || r === -1) { fx450 = { k, ok: r === 1, t0: t }; if (r === 1) shake = Math.max(shake || 0, 3); } } catch (e) {} return r; }; }
+  let fx450 = null, st452 = 0;
+  { const _en450 = enhance; enhance = function (k, h) { const r = _en450(k, h); try { if (r === 1 || r === -1) { st452 = r === 1 ? st452 + 1 : 0; fx450 = { k, ok: r === 1, t0: t, n: st452 }; if (r === 1) shake = Math.max(shake || 0, 3); } } catch (e) {} return r; }; }
   { const _df450 = drawForge; drawForge = function () { _df450(); if (!fx450) return; const a = t - fx450.t0, D = fx450.ok ? 46 : 34; if (a > D || a < 0) { fx450 = null; return; }
       try { const i = ['w', 'a', 'r'].indexOf(fx450.k); if (i < 0) return; const cx = 63, cy = 136 + i * 160 + 49, q = a / D; ctx.save();
         if (fx450.ok) { ctx.globalCompositeOperation = 'lighter';
-          glow(cx, cy, 70 + 50 * q, '255,210,110', .5 * (1 - q));
-          ctx.globalAlpha = Math.max(0, 1 - q * 1.4); ctx.strokeStyle = '#fff1b8'; ctx.lineWidth = 4 * (1 - q) + 1; ctx.beginPath(); ctx.arc(cx, cy, 20 + q * 70, 0, Math.PI * 2); ctx.stroke();
+          const C452 = fx450.n >= 5 ? ['200,120,255', '#d9a0ff', '#f3e0ff'] : fx450.n >= 3 ? ['120,220,255', '#8fe6ff', '#e6fbff'] : ['255,210,110', '#ffd65a', '#fff1b8']; glow(cx, cy, 70 + 50 * q + Math.min(5, fx450.n) * 6, C452[0], .5 * (1 - q));
+          ctx.globalAlpha = Math.max(0, 1 - q * 1.4); ctx.strokeStyle = C452[2]; ctx.lineWidth = 4 * (1 - q) + 1; ctx.beginPath(); ctx.arc(cx, cy, 20 + q * 70, 0, Math.PI * 2); ctx.stroke();
           for (let j = 0; j < 26; j++) { const an = j * 2.399 + (j % 3) * .3, sp = 2.2 + (j * 7 % 5) * .55, d = sp * a * (1 - q * .35), x = cx + Math.cos(an) * d, y = cy + Math.sin(an) * d + .06 * a * a;
-            ctx.globalAlpha = Math.max(0, 1 - q * 1.1); ctx.fillStyle = j % 4 ? '#ffd65a' : '#ffffff'; const s = (j % 3 ? 3 : 4.5) * (1 - q * .6); ctx.fillRect(x - s / 2, y - s / 2, s, s); }
+            ctx.globalAlpha = Math.max(0, 1 - q * 1.1); ctx.fillStyle = j % 4 ? C452[1] : '#ffffff'; const s = (j % 3 ? 3 : 4.5) * (1 - q * .6); ctx.fillRect(x - s / 2, y - s / 2, s, s); }
           for (let j = 0; j < 4; j++) { const an = j * 1.57 + .4, d = 34 + j * 6, x = cx + Math.cos(an) * d, y = cy + Math.sin(an) * d, s = 9 * Math.sin(Math.min(1, q * 1.6) * Math.PI);
             ctx.globalAlpha = .9; ctx.strokeStyle = '#fffbe0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - s, y); ctx.lineTo(x + s, y); ctx.moveTo(x, y - s); ctx.lineTo(x, y + s); ctx.stroke(); } }
         else { for (let j = 0; j < 7; j++) { const an = j * .9 - 2.4, d = 10 + a * (.8 + j % 3 * .25), x = cx + Math.cos(an) * d, y = cy - a * .6 + Math.sin(an) * d * .5;
